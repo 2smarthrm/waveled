@@ -259,7 +259,7 @@ const HeaderFour = () => {
         <div className="container-fuild">
           <nav className="navbar site-navbar">
             <div className="brand-logo">
-              <Link href="/home-4">
+              <Link href="/">
                 <h5 className="text-black text-dark">EXPORTECH</h5>
               </Link>
             </div>
@@ -282,7 +282,7 @@ const HeaderFour = () => {
 
                 <ul className="site-menu-main" onClick={menuMainClickHandler}>
                   <li className="nav-item">
-                    <Link href="/home-4" className="nav-link-item drop-trigger">
+                    <Link href="/" className="nav-link-item drop-trigger">
                       Início
                     </Link>
                   </li>
