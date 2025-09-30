@@ -5,19 +5,21 @@ import HeaderTwo from "~/components/Section/Common/Header/HeaderTwo";
 import PageHeader from "~/components/Section/Common/PageHeader";
 import WorkProcessSection from "~/components/Section/Common/WorkProcess/WorkProcessSection";
 import ServiceSection from "~/components/Section/Service/ServiceSection";
+import HeaderFour from '~/components/Section/Common/Header/HeaderFour';
+import FooterFour from '~/components/Section/Common/FooterFour';
 
-const ServicePage = () => {
-    return (
+const ServicePage = () => { 
+    return ( 
         <div>
-            <HeaderTwo className="tekup-header-top bg-light1 "/>
-            <PageHeader title="Our Services"/>
-            <ChooseUsSection className="section tekup-section-padding4"/>
-            <ServiceSection/>
-            <WorkProcessSection/>
+            <HeaderFour />  
+            <ChooseUsSection className="section bg-black services-section tekup-section-padding4 mt-0 "/>
+            <div className="service-area">
+                <ServiceSection/>
+            </div> 
             <CtaSection/>
-            <FooterOneSection className="tekup-footer-section dark-bg"/>
-        </div>
+            <FooterFour />
+        </div> 
     );
 };
 
-export default ServicePage ;
+export default ServicePage ; 
