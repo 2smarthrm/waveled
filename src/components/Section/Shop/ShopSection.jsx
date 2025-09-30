@@ -156,7 +156,7 @@ const ShopSection = () => {
             {/** 3 produtos destaque */}
             <div className="row">
               {Data.topthree.map((item, index) => (
-                <article className="featured-article">
+                <article key={index} className="featured-article">
                   <div
                     className="image"
                     style={{ backgroundColor: `${item?.color}` }}

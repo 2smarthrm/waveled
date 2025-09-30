@@ -16,18 +16,18 @@ const TestimonialSection = () => {
     slidesToScroll: 3.6,
     responsive: [
       {
-        breakpoint: 1024,
+        breakpoint: 1300,
         settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3, 
+          slidesToShow: 2.3,
+          slidesToScroll: 2.3, 
         }
       },
       {
-        breakpoint: 600,
+        breakpoint: 600, 
         settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-          initialSlide: 2
+          slidesToShow: 1.5,
+          slidesToScroll: 1.5,
+          initialSlide: 1.5
         }
       },
       {
