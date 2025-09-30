@@ -319,7 +319,7 @@ const ContactSection = () => {
                         <div className="col-lg-6">
                           <div className="tekup-main-field">
                             <label htmlFor="orcamentoPrevisto" className="form-label">
-                              Orçamento previsto (opcional)
+                              Orçamento previsto 
                             </label>
                             <input
                               id="orcamentoPrevisto"

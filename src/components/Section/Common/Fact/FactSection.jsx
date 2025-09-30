@@ -78,7 +78,7 @@ const FactSection = () => {
         <p>
           Displays LED de alto desempenho para interiores: imagem nítida, cores
           fiéis e integração discreta em qualquer espaço. Indicados para lojas,
-          auditórios, empresas e estúdios. Disponíveis para <strong>venda</strong> e <strong>aluguer</strong>.
+          auditórios, empresas e estúdios. Disponíveis para <strong>venda</strong> e <strong>Aluguer</strong>.
         </p>
         <ul>
           <li>Retalho e vitrines interativas</li>
@@ -106,7 +106,7 @@ const FactSection = () => {
         <h4 className="text-dark">Outdoor</h4>
         <p>
           Robustez e brilho para exterior, com excelente visibilidade sob luz
-          solar. Soluções escaláveis para <strong>venda</strong> e <strong>aluguer</strong>, prontas para
+          solar. Soluções escaláveis para <strong>venda</strong> e <strong>Aluguer</strong>, prontas para
           funcionar 24/7 com proteção contra intempéries.
         </p>
         <ul>
@@ -123,13 +123,13 @@ const FactSection = () => {
       </div>
       <div className="image">
         <img  
-          src="https://maliklighting.com/wp-content/uploads/2020/02/Untitled-design-77.png"
+          src="https://images.samsung.com/is/image/samsung/assets/us/business/displays/outdoor-and-window/explore/OutdoorDigitalSignage_OG-IMAGE_1200x630.jpg"
           alt="Display LED Outdoor em fachada"
         />
       </div>
     </article>
 
-    {/* ALUGUER */}
+    {/* Aluguer */}
     <article className={ActiveTab === 3 ? "container-fluid box-tab" : "d-none"}>
       <div className="content">
         <h4 className="text-dark">Aluguer (Eventos)</h4>
@@ -165,7 +165,7 @@ const FactSection = () => {
         <p>
           Soluções LED para recintos desportivos, com segurança reforçada e
           integração com sistemas de scoring e broadcast. Disponíveis para
-          <strong> venda</strong> e <strong>aluguer</strong>.
+          <strong> venda</strong> e <strong>Aluguer</strong>.
         </p>
         <ul>
           <li>Perímetro LED (perimeter boards) com proteção anti-impacto</li>

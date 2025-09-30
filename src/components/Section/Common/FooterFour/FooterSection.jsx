@@ -45,13 +45,10 @@ export default function FooterFore() {
                       <Link href="about-us">Sobre Nós</Link>
                     </li>
                     <li>
-                      <Link href="#">Novidades </Link>
-                    </li>
-                    <li>
                       <Link href="#">Casos de estudo</Link>
                     </li>
                     <li>
-                      <Link href="#">Serviços</Link>
+                      <Link href="/service">Serviços</Link>
                     </li>
                     <li>
                       <Link href="contact-us">Contatos</Link>
@@ -72,7 +69,7 @@ export default function FooterFore() {
                       <Link href="/shop?category=outdoor">Outdoor</Link>
                     </li>
                     <li>
-                      <Link href="/?category=rent">Aluguel</Link>
+                      <Link href="/shop?category=rent">Aluguer</Link>
                     </li>
                     <li>
                       <Link href="/shop?category=mini_and_micro">Mini & Micro</Link>

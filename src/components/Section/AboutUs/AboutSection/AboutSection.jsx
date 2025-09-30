@@ -21,7 +21,7 @@ const AboutSection = () => {
               <h2>WaveLED — Displays LED para todas as necessidades</h2>
               <p>
                 Somos especialistas na <strong>venda</strong>,{" "}
-                <strong>montagem</strong> e<strong> aluguer</strong> de ecrãs
+                <strong>montagem</strong> e<strong> Aluguer</strong> de ecrãs
                 LED para eventos, publicidade, empresas e projetos especiais.
                 Oferecemos soluções modernas, de alta qualidade e adaptadas a
                 cada cliente.

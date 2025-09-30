@@ -55,7 +55,7 @@ const HeaderFour = () => {
     const getTargets = () =>
       Array.from(
         document.querySelectorAll(
-          ".main-home-hero, .blur-slide-screen, .video-shop-large-section, .service-img"
+          ".main-home-hero, .blur-slide-screen, .video-shop-large-section, .service-img, .services-section, .video-area"
         )
       );
 
@@ -235,7 +235,7 @@ const HeaderFour = () => {
       ],
     },
     {
-      category: "Aluguel",
+      category: "Aluguer",
       series: [
         { title: "Utile EA series", image: "https://www.unilumin.com/media/thumbs/600_17.png", link: "#" },
         { title: "UpadIV ME Series", image: "https://www.unilumin.com/media/thumbs/600_16.png", link: "#" },
@@ -339,7 +339,7 @@ const HeaderFour = () => {
                   </li>
 
                   <li className="nav-item">
-                    <Link href="#" className="nav-link-item drop-trigger">
+                    <Link href="/service" className="nav-link-item drop-trigger">
                       Serviços
                     </Link>
                   </li>
