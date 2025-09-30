@@ -11,11 +11,11 @@ const AccordionSection = () => {
           <div className="col-lg-6">
             <div className="tekup-default-content mr-60">
               <h2 className="mb-3">
-                Aluguel de Painéis LED para Eventos e Projetos
+                Aluguer de Painéis LED para Eventos e Projetos
               </h2>
               <p className="mb-3">
                 Precisa de impacto visual profissional sem comprar equipamento?
-                O <strong>aluguel de LED</strong> é a alternativa{" "}
+                O <strong>Aluguer de LED</strong> é a alternativa{" "}
                 <strong>mais económica e flexível</strong> para feiras, lançamentos,
                 conferências, shows e ativações de marca. Cuidamos de tudo:
                 consultoria, logística, montagem, operação e desmontagem.
@@ -47,7 +47,7 @@ const AccordionSection = () => {
 
               <small className="d-block mt-2 text-muted">
                 *Também vendemos painéis LED. Ajudamos a comparar{" "}
-                <strong>compra vs. aluguel</strong> para o seu cenário.
+                <strong>compra vs. Aluguer</strong> para o seu cenário.
               </small>
             </div>
           </div>
@@ -69,17 +69,17 @@ const AccordionSection = () => {
                       <div className="d-block">
                         <br />
                         <div className="text-uppercase fw-semibold small text-muted">
-                          Aluguel de LED · Guia Rápido
+                          Aluguer de LED · Guia Rápido
                         </div>
                         <br />
                         <div> 
-                          Como funciona o aluguel e quais os principais benefícios?
+                          Como funciona o Aluguer e quais os principais benefícios?
                         </div>
                       </div>
                     </Accordion.Header>
                     <Accordion.Body>
                       <p className="mb-2">
-                        No aluguel você paga apenas pelos <strong>dias de uso</strong>, sem
+                        No Aluguer você paga apenas pelos <strong>dias de uso</strong>, sem
                         investir em compra, armazenamento ou manutenção. 
                       </p>
 
