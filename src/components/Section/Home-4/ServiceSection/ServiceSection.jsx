@@ -55,10 +55,7 @@ const ServiceSection = () => {
           {Cards.map((item, index)=>{
         return <article key={index} className={`featured-product box-${item.position}`} style={{background:`${item.color}`}}>
                   <div className="image"><img src={item.image} alt={item.name} /></div>  
-                  <div className={`text-box`}>
-                    <div className="logo">
-                       <img src={item.logo} alt="" />
-                    </div>
+                  <div className={`text-box`}> 
                       <h1>{item.name}</h1>
                       <p>{item.description}</p>
                       <div className="d-flex">
