@@ -1127,6 +1127,16 @@ body .featured-product .text-box h1 {
   margin-bottom: 10px;
 }
 
+
+ 
+body .featured-product .text-box .logo-wave h5{
+  color:#fff;
+  margin:0px;
+  font-size:17px;
+  text-transform: uppercase;
+}
+
+
 body .featured-product .text-box .logo img {
   max-width: 150px;
   height: 50px;
@@ -1686,57 +1696,17 @@ body .services-section .text-content {
 
 body .services-section .text-content p {
   max-width: 800px;
+  color:silver !important;
 }
 
-
-/** Animação do titulo na pagina de serviços */
-
+ 
  body .services-section .text-content h1 {
   color: #fff;
 }
 
-body .services-section .text-content h1.rainbow-run {
-  background-image: linear-gradient(
-    90deg,
-    #ff0040,
-    #ff7a00,
-    #ffd500,
-    #00d97e,
-    #00b3ff,
-    #6a5cff,
-    #ff00c8,
-    #ff0040
-  );
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
-  animation: rainbowSlide 6s linear infinite; /* ciclo infinito */
-}
-
-@keyframes rainbowSlide {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 100% 50%;
-  }
-}
-
-/* acessibilidade */
-@media(prefers-reduced-motion: reduce){
-  body .services-section .text-content h1.rainbow-run {
-    animation: none;
-    background-image: none;
-    color: #fff;
-  }
-}
-
-
-/***** termina aqui a mesma animação  */
-
+ 
+ 
+ 
 body .service-area .content-area {
   display: flex;
   align-items: center;
@@ -1804,4 +1774,47 @@ body .service-area .video-area .over-video-large .container {
   justify-content: flex-end;
   text-align: center;
   display: flex;
+}
+
+
+body #mobile-navigation .menu-item.menu-item-type-custom.menu-item-object-custom.default-menu:nth-child(1){
+   padding:10px 20px; 
+   background:#801df0 !important;
+   color:#fff !important;
+   border-radius:6px;
+}
+
+ 
+ 
+body .transparent-header  .site-menu-main .nav-item .project-header,
+body .site-menu-main .nav-item .project-header{
+   margin:0px !important; 
+   padding:5px 10px !important;
+   border:2px solid #0019ff;
+   color:#0019ff !important;
+}
+
+body .transparent-header .start-project{
+  color:#fff !important;
+  border:1px solid #fff !important; 
+}
+ 
+body .start-project{ 
+  color:#000;
+  border:1px solid #000 !important; 
+}
+
+
+body .start-project{
+  padding:3px 15px;
+  border-radius:30px;
+  text-align: center; 
+  font-size:18px;
+  font-weight:600;
+  transition:all 0.5s ease-in-out;
+}
+
+body .start-project:hover{
+   background-color: #0019ff !important;
+  color:#ffff !important;
 }
