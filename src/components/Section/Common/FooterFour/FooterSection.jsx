@@ -121,7 +121,7 @@ export default function FooterFore() {
                 <div className="tekup-footer-menu light-color style-two right mb-0">
                   <ul>
                     <li>
-                      <Link href="#">Políticas de Privacidade</Link>
+                      <Link href="/privacy_and_policy">Políticas de Privacidade</Link>
                     </li>
                     <li>
                       <Link href="#">Termos &amp; Condições</Link>
