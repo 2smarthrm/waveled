@@ -1122,6 +1122,23 @@ body .featured-product .text-box p {
   color: #000;
 }
 
+
+body .tekup-portfolio-wrap3{
+  min-height:600px;
+}
+
+body .featured-product .text-box {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+body .featured-product .text-box p{
+  max-width:600px;
+}
+
 body .featured-product .text-box h1 {
   font-size: 35px;
   margin-bottom: 10px;
@@ -1192,9 +1209,9 @@ body .blur-slide-screen .over-product-blur {
   padding-left: 400px;
   display: flex;
   align-items: flex-end;
-}
+} 
 
-
+ 
 body .blur-slide-screen .over-product-blur .products-slide {
   height: 430px;
   width: 100%;
@@ -1550,7 +1567,7 @@ body .products-carousel {
 
 
 body .products-carousel article {
-  padding: 10px;
+  padding: 10px 0px;
 }
 
 
@@ -1559,6 +1576,27 @@ body .products-carousel .card-content {
   background-color: #ffff;
   border-radius: 4px;
 }
+
+body .products-carousel.bg-white .card-content {
+  border:1px solid rgb(237, 237, 237);
+  background-color:#ffff;
+  box-shadow:0px 3px 10px rgba(86, 85, 85, 0.1);
+}
+
+body .products-carousel.bg-white  .carousel-featured-products{
+  width:100%;
+}
+
+
+body .products-carousel.bg-white .slick-list::after{ 
+  background:linear-gradient(to right , transparent 20.92%, #ffffff 50%)
+}
+
+
+body .products-carousel.bg-white .slick-list::before{ 
+  background:linear-gradient(to left , transparent 20.92%, #ffffff 70%)
+}
+
 
 
 body .products-carousel .card-content h5 {
@@ -1742,7 +1780,7 @@ body .service-area .content-area.reverse .image {
 }
 
 
-body .service-area .video-area {
+body   .video-area {
   position: relative;
   overflow: hidden;
   height: 90vh;
@@ -1752,14 +1790,14 @@ body .service-area .video-area {
 
 
 
-body .service-area .video-area video {
+body   .video-area video {
   height: 100%;
   object-fit: cover;
   width: 100%;
 }
 
 
-body .service-area .video-area .over-video-large {
+body  .video-area .over-video-large {
   align-items: center;
   justify-content: flex-end;
   text-align: center;
@@ -1804,6 +1842,13 @@ body .start-project{
   border:1px solid #000 !important; 
 }
 
+body .tekup-default-btn::before {
+  content:"" !important;
+}
+
+body .tekup-default-btn:hover{
+  opacity:0.7 !important;
+}
 
 body .start-project{
   padding:3px 15px;
@@ -1817,4 +1862,122 @@ body .start-project{
 body .start-project:hover{
    background-color: #0019ff !important;
   color:#ffff !important;
+}
+
+body .products-carousel .slick-list{
+  position: relative;
+}
+
+body .products-carousel .slick-list::after{
+  content:"";
+  position:absolute;
+  right:0px; 
+  top:0px; 
+  width:100px;
+  min-height:600px;
+  background-color:red;
+  z-index:100;
+  background:linear-gradient(to right , transparent 20.92%, #f2f3fc 50%)
+}
+
+
+body .products-carousel .slick-list::before{
+  content:"";
+  position:absolute;
+  left:-50px; 
+  top:0px; 
+  z-index:100;
+  width:150px;
+  min-height:600px;
+  background-color:red;
+  background:linear-gradient(to left , transparent 20.92%, #f2f3fc 70%)
+}
+
+
+body .solutions-page .images-area{
+  display: flex;
+  width:100%;
+  margin-top:40px;
+  gap:15px;
+}
+
+
+
+body .solutions-page .images-area.reverse{
+  flex-direction: row-reverse !important;
+}
+
+body .solutions-page .images-area .large-image{
+  width:60%;
+  height:600px; 
+}
+
+body .solutions-page .images-area .block-images{
+  display: flex; 
+  gap:15px;
+  flex-direction: column;
+  width:40%;
+}
+
+body .solutions-page .images-area
+.block-images .group-images{
+ display: flex; 
+ gap:15px;
+}
+
+body .solutions-page .images-area
+.block-images .md-image{
+  width:100%;
+  height:390px; 
+}
+
+body .solutions-page .images-area
+.block-images .group-images div{
+  width:calc(50% - 10px);
+  height: 195px; 
+}
+
+body .solutions-page .images-area img{
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  border-radius:6px;
+}
+
+
+body .card-showcase{
+  min-height:550px; 
+}
+
+body .card-showcase .card-content{
+  width:100%;
+  height:100%; 
+  height:550px;
+  border: none !important;
+  box-shadow:none !important;
+}
+
+body .card-showcase .card-content img{
+  width:100%;
+  min-height:500px !important;
+  border-radius:6px;
+  object-fit: cover !important;
+}
+
+
+body .sport-video-section{
+  width:100%;
+  background-color:#000; 
+  margin-top:40px;
+}
+
+body .sport-video-section video{
+  width:100%;
+  height:100vh;
+  min-height:50vh;
+  object-fit: cover; 
+}
+
+body .pt-0{
+  padding-top:0px !important;
 }
