@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Slider from "react-slick";
+import axios from "axios";
 
 export default function ServiceSection() {
   const videoRefs = useRef([]);
@@ -193,6 +194,36 @@ export default function ServiceSection() {
       ],
     }
 
+
+
+        const [LoadingStatus,SetLoadingStatus] =  useState(null);
+        const [LoadingData, SetLoadingData] =  useState([]); 
+        const BaseUrl = "https://waveledserver.vercel.app";
+      
+         async function LoadData(){
+            try {
+              const response = await axios.get(BaseUrl+"/api/featured", {withCredentials: true });
+              const data = response?.data?.data ? response?.data?.data : [];
+              SetLoadingData(data); 
+    
+              console.clear();
+              console.log(response);
+    
+    
+    
+            } catch (error){
+               console.clear();
+               console.log(error);
+            } finally { 
+      
+            }
+            SetLoadingStatus(true);
+          }
+      
+          useEffect(() => {
+             LoadData();
+          }, []);
+
   return (
     <>
       {Sections.map((item, index) => (
@@ -243,22 +274,28 @@ export default function ServiceSection() {
             <div className="container">
               <h2>{ProductsCarousel.PageTitle}</h2>
               <br />
+              {LoadingStatus === true ?
               <Slider {...settings}>
-                {ProductsCarousel?.products.map((item, index) => (
+                {LoadingData?.map((item, index) => (
+                  <div className="d-flex" > 
                   <article key={index}>
-                    <div className="card-content">
-                      <strong className="sku">SKU-{item.sku}</strong>
-                      <h5>{item.title}</h5>
+                    <div style={{minHeight:"500px"}} className="card-content"  >
+                      <strong className="sku">SKU-{item.wl_product?.wl_sku}</strong>
+                     <Link href={`single-shop?product=${item?.wl_product?._id}`}>
+                         <h5>{item?.wl_product?.wl_name.split("").length > 45 ? item?.wl_product?.wl_name.substring(0, 45)+"...": item?.wl_product?.wl_name} </h5>
+                      </Link>
                       <p>{item.description}</p>
-                      <div className="image">
-                        <Link href={"#"}>
-                           <img src={item.image} alt={item.title} />
-                        </Link>
+                      <div className="image"> 
+                           <img src={item?.wl_product?.wl_images.length > 0 ? BaseUrl + item?.wl_product?.wl_images[0] : ""} alt={item.title} /> 
                       </div>
-                    </div>
-                  </article>
+                    </div> 
+                    </article>   
+                    <div style={{padding:"10px 15px"}}></div>
+                  </div> 
                 ))}
               </Slider>
+             : <></>
+              }
             </div>
           </div>
         </div>
