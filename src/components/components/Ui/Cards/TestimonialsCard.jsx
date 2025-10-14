@@ -14,7 +14,7 @@ const TestimonialsCard = ({ member ,className}) => {
           <p>{member.testimonial}</p>
           <div className="tekup-testimonial-author">
             <h5>{member.name}</h5>
-            <span>{member.position}</span>
+            <span>{member.position}</span> 
           </div>
         </div>
       </div>
