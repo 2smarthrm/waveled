@@ -1,33 +1,33 @@
 "use client";
 
+/**
+ * Página /single-shop sem useSearchParams()
+ * - Lê ?product=<id> via window.location.search no cliente
+ * - Evita o erro: "useSearchParams() should be wrapped in a suspense boundary"
+ */
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
- 
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://waveledserver.vercel.app";
 const IMG_HOST = "https://waveledserver.vercel.app";
 
- 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
 
- 
 const toArray = (raw) =>
   Array.isArray(raw) ? raw :
   Array.isArray(raw?.data) ? raw.data :
-  Array.isArray(raw?.items) ? raw.items : []; 
+  Array.isArray(raw?.items) ? raw.items : [];
 
- 
 const toProduct = (raw) => (raw?.data ? raw.data : raw) || null;
 
- 
 const truncate = (s, n = 50) => {
   if (!s) return "";
   return s.length > n ? s.substring(0, n).trimEnd() + "…" : s;
 };
 
- 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -35,8 +35,41 @@ async function fetchJson(url) {
 }
 
 export default function SingleShopSection() {
-  const search = useSearchParams();
-  const productId = search.get("product");
+  // Em vez de useSearchParams()
+  const [productId, setProductId] = useState(null);
+
+  // Lê o query param no cliente e reage a alterações do histórico
+  useEffect(() => {
+    const readProduct = () => {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        setProductId(sp.get("product"));
+      } catch {
+        setProductId(null);
+      }
+    };
+    readProduct();
+    // Atualiza quando o utilizador navega no histórico
+    window.addEventListener("popstate", readProduct);
+    // Atualiza quando Next.js faz pushState (capturamos via monkey-patch em ambientes simples)
+    const _pushState = history.pushState;
+    history.pushState = function (...args) {
+      const ret = _pushState.apply(this, args);
+      readProduct();
+      return ret;
+    };
+    const _replaceState = history.replaceState;
+    history.replaceState = function (...args) {
+      const ret = _replaceState.apply(this, args);
+      readProduct();
+      return ret;
+    };
+    return () => {
+      window.removeEventListener("popstate", readProduct);
+      history.pushState = _pushState;
+      history.replaceState = _replaceState;
+    };
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,11 +82,23 @@ export default function SingleShopSection() {
     let abort = false;
 
     async function run() {
+      // enquanto ainda não apurámos o productId no cliente, mostra loading
+      if (productId === null) {
+        setLoading(true);
+        setError("");
+        setItem(null);
+        setRelated([]);
+        return;
+      }
+
       if (!productId) {
         setError("Falta o parâmetro ?product=<id>.");
         setLoading(false);
+        setItem(null);
+        setRelated([]);
         return;
       }
+
       setLoading(true);
       setError("");
       setItem(null);
@@ -61,7 +106,6 @@ export default function SingleShopSection() {
       setActiveImage(0);
 
       try {
-    
         const prodRaw = await fetchJson(`${API_BASE}/api/products/${productId}`);
         const prod = toProduct(prodRaw);
         if (!prod) throw new Error("Produto não encontrado.");
@@ -69,7 +113,7 @@ export default function SingleShopSection() {
 
         setItem(prod);
 
-     
+        // Relacionados por categoria
         let relatedList = [];
         const catName = prod?.wl_category?.wl_name;
 
@@ -86,7 +130,7 @@ export default function SingleShopSection() {
           }
         }
 
-   
+        // Preenche caso faltem itens
         if ((relatedList?.length || 0) < 4) {
           try {
             const moreRaw = await fetchJson(`${API_BASE}/api/products`);
@@ -110,7 +154,9 @@ export default function SingleShopSection() {
     }
 
     run();
-    return () => { abort = true; };
+    return () => {
+      abort = true;
+    };
   }, [productId]);
 
   const images = useMemo(() => {
@@ -194,7 +240,7 @@ export default function SingleShopSection() {
             {/* DETALHES */}
             <div className="col-lg-6">
               <div className="tekup-details-content pt-4">
-                <h2 className="mt-0" >{title}</h2> <br />
+                <h2 className="mt-0">{title}</h2> <br />
 
                 <h6 style={{ marginTop: 8 }}>
                   <strong>SKU:</strong>{" "}
@@ -225,7 +271,6 @@ export default function SingleShopSection() {
                     Comprar Agora
                   </Link>
                 </div>
-
               </div>
             </div>
 
@@ -270,7 +315,11 @@ export default function SingleShopSection() {
             <div className="tab-content" id="pills-tabContent">
               <div
                 className={`tab-pane fade ${activeTab === "description" ? "show active" : ""}`}
-                id="pills-description"   role="tabpanel"  aria-labelledby="pills-description-tab"  tabIndex={0}  >
+                id="pills-description"
+                role="tabpanel"
+                aria-labelledby="pills-description-tab"
+                tabIndex={0}
+              >
                 {item?.wl_description_html ? (
                   <div className="mt-3" dangerouslySetInnerHTML={{ __html: item.wl_description_html }} />
                 ) : (
@@ -283,8 +332,11 @@ export default function SingleShopSection() {
                 )}
               </div>
 
-              <div  className={`tab-pane fade ${activeTab === "specification" ? "show active" : ""}`}
-                id="pills-specification" role="tabpanel"   aria-labelledby="pills-specification-tab"
+              <div
+                className={`tab-pane fade ${activeTab === "specification" ? "show active" : ""}`}
+                id="pills-specification"
+                role="tabpanel"
+                aria-labelledby="pills-specification-tab"
                 tabIndex={0}
               >
                 {item?.wl_specs_text ? (
@@ -292,18 +344,15 @@ export default function SingleShopSection() {
                 ) : (
                   <div className="row mt-3">
                     <div className="col-md-6">
-                      <ul>
-                 
-                      </ul>
+                      <ul>{/* specs esquerdas */}</ul>
                     </div>
                     <div className="col-md-6">
-                      <ul>
-                     
-                      </ul>
+                      <ul>{/* specs direitas */}</ul>
                     </div>
                   </div>
                 )}
-              </div> 
+              </div>
+
               <div
                 className={`tab-pane fade ${activeTab === "downloads" ? "show active" : ""}`}
                 id="pills-downloads"
@@ -362,7 +411,7 @@ export default function SingleShopSection() {
                   <div className="tekup-shop-wrap">
                     <div className="tekup-shop-thumb">
                       <Link href={`/single-shop?product=${p._id}`}>
-                        <img style={{height: "300px", objectFit:"contain" }} src={cover} alt={pTitle} />
+                        <img style={{ height: "300px", objectFit: "contain" }} src={cover} alt={pTitle} />
                       </Link>
                       <Link className="tekup-shop-btn" href={`/single-shop?product=${p._id}`}>
                         Saiba Mais
