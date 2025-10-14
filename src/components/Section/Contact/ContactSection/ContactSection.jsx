@@ -1,8 +1,21 @@
- "use client";
-import Image from "next/image";
+/* eslint-disable react/no-unescaped-entities */
+"use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+/** ----------------- Config ----------------- */
+const BaseUrl = process.env.NEXT_PUBLIC_API_BASE || "https://waveledserver.vercel.app";
+
+/** Email tolerante (lado cliente). O servidor é a última palavra. */
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+/** Telefone: permite +código país, espaços, parênteses e hífens; 9–15 dígitos no total */
+const PHONE_DIGITS_MIN = 9;
+const PHONE_DIGITS_MAX = 15;
+const onlyDigitsPlus = (s) => s.replace(/[^\d+]/g, "");
+const countDigits = (s) => (s.match(/\d/g) ?? []).length;
+
+/** Estado inicial do formulário */
 const initialState = {
   nome: "",
   telefone: "",
@@ -17,37 +30,77 @@ const initialState = {
   orcamentoPrevisto: "",
   precisaMontagem: "sim",
   consent: false,
+  _hp: "", // honeypot (DEVE ficar vazio)
 };
 
-const ContactSection = () => {
+function getUtmFromUrl() {
+  if (typeof window === "undefined") return null;
+  const p = new URLSearchParams(window.location.search);
+  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+  const out = {};
+  let has = false;
+  keys.forEach((k) => {
+    const v = p.get(k);
+    if (v) {
+      out[k] = v;
+      has = true;
+    }
+  });
+  return has ? out : null;
+}
+
+export default function ContactSection() {
   const [form, setForm] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState("idle"); // "idle" | "success" | "error"
+  const [serverMsg, setServerMsg] = useState("");
+
+  // Guardar UTM e página atual
+  const [meta, setMeta] = useState({ utm: null, page: "" });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setMeta({
+        utm: getUtmFromUrl(),
+        page: window.location.pathname || "",
+      });
+    }
+  }, []);
+
+  const showQuoteFields = form.tipo === "quote";
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
+  /** Validação cliente (tolerante; o servidor manda) */
   const validate = () => {
     const e = {};
-    if (!form.nome.trim()) e.nome = "Indica o seu nome.";
+    if (!form.nome.trim()) e.nome = "Indica o teu nome.";
     if (!form.email.trim()) {
-      e.email = "Indica o seu email.";
-    } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      e.email = "Indica o teu email.";
+    } else if (!EMAIL_RX.test(form.email.trim())) {
       e.email = "Email inválido.";
     }
+
     if (!form.telefone.trim()) {
       e.telefone = "Indica um contacto telefónico.";
-    } else if (!/^[\d+()\-\s]{7,}$/.test(form.telefone)) {
-      e.telefone = "Telefone inválido.";
+    } else {
+      const digits = countDigits(form.telefone);
+      if (digits < PHONE_DIGITS_MIN || digits > PHONE_DIGITS_MAX) {
+        e.telefone = "Telefone inválido (9–15 dígitos).";
+      }
     }
+
     if (!form.mensagem.trim()) e.mensagem = "Escreve a tua mensagem.";
     if (!form.consent) e.consent = "É necessário consentimento para contacto.";
 
-    if (form.tipo === "quote") {
+    if (showQuoteFields) {
       if (!form.solucao.trim()) e.solucao = "Seleciona a solução pretendida.";
       if (!form.datas.trim()) e.datas = "Indica datas ou período.";
       if (!form.local.trim()) e.local = "Indica o local (cidade/venue).";
@@ -58,45 +111,145 @@ const ContactSection = () => {
     return Object.keys(e).length === 0;
   };
 
+  const buildPayload = () => {
+    // Normaliza telefone para aproximar o backend e manter legibilidade mínima
+    const normalizedPhone = onlyDigitsPlus(form.telefone).replace(/(\+\d{2,3})(\d+)/, "$1 $2");
+
+    return {
+      _hp: form._hp || "",
+      tipo: form.tipo,
+      nome: form.nome.trim(),
+      telefone: normalizedPhone,
+      email: form.email.trim(),
+      solucao: showQuoteFields ? form.solucao.trim() : "outro",
+      datas: showQuoteFields ? form.datas.trim() : "n/d",
+      local: showQuoteFields ? form.local.trim() : "n/d",
+      dimensoes: showQuoteFields ? form.dimensoes.trim() : "n/d",
+      orcamentoPrevisto: showQuoteFields ? form.orcamentoPrevisto.trim() : "",
+      precisaMontagem: showQuoteFields ? form.precisaMontagem : "nao",
+      mensagem: form.mensagem.trim(),
+      consent: true, // força true para satisfazer backends que exigem boolean true
+      utm: meta.utm,
+      page: meta.page,
+    };
+  };
+
+  /** Mapeia 422 do servidor (Zod/express-validator/Joi) para {campo: msg} */
+  const toFieldErrors = (json) => {
+    const fieldErrors = {};
+
+    // express-validator: [{param,msg}]
+    if (Array.isArray(json?.errors)) {
+      json.errors.forEach((i) => {
+        const field = i?.param || i?.path?.[0] || i?.field || "";
+        if (field) fieldErrors[field] = i?.msg || i?.message || "Campo inválido";
+      });
+    }
+
+    // Zod: { issues: [{ path: ['obj','campo'], message }] }
+    if (Array.isArray(json?.issues)) {
+      json.issues.forEach((i) => {
+        const path = i?.path;
+        const field =
+          (Array.isArray(path) && path[path.length - 1]) ||
+          i?.param ||
+          i?.field ||
+          "";
+        if (field) fieldErrors[field] = i?.message || i?.msg || "Campo inválido";
+      });
+    }
+
+    // Joi/celebrate: { details: [{ path: ['campo'], message }] }
+    if (Array.isArray(json?.details)) {
+      json.details.forEach((i) => {
+        const path = i?.path;
+        const field =
+          (Array.isArray(path) && path[path.length - 1]) ||
+          i?.context?.key ||
+          i?.param ||
+          "";
+        if (field) fieldErrors[field] = i?.message || "Campo inválido";
+      });
+    }
+
+    return fieldErrors;
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setStatus("idle");
-    if (!validate()) return;
+    setServerMsg("");
 
+    if (!validate()) {
+      console.warn("[ContactSection] Validação cliente falhou.", { form, errorsCandidate: errors });
+      return;
+    }
+
+    const payload = buildPayload();
     setSubmitting(true);
+
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(`${BaseUrl}/api/public/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          origem: "website",
-          assunto:
-            form.tipo === "quote"
-              ? "Pedido de orçamento - Waveled"
-              : "Pedido de informação - Waveled",
-        }),
+        credentials: "include", // atenção a CORS do servidor!
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Falha no envio");
+      let json = null;
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
 
+      if (!res.ok) {
+        // Debug completo
+        console.error("[ContactSection] Erro no envio", {
+          status: res.status,
+          statusText: res.statusText,
+          json,
+          payload,
+          endpoint: `${BaseUrl}/api/public/contact`,
+        });
+
+        if (res.status === 422) {
+          const fieldErrors = toFieldErrors(json);
+          if (Object.keys(fieldErrors).length) {
+            setErrors(fieldErrors);
+          }
+          setStatus("error");
+          setServerMsg(json?.error || json?.message || "Validação falhou. Verifica os campos destacados.");
+        } else if (res.status === 401 || res.status === 403) {
+          setStatus("error");
+          setServerMsg("Não autorizado. Verifica as credenciais/CORS do servidor.");
+        } else {
+          setStatus("error");
+          setServerMsg(json?.error || json?.message || "Falha no envio. Tenta novamente.");
+        }
+        return;
+      }
+
+      // Sucesso
+      console.info("[ContactSection] Enviado com sucesso.", { json, payload });
       setStatus("success");
+      setServerMsg(json?.message || "Pedido recebido com sucesso.");
       setForm(initialState);
+      setErrors({});
     } catch (err) {
-      console.error(err);
+      console.error("[ContactSection] Exceção no fetch", err);
       setStatus("error");
+      setServerMsg("Ocorreu um problema ao enviar. Verifica a tua ligação e tenta novamente.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const showQuoteFields = form.tipo === "quote";
-
   return (
     <>
       <div className="section tekup-section-padding">
         <div className="container">
-          <div className="row">
+          <div className="row align-items-start">
             {/* Bloco de conteúdo – Sobre nós */}
             <div className="col-xl-5 col-lg-6 d-flex align-items-center">
               <div className="tekup-default-content">
@@ -130,9 +283,12 @@ const ContactSection = () => {
                   </div>
                 </div>
                 <br />
-                  <div className="image-area">
-                     <img   src="https://vortexhire.co.uk/wp-content/uploads/2023/04/Transparent-LED-Screen-curved-office.jpg" alt="" />
-                  </div>
+                <div className="image-area">
+                  <img
+                    src="https://vortexhire.co.uk/wp-content/uploads/2023/04/Transparent-LED-Screen-curved-office.jpg"
+                    alt=""
+                  />
+                </div>
               </div>
             </div>
 
@@ -144,16 +300,28 @@ const ContactSection = () => {
 
                 {status === "success" && (
                   <div className="alert alert-success" role="alert" aria-live="polite">
-                    Obrigado! Recebemos a tua mensagem e entraremos em contacto brevemente.
+                    {serverMsg || "Obrigado! Recebemos a tua mensagem e entraremos em contacto brevemente."}
                   </div>
                 )}
                 {status === "error" && (
                   <div className="alert alert-danger" role="alert" aria-live="polite">
-                    Ocorreu um problema ao enviar. Tenta novamente, por favor.
+                    {serverMsg || "Ocorreu um problema ao enviar. Tenta novamente, por favor."}
                   </div>
                 )}
 
                 <form onSubmit={onSubmit} noValidate>
+                  {/* Honeypot invisível */}
+                  <input
+                    type="text"
+                    name="_hp"
+                    value={form._hp}
+                    onChange={onChange}
+                    style={{ position: "absolute", left: "-10000px", opacity: 0, height: 0, width: 0 }}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    autoComplete="off"
+                  />
+
                   <div className="row">
                     <div className="col-lg-12">
                       <div className="tekup-main-field">
@@ -184,11 +352,12 @@ const ContactSection = () => {
                           id="nome"
                           name="nome"
                           type="text"
-                          placeholder="O seu nome"
+                          placeholder="O teu nome"
                           value={form.nome}
                           onChange={onChange}
                           className={errors.nome ? "is-invalid" : ""}
                           aria-invalid={!!errors.nome}
+                          required
                         />
                         {errors.nome && <div className="invalid-feedback">{errors.nome}</div>}
                       </div>
@@ -209,6 +378,7 @@ const ContactSection = () => {
                           onChange={onChange}
                           className={errors.telefone ? "is-invalid" : ""}
                           aria-invalid={!!errors.telefone}
+                          required
                         />
                         {errors.telefone && <div className="invalid-feedback">{errors.telefone}</div>}
                       </div>
@@ -228,6 +398,7 @@ const ContactSection = () => {
                           onChange={onChange}
                           className={errors.email ? "is-invalid" : ""}
                           aria-invalid={!!errors.email}
+                          required
                         />
                         {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                       </div>
@@ -248,6 +419,7 @@ const ContactSection = () => {
                               onChange={onChange}
                               className={`form-select ${errors.solucao ? "is-invalid" : ""}`}
                               aria-invalid={!!errors.solucao}
+                              required
                             >
                               <option value="">Seleciona uma opção</option>
                               <option value="led-rental">Aluguer de painéis LED (eventos)</option>
@@ -273,6 +445,7 @@ const ContactSection = () => {
                               onChange={onChange}
                               className={errors.datas ? "is-invalid" : ""}
                               aria-invalid={!!errors.datas}
+                              required
                             />
                             {errors.datas && <div className="invalid-feedback">{errors.datas}</div>}
                           </div>
@@ -292,6 +465,7 @@ const ContactSection = () => {
                               onChange={onChange}
                               className={errors.local ? "is-invalid" : ""}
                               aria-invalid={!!errors.local}
+                              required
                             />
                             {errors.local && <div className="invalid-feedback">{errors.local}</div>}
                           </div>
@@ -311,6 +485,7 @@ const ContactSection = () => {
                               onChange={onChange}
                               className={errors.dimensoes ? "is-invalid" : ""}
                               aria-invalid={!!errors.dimensoes}
+                              required
                             />
                             {errors.dimensoes && <div className="invalid-feedback">{errors.dimensoes}</div>}
                           </div>
@@ -319,7 +494,7 @@ const ContactSection = () => {
                         <div className="col-lg-6">
                           <div className="tekup-main-field">
                             <label htmlFor="orcamentoPrevisto" className="form-label">
-                              Orçamento previsto 
+                              Orçamento previsto
                             </label>
                             <input
                               id="orcamentoPrevisto"
@@ -380,6 +555,7 @@ const ContactSection = () => {
                           rows={5}
                           className={errors.mensagem ? "is-invalid" : ""}
                           aria-invalid={!!errors.mensagem}
+                          required
                         />
                         {errors.mensagem && <div className="invalid-feedback">{errors.mensagem}</div>}
                       </div>
@@ -429,13 +605,17 @@ const ContactSection = () => {
                     </div>
                   </div>
                 </form>
+
+                {/* Dica de debug (opcional, remove em produção) */}
+                {/* <pre className="mt-3 small">
+                  {JSON.stringify({ form, meta, showQuoteFields }, null, 2)}
+                </pre> */}
               </div>
-            </div> 
+            </div>
+            {/* /Formulário */}
           </div>
         </div>
       </div>
     </>
   );
-};
-
-export default ContactSection;
+}
