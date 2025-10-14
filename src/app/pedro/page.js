@@ -11,7 +11,9 @@ import FooterFour from '~/components/Section/Common/FooterFour';
 const ServicePage = () => { 
     return ( 
         <div>
-             <h1>Privacy and policy </h1>
+           <div className="container">
+              
+           </div>
         </div> 
     );
 };
