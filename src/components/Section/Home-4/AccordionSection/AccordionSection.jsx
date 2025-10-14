@@ -40,7 +40,7 @@ const AccordionSection = () => {
                 <Link className="tekup-default-btn" href="/orcamento">
                   Pedir orçamento rápido <i className="ri-arrow-right-up-line"></i>
                 </Link>
-                <Link className="tekup-default-btn outline" href="/portfolio">
+                <Link className="d-none tekup-default-btn outline" href="/portfolio">
                   Ver casos & setups <i className="ri-image-line"></i>
                 </Link>
               </div>

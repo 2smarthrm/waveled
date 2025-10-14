@@ -19,14 +19,14 @@ const HeroSection = () => {
           <div className="text-content">
              <h5>Waveled</h5>
              <h1>De Brilho e Luz ao Seu Projeto ideial</h1>
-             <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem consequatur nostrum, accusantium maiores
-               tenetur amet iure maxime repudiandae ut laboriosam quos illo corrupti quibusdam mollitia sequi quis repellat. Nihil!
+             <p>
+              Somos especialistas na venda, montagem e Aluguer de ecrãs LED para eventos, publicidade, empresas e projetos especiais. Oferecemos soluções modernas, de alta qualidade e adaptadas a cada cliente.
              </p>
              <Link href={"/about-us"} className="tekup-default-btn">Saiba mais</Link>
           </div>
         </div>
       </div>
-    </div>
+    </div> 
   );
 };
 

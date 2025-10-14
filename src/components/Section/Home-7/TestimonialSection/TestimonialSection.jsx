@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Slider from "react-slick";
+import axios from "axios";
 
 
 const TestimonialSection = () => {
@@ -64,6 +65,37 @@ const TestimonialSection = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+    const [LoadingStatus,SetLoadingStatus] =  useState(null);
+    const [LoadingData, SetLoadingData] =  useState([]); 
+    const BaseUrl = "https://waveledserver.vercel.app";
+  
+     async function LoadData(){
+        try {
+          const response = await axios.get(BaseUrl+"/api/featured", {withCredentials: true });
+          const data = response?.data?.data ? response?.data?.data : [];
+          SetLoadingData(data); 
+
+          console.clear();
+          console.log(response);
+
+
+
+        } catch (error){
+           console.clear();
+           console.log(error);
+        } finally { 
+  
+        }
+        SetLoadingStatus(true);
+      }
+  
+      useEffect(() => {
+         LoadData();
+      }, []);
+      
+
+ 
+
   return (
     <div
       className="section dark-bg blur-slide-screen"
@@ -74,34 +106,35 @@ const TestimonialSection = () => {
           src="https://ik.imagekit.io/fsobpyaa5i/happy-diverse-friends-celebrating-with-sparklers-o-2025-02-13-00-11-44-utc.jpg"
           alt="waveled"
         />
-      </div>
+      </div> 
 
       <section className="over-product-blur" ref={blurRef}>
+        {LoadingData.length >= 4 ?  
         <div className="products-slide">
-          <Slider {...settings}>
-            {[
-              "https://visualled.com/wp-content/uploads/2025/06/caracteristicas-pantallas-led-para-exteriores-outdoor.webp",
-              "https://www.p1led.com.br/wp-content/uploads/2020/06/led.png",
-              "https://media.visualled.com/images/pantalla-led-2880-1920-111024.webp",
-              "https://media.visualled.com/images/pantalla-led-960-960-111024.webp",
-            ].map((item, index) => (
-              <article key={index}>
-                <div className="image-area">
-                  <img src={item} alt="" />
-                </div>
+          <Slider {...settings}> 
+            {LoadingData.map((item, index) => (
+              <div className="d-flex" >
+                 <article key={index}>
+                 <Link href={`single-shop?product=${item?.wl_product?._id}`}>
+                  <div className="image-area">
+                    <img src={item?.wl_product?.wl_images.length > 0 ? BaseUrl + item?.wl_product?.wl_images[0] : ""} alt="" />
+                  </div>
+                 </Link> 
                 <div className="text">
-                  <Link href={"#"}>
-                    <h4>Integrated & Creative Indoor LED Display</h4>
+                  <Link href={`single-shop?product=${item?.wl_product?._id}`}>
+                    <h4>{item?.wl_product?.wl_name.split("").length > 70 ? item?.wl_product?.wl_name.substring(0, 70)+"...": item?.wl_product?.wl_name} </h4>
                   </Link>
                   <p>
-                    Three cabinet sizes, both for indoor (800-1000nits) and
-                    semi-outdoor (3500nits)
+                     {item?.wl_product?.wl_specs_text.split("").length > 90 ? item?.wl_product?.wl_specs_text.substring(0, 90)+"...": item?.wl_product?.wl_specs_text} 
                   </p>
                 </div>
               </article>
+               <div style={{padding:"10px 5px"}}></div>
+              </div>
             ))}
           </Slider>
         </div>
+        : <></>}
       </section>
     </div>
   );
