@@ -1,10 +1,3 @@
-
-/** ---------- Transparent quando o header cobre
-
-
-   * 
-   *  ---------- */
-
 "use client";
 
 import Link from "next/link";
@@ -50,8 +43,7 @@ const HeaderFour = () => {
   const [key, setKey] = useState("0");
   const [forceOpaque, setForceOpaque] = useState(false);
 
-  // ====== Estado de categorias dinâmicas ======
-  // Estrutura: [{ category: "Aluguer", id: "<catId>", series: [{_id, title, image, link}] }]
+ 
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [catsError, setCatsError] = useState("");
@@ -59,7 +51,7 @@ const HeaderFour = () => {
   const headerRef = useRef(null);
   const rafRef = useRef(0);
 
-  // ------ Slider settings (memo para não recriar a cada render) ------
+ 
   const settings = useMemo(
     () => ({
       dots: false,
@@ -90,8 +82,7 @@ const HeaderFour = () => {
     return () => window.removeEventListener("scroll", handleScrollSticky);
   }, []);
 
-  /** ---------- Transparent quando o header cobre 
-   *  ---------- */
+  /** ---------- Transparent quando o header cobre ---------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -322,14 +313,41 @@ const HeaderFour = () => {
         isTransparent ? "transparent-header" : ""
       }`}
     >
-      {/* estilo local para estabilizar o mega menu e suavizar opacidade */}
+      {/* CSS crítico para estabilizar o mega menu e esconder qualquer overflow/flicker */}
       <style jsx>{`
+        /* Wrapper do mega-menu/tabs com overflow hidden para impedir “vazamentos” visuais */
         .sub-menu-box {
+          position: relative;
+          overflow: hidden; /* <<<<<< pedido principal */
           will-change: opacity, transform;
         }
+
+        /* Garante altura mínima para evitar salto enquanto conteúdo carrega */
         .sub-menu-box .tab-content {
-          min-height: 260px; /* evita “salto” enquanto conteúdo estabiliza */
+          position: relative;
+          min-height: 260px;
+          overflow: hidden; /* reforço de segurança */
+          contain: layout paint;
         }
+
+        /* Apenas o pane ativo é visível; os restantes ficam absolutamente escondidos */
+        .sub-menu-box .tab-content > .tab-pane {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transition: opacity 0.18s ease;
+        }
+        .sub-menu-box .tab-content > .tab-pane.active,
+        .sub-menu-box .tab-content > .tab-pane.show.active {
+          position: relative;
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+
+        /* Ajustes dos cards do slider */
         .submn-article {
           display: flex;
           flex-direction: column;
@@ -341,6 +359,11 @@ const HeaderFour = () => {
           width: 100%;
           max-height: 150px;
           object-fit: contain;
+        }
+
+        /* Suaviza o movimento do slick */
+        .sub-menu-box .slick-track {
+          will-change: transform;
         }
       `}</style>
 
@@ -422,16 +445,23 @@ const HeaderFour = () => {
                               unmountOnExit={false}
                               title={
                                 <span
+                                className="text-dark"
                                   onMouseEnter={() => handleTabHover(index)}
                                   onMouseLeave={cancelTabHover}
                                   onFocus={() => setKey(String(index))}
-                                  style={{ cursor: "pointer" }}
+                                  style={{ cursor: "pointer", color:"#000" }}
                                 >
                                   {cat.category}
                                 </span>
                               }
                             >
-                              <div className="mb-6 d-flex">Ver todos os produtos {" > "} <Link style={{marginLeft:"10px"}} href={`/shop?category=${cat.category}`}>{cat.category}</Link></div><br/>
+                              <div className="mb-6 d-flex text-dark">
+                                Ver todos os produtos {" > "}
+                                <Link style={{ marginLeft: "10px" }} href={`/shop?category=${cat.category}`}>
+                                  {cat.category}
+                                </Link>
+                              </div>
+                              <br />
                               <Slider {...settings}>
                                 {cat.series.map((itemCat) => (
                                   <Link href={itemCat.link} key={itemCat._id}>
@@ -453,7 +483,6 @@ const HeaderFour = () => {
                       )}
                     </div>
                   </li>
-
                   <li className="nav-item">
                     <Link href="/service" className="nav-link-item drop-trigger">
                       Serviços
@@ -496,10 +525,7 @@ const HeaderFour = () => {
                     </div>
                   </div>
                 </Link>
-                <div
-                  className="tekup-header-barger dark"
-                  onClick={() => setSideBar(!sideBar)}
-                >
+                <div className="tekup-header-barger dark" onClick={() => setSideBar(!sideBar)}>
                   <span></span>
                 </div>
               </div>
@@ -534,7 +560,7 @@ const HeaderFour = () => {
             <div className="tekup-sidemenu-thumb">
               <img
                 src="https://exportech.com.pt/static/media/12.98dcb3ffc1bbebba15e1.jpg"
-                alt="Waveled LED Solutions"
+                alt="Waveled Led Solutions"
               />
             </div>
             <div className="tekup-contact-info-wrap">
@@ -597,6 +623,3 @@ const HeaderFour = () => {
 };
 
 export default HeaderFour;
-
-
- 

@@ -128,8 +128,7 @@ export default function FooterFore() {
                 <div className="tekup-footer-menu light-color extar-margin">
                   <div className="tekup-footer-title light-color">
                     <h5>Produtos</h5>
-                  </div>
-
+                  </div> 
                   {loading ? (
                     <ul>
                       <li><span className="text-light">A carregar…</span></li>
