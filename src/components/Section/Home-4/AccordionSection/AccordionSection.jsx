@@ -33,14 +33,14 @@ const AccordionSection = () => {
                 <li>Formatos modulares: 16:9, panorâmico, totem, telão de palco.</li>
                 <li>Pixel pitch variado (P2.6, P3.9, P4.8) conforme distância.</li>
                 <li>Equipe técnica dedicada no local (quando contratado).</li>
-                <li>Pacotes flexíveis: diária ou evento completo.</li>
+                <li>Pacotes flexíveis: diária ou evento completo.</li> , 
               </ul>
 
               <div className="tekup-extra-mt d-flex gap-3 flex-wrap">
-                <Link className="tekup-default-btn" href="/orcamento">
+                <Link className="tekup-default-btn" href="/contact-us">
                   Pedir orçamento rápido <i className="ri-arrow-right-up-line"></i>
                 </Link>
-                <Link className="d-none tekup-default-btn outline" href="/portfolio">
+                <Link className="d-none tekup-default-btn outline" href="/solutions">
                   Ver casos & setups <i className="ri-image-line"></i>
                 </Link>
               </div>
@@ -48,7 +48,7 @@ const AccordionSection = () => {
               <small className="d-block mt-2 text-muted">
                 *Também vendemos painéis LED. Ajudamos a comparar{" "}
                 <strong>compra vs. Aluguer</strong> para o seu cenário.
-              </small>
+              </small>                                                                                                                                                                                                                                 
             </div>
           </div>
 

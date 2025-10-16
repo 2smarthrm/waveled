@@ -19,8 +19,8 @@ const TestimonialSection = () => {
       {
         breakpoint: 1300,
         settings: {
-          slidesToShow: 2.3,
-          slidesToScroll: 2.3, 
+          slidesToShow: 1.9,
+          slidesToScroll:1.9, 
         }
       },
       {
@@ -49,7 +49,7 @@ const TestimonialSection = () => {
 
       const sectionTop = section.offsetTop;
       const sectionHeight = section.offsetHeight;
-      const scrollY = window.scrollY;
+      const scrollY = window.scrollY; 
 
       const progress = Math.min(
         Math.max((scrollY - sectionTop) / sectionHeight, 0),
@@ -97,29 +97,20 @@ const TestimonialSection = () => {
  
 
   return (
-    <div
-      className="section dark-bg blur-slide-screen"
-      style={{ position: "relative" }}
-    >
+    <div className="section dark-bg blur-slide-screen"  style={{position:"relative"}}>
       <div className="image-wall">
-        <img
-          src="https://ik.imagekit.io/fsobpyaa5i/happy-diverse-friends-celebrating-with-sparklers-o-2025-02-13-00-11-44-utc.jpg"
-          alt="waveled"
-        />
-      </div> 
-
+        <img src="https://ik.imagekit.io/fsobpyaa5i/happy-diverse-friends-celebrating-with-sparklers-o-2025-02-13-00-11-44-utc.jpg"  alt="waveled" />
+      </div>  
       <section className="over-product-blur" ref={blurRef}>
         {LoadingData.length >= 4 ?  
         <div className="products-slide">
           <Slider {...settings}> 
             {LoadingData.map((item, index) => (
               <div className="d-flex" >
-                 <article key={index}>
-                 <Link href={`single-shop?product=${item?.wl_product?._id}`}>
+                 <article key={index}> 
                   <div className="image-area">
                     <img src={item?.wl_product?.wl_images.length > 0 ? BaseUrl + item?.wl_product?.wl_images[0] : ""} alt="" />
-                  </div>
-                 </Link> 
+                  </div> 
                 <div className="text">
                   <Link href={`single-shop?product=${item?.wl_product?._id}`}>
                     <h4>{item?.wl_product?.wl_name.split("").length > 70 ? item?.wl_product?.wl_name.substring(0, 70)+"...": item?.wl_product?.wl_name} </h4>

@@ -43,10 +43,10 @@ const RecentProjectsSection = () => {
           },
         },
         {
-          breakpoint: 1198,
+          breakpoint: 1308,
           settings: {
-            slidesToShow: 4,
-            slidesToScroll: 4,
+            slidesToShow: 3,
+            slidesToScroll: 3,
           },
         },
         {
