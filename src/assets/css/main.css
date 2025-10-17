@@ -1981,3 +1981,37 @@ body .sport-video-section video{
 body .pt-0{
   padding-top:0px !important;
 }
+ 
+
+body .text-dark ,
+body .text-dark span{
+  color:#000 !important;
+} 
+
+body .text-dark a{
+  color:#0019ff !important;
+}
+
+body nav.nav-tabs .nav-item span{
+  color:#000 !important;
+}
+
+
+body .custom-tabs .header-tab{
+  display: flex;
+  align-items: center;
+  margin:10px 0px;
+}
+
+body .custom-tabs .body-tab{
+  display: block;
+}
+
+body .custom-tabs .body-tab .tab{
+  display: none;
+}
+
+
+body .custom-tabs .body-tab .tab.show{
+  display: block !important;
+}
