@@ -1,13 +1,10 @@
 "use client";
-
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import Link from "next/link";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
-
- 
 import RecentProjectsCardFour from "~/components/Ui/Cards/RecentProjectsCardFour";
 
 const BaseUrl = process.env.NEXT_PUBLIC_API_BASE || "https://waveledserver.vercel.app";
