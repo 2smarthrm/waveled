@@ -259,7 +259,7 @@ function ShopSectionInner() {
                       <h2>{Videos.section1.text1}</h2>
                       <h2>{Videos.section1.text2}</h2>
                       <br />
-                      <Link href={"#"}>
+                      <Link href={"/contact-us"}>
                         <button className="tekup-default-btn">Solicitar Orçamento</button>
                       </Link>
                     </div>
@@ -318,7 +318,7 @@ function ShopSectionInner() {
                       <h2>{Videos.section2.text1}</h2>
                       <h2>{Videos.section2.text2}</h2>
                       <br />
-                      <Link href={"#"}>
+                      <Link href={"/contact-us"}>
                         <button className="tekup-default-btn">Solicitar Orçamento</button>
                       </Link>
                     </div>

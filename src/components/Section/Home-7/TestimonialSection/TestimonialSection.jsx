@@ -73,13 +73,9 @@ const TestimonialSection = () => {
         try {
           const response = await axios.get(BaseUrl+"/api/featured", {withCredentials: true });
           const data = response?.data?.data ? response?.data?.data : [];
-          SetLoadingData(data); 
-
+          SetLoadingData(data);  
           console.clear();
-          console.log(response);
-
-
-
+          console.log(response); 
         } catch (error){
            console.clear();
            console.log(error);
