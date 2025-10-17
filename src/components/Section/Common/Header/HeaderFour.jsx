@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import Slider from "react-slick";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 // ====== Config ======
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://waveledserver.vercel.app";
@@ -17,7 +16,7 @@ const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const toArray = (raw) =>
   Array.isArray(raw)
-    ? raw
+    ? raw 
     : Array.isArray(raw?.data)
     ? raw.data
     : Array.isArray(raw?.items)
@@ -28,7 +27,7 @@ const truncate = (s, n = 60) =>
 
 // Fetch JSON defensivo
 async function fetchJson(url) {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, {cache:"no-store"});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -43,7 +42,6 @@ const HeaderFour = () => {
   const [key, setKey] = useState("0");
   const [forceOpaque, setForceOpaque] = useState(false);
 
- 
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [catsError, setCatsError] = useState("");
@@ -51,22 +49,31 @@ const HeaderFour = () => {
   const headerRef = useRef(null);
   const rafRef = useRef(0);
 
- 
-  const settings = useMemo(
+  // ===== react-multi-carousel settings (equivalente ao que tinhas) =====
+  const carouselCfg = useMemo(
     () => ({
-      dots: false,
-      infinite: false,
-      speed: 400,
+      responsive: {
+        desktop: { breakpoint: { max: 3000, min: 1025 }, items: 5, slidesToSlide: 5 },
+        tabletLg: { breakpoint: { max: 1024, min: 601 }, items: 4, slidesToSlide: 4 },
+        tablet: { breakpoint: { max: 600, min: 481 }, items: 3, slidesToSlide: 3 },
+        mobile: { breakpoint: { max: 480, min: 0 }, items: 2, slidesToSlide: 2 },
+      },
       arrows: true,
-      waitForAnimate: true,
-      lazyLoad: "ondemand",
-      slidesToShow: 5,
-      slidesToScroll: 5,
-      responsive: [
-        { breakpoint: 1024, settings: { slidesToShow: 4, slidesToScroll: 4 } },
-        { breakpoint: 600, settings: { slidesToShow: 3, slidesToScroll: 3, initialSlide: 0 } },
-        { breakpoint: 480, settings: { slidesToShow: 2, slidesToScroll: 2 } },
-      ],
+      infinite: false, 
+      transitionDuration: 400,
+      swipeable: true,
+      draggable: true,
+      keyBoardControl: true,
+      renderDotsOutside: false,
+      showDots: false,
+      // “lazy” equivalente
+      lazyLoad: true,
+      // comportamento mais estável em SSR/Next
+      ssr: false, 
+      minimumTouchDrag: 60,
+      containerClass: "rmc-container",
+      itemClass: "rmc-item",
+      sliderClass: "rmc-slider",
     }),
     []
   );
@@ -318,7 +325,7 @@ const HeaderFour = () => {
         /* Wrapper do mega-menu/tabs com overflow hidden para impedir “vazamentos” visuais */
         .sub-menu-box {
           position: relative;
-          overflow: hidden; /* <<<<<< pedido principal */
+          overflow: hidden; /* pedido principal */
           will-change: opacity, transform;
         }
 
@@ -347,7 +354,7 @@ const HeaderFour = () => {
           pointer-events: auto;
         }
 
-        /* Ajustes dos cards do slider */
+        /* Ajustes dos cards do slider/carousel */
         .submn-article {
           display: flex;
           flex-direction: column;
@@ -361,8 +368,8 @@ const HeaderFour = () => {
           object-fit: contain;
         }
 
-        /* Suaviza o movimento do slick */
-        .sub-menu-box .slick-track {
+        /* Suaviza o movimento da track do react-multi-carousel */
+        .sub-menu-box .react-multi-carousel-track {
           will-change: transform;
         }
       `}</style>
@@ -415,15 +422,15 @@ const HeaderFour = () => {
                       onMouseLeave={() => setForceOpaque(false)}
                     >
                       {loadingCats ? (
-                        <div style={{ padding: "1rem 1.25rem" }}>
+                        <div style={{padding:"1rem 1.25rem" }}>
                           <small>A carregar categorias…</small>
                         </div>
                       ) : catsError ? (
-                        <div style={{ padding: "1rem 1.25rem", color: "crimson" }}>
+                        <div style={{padding:"1rem 1.25rem", color: "crimson" }}>
                           <small>{catsError}</small>
                         </div>
                       ) : categories.length === 0 ? (
-                        <div style={{ padding: "1rem 1.25rem" }}>
+                        <div style={{padding:"1rem 1.25rem"}}>
                           <small>Sem produtos para listar.</small>
                         </div>
                       ) : (
@@ -445,11 +452,11 @@ const HeaderFour = () => {
                               unmountOnExit={false}
                               title={
                                 <span
-                                className="text-dark"
+                                  className="text-dark"
                                   onMouseEnter={() => handleTabHover(index)}
                                   onMouseLeave={cancelTabHover}
                                   onFocus={() => setKey(String(index))}
-                                  style={{ cursor: "pointer", color:"#000" }}
+                                  style={{ cursor: "pointer", color: "#000" }}
                                 >
                                   {cat.category}
                                 </span>
@@ -462,9 +469,24 @@ const HeaderFour = () => {
                                 </Link>
                               </div>
                               <br />
-                              <Slider {...settings}>
-                                {cat.series.map((itemCat) => (
-                                  <Link href={itemCat.link} key={itemCat._id}>
+                              <Carousel
+                                responsive={carouselCfg.responsive}
+                                arrows={carouselCfg.arrows}
+                                infinite={carouselCfg.infinite}
+                                transitionDuration={carouselCfg.transitionDuration}
+                                swipeable={carouselCfg.swipeable}
+                                draggable={carouselCfg.draggable}
+                                keyBoardControl={carouselCfg.keyBoardControl}
+                                renderDotsOutside={carouselCfg.renderDotsOutside}
+                                showDots={carouselCfg.showDots}
+                                lazyLoad={carouselCfg.lazyLoad}
+                                ssr={carouselCfg.ssr}
+                                minimumTouchDrag={carouselCfg.minimumTouchDrag}
+                                containerClass={carouselCfg.containerClass}
+                                itemClass={carouselCfg.itemClass}
+                                sliderClass={carouselCfg.sliderClass}
+                              >
+                                {cat.series.map((itemCat) => ( 
                                     <article className="submn-article">
                                       <img
                                         src={itemCat.image}
@@ -472,11 +494,12 @@ const HeaderFour = () => {
                                         loading="lazy"
                                         decoding="async"
                                       />
-                                      <strong>{itemCat.title}</strong>
-                                    </article>
-                                  </Link>
+                                      <Link href={itemCat.link} key={itemCat._id}>
+                                         <strong className="text-dark text-black">{itemCat.title}</strong> 
+                                      </Link>
+                                    </article> 
                                 ))}
-                              </Slider>
+                              </Carousel>
                             </Tab>
                           ))}
                         </Tabs>
@@ -510,8 +533,7 @@ const HeaderFour = () => {
                   </li>
                 </ul>
               </nav>
-            </div>
-
+            </div> 
             <div className="header-btn header-btn-l1 ms-auto ">
               <div className="tekup-header-icon">
                 <Link href="tel:+351210353555" className="header-icon-info-box">
@@ -529,8 +551,7 @@ const HeaderFour = () => {
                   <span></span>
                 </div>
               </div>
-            </div>
-
+            </div> 
             <div className="mobile-menu-trigger" onClick={menuTriggerClickHandler}>
               <span></span>
             </div>
