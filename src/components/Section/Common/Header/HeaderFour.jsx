@@ -6,6 +6,7 @@ import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import { GoArrowUpRight } from "react-icons/go";
 
 // ====== Config ======
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://waveledserver.vercel.app";
@@ -16,7 +17,7 @@ const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const toArray = (raw) =>
   Array.isArray(raw)
-    ? raw 
+    ? raw
     : Array.isArray(raw?.data)
     ? raw.data
     : Array.isArray(raw?.items)
@@ -27,7 +28,7 @@ const truncate = (s, n = 60) =>
 
 // Fetch JSON defensivo
 async function fetchJson(url) {
-  const res = await fetch(url, {cache:"no-store"});
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -53,23 +54,37 @@ const HeaderFour = () => {
   const carouselCfg = useMemo(
     () => ({
       responsive: {
-        desktop: { breakpoint: { max: 3000, min: 1025 }, items: 5, slidesToSlide: 5 },
-        tabletLg: { breakpoint: { max: 1024, min: 601 }, items: 4, slidesToSlide: 4 },
-        tablet: { breakpoint: { max: 600, min: 481 }, items: 3, slidesToSlide: 3 },
-        mobile: { breakpoint: { max: 480, min: 0 }, items: 2, slidesToSlide: 2 },
+        desktop: {
+          breakpoint: { max: 3000, min: 1025 },
+          items: 5,
+          slidesToSlide: 5,
+        },
+        tabletLg: {
+          breakpoint: { max: 1024, min: 601 },
+          items: 4,
+          slidesToSlide: 4,
+        },
+        tablet: {
+          breakpoint: { max: 600, min: 481 },
+          items: 3,
+          slidesToSlide: 3,
+        },
+        mobile: {
+          breakpoint: { max: 480, min: 0 },
+          items: 2,
+          slidesToSlide: 2,
+        },
       },
       arrows: true,
-      infinite: false, 
+      infinite: false,
       transitionDuration: 400,
       swipeable: true,
       draggable: true,
       keyBoardControl: true,
       renderDotsOutside: false,
       showDots: false,
-      // “lazy” equivalente
       lazyLoad: true,
-      // comportamento mais estável em SSR/Next
-      ssr: false, 
+      ssr: false,
       minimumTouchDrag: 60,
       containerClass: "rmc-container",
       itemClass: "rmc-item",
@@ -230,7 +245,11 @@ const HeaderFour = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (typeof window !== "undefined" && window.innerWidth > 991 && isActive) {
+      if (
+        typeof window !== "undefined" &&
+        window.innerWidth > 991 &&
+        isActive
+      ) {
         toggleMenu();
       }
     };
@@ -394,7 +413,10 @@ const HeaderFour = () => {
                     <i className="fa fa-angle-left"></i>
                   </div>
                   <div className="current-menu-title"></div>
-                  <div className="mobile-menu-close" onClick={closeMenuClickHandler}>
+                  <div
+                    className="mobile-menu-close"
+                    onClick={closeMenuClickHandler}
+                  >
                     &times;
                   </div>
                 </div>
@@ -415,22 +437,23 @@ const HeaderFour = () => {
                     <Link href="about-us" className="nav-link-item">
                       Produtos
                     </Link>
-
                     <div
                       className="sub-menu-box"
                       onMouseEnter={() => setForceOpaque(true)}
                       onMouseLeave={() => setForceOpaque(false)}
                     >
                       {loadingCats ? (
-                        <div style={{padding:"1rem 1.25rem" }}>
+                        <div style={{ padding: "1rem 1.25rem" }}>
                           <small>A carregar categorias…</small>
                         </div>
                       ) : catsError ? (
-                        <div style={{padding:"1rem 1.25rem", color: "crimson" }}>
+                        <div
+                          style={{ padding: "1rem 1.25rem", color: "crimson" }}
+                        >
                           <small>{catsError}</small>
                         </div>
                       ) : categories.length === 0 ? (
-                        <div style={{padding:"1rem 1.25rem"}}>
+                        <div style={{ padding: "1rem 1.25rem" }}>
                           <small>Sem produtos para listar.</small>
                         </div>
                       ) : (
@@ -438,7 +461,9 @@ const HeaderFour = () => {
                           id="tab-menu"
                           className="mb-3"
                           activeKey={key}
-                          onSelect={(k) => setKey((prev) => (prev === k ? prev : k || "0"))}
+                          onSelect={(k) =>
+                            setKey((prev) => (prev === k ? prev : k || "0"))
+                          }
                           /* EVITA DESMONTAR/MONTAR (corta o flash) */
                           transition={false}
                           mountOnEnter={false}
@@ -460,11 +485,13 @@ const HeaderFour = () => {
                                 >
                                   {cat.category}
                                 </span>
-                              }
-                            >
+                              }>
                               <div className="mb-6 d-flex text-dark">
                                 Ver todos os produtos {" > "}
-                                <Link style={{ marginLeft: "10px" }} href={`/shop?category=${cat.category}`}>
+                                <Link
+                                  style={{ marginLeft: "10px" }}
+                                  href={`/shop?category=${cat.category}`}
+                                >
                                   {cat.category}
                                 </Link>
                               </div>
@@ -473,31 +500,42 @@ const HeaderFour = () => {
                                 responsive={carouselCfg.responsive}
                                 arrows={carouselCfg.arrows}
                                 infinite={carouselCfg.infinite}
-                                transitionDuration={carouselCfg.transitionDuration}
+                                transitionDuration={
+                                  carouselCfg.transitionDuration
+                                }
                                 swipeable={carouselCfg.swipeable}
                                 draggable={carouselCfg.draggable}
                                 keyBoardControl={carouselCfg.keyBoardControl}
-                                renderDotsOutside={carouselCfg.renderDotsOutside}
+                                renderDotsOutside={
+                                  carouselCfg.renderDotsOutside
+                                }
                                 showDots={carouselCfg.showDots}
                                 lazyLoad={carouselCfg.lazyLoad}
                                 ssr={carouselCfg.ssr}
                                 minimumTouchDrag={carouselCfg.minimumTouchDrag}
                                 containerClass={carouselCfg.containerClass}
                                 itemClass={carouselCfg.itemClass}
-                                sliderClass={carouselCfg.sliderClass}
-                              >
-                                {cat.series.map((itemCat) => ( 
-                                    <article className="submn-article">
-                                      <img
-                                        src={itemCat.image}
-                                        alt={itemCat.title}
-                                        loading="lazy"
-                                        decoding="async"
-                                      />
-                                      <Link href={itemCat.link} key={itemCat._id}>
-                                         <strong className="text-dark text-black">{itemCat.title}</strong> 
-                                      </Link>
-                                    </article> 
+                                sliderClass={carouselCfg.sliderClass}>
+                                {cat.series.map((itemCat) => (
+                                  <article className="submn-article">
+                                    <div className="image-header">
+                                      <img  src={itemCat.image}   alt={itemCat.title} loading="lazy"  decoding="async"   />
+                                      <div className="over-image">
+                                        <Link
+                                          href={itemCat.link}
+                                          key={itemCat._id}>
+                                          <div className="link-box">
+                                            <GoArrowUpRight />
+                                          </div>
+                                        </Link>
+                                      </div>
+                                    </div>
+                                    <Link href={itemCat.link} key={itemCat._id}>
+                                      <strong className="text-dark text-black">
+                                        {itemCat.title} 
+                                      </strong>
+                                    </Link>
+                                  </article>
                                 ))}
                               </Carousel>
                             </Tab>
@@ -507,17 +545,77 @@ const HeaderFour = () => {
                     </div>
                   </li>
                   <li className="nav-item">
-                    <Link href="/service" className="nav-link-item drop-trigger">
+                    <Link
+                      href="/service"
+                      className="nav-link-item drop-trigger"
+                    >
                       Serviços
                     </Link>
-                  </li>
-                  <li className="nav-item">
-                    <Link href="/solutions" className="nav-link-item drop-trigger">
+                  </li> 
+                    <li
+                    className="nav-item sub-menu-item-hover"
+                    onMouseEnter={() => setForceOpaque(true)}
+                    onMouseLeave={() => setForceOpaque(false)}
+                  >
+                    <Link href="#" className="nav-link-item">
                       Soluções
                     </Link>
+                    <div  className="sub-menu-box"  onMouseEnter={() => setForceOpaque(true)}  onMouseLeave={() => setForceOpaque(false)} >
+                        <Carousel
+                          responsive={carouselCfg.responsive}
+                          arrows={carouselCfg.arrows}
+                          infinite={carouselCfg.infinite}
+                          transitionDuration={
+                            carouselCfg.transitionDuration
+                          }
+                          swipeable={carouselCfg.swipeable}
+                          draggable={carouselCfg.draggable}
+                          keyBoardControl={carouselCfg.keyBoardControl}
+                          renderDotsOutside={
+                            carouselCfg.renderDotsOutside
+                          }
+                          showDots={carouselCfg.showDots}
+                          lazyLoad={carouselCfg.lazyLoad}
+                          ssr={carouselCfg.ssr}
+                          minimumTouchDrag={carouselCfg.minimumTouchDrag}
+                          containerClass={carouselCfg.containerClass}
+                          itemClass={carouselCfg.itemClass}
+                          sliderClass={carouselCfg.sliderClass}>
+                          {[
+                              {image:"https://www.eagerled.com/wp-content/uploads/2023/06/Exhibition-LED-screen-8.jpg", link:"#", title:"Feiras & Eventos"},
+                              {image:"https://ecdn6.globalso.com/upload/p/549/image_product/2024-04/6618eef49b52d50080.jpg", link:"#", title:"Conferencias & Concertos"},
+                              {image:"https://www.sernis.com/image/project/paineis-led-de-publicidade/r/1200/715/porto-campo-alegre-mrm-6m2-copy.png", link:"#", title:"Publicidade Exterior"},
+                              {image:"https://www.onedisplaygroup.com/wp-content/uploads/2021/11/Led-Screen-for-Advertising-Indoor-3.jpg", link:"#", title:"Publicidade Interior"},
+                              {image:"https://ledsino.com/wp-content/uploads/2024/01/Outdoor-LED-Display-LEDSINO-Modular-LED-Panels.png", link:"#", title:"Publicidade 3D"}, 
+                          ].map((item, index )=>(
+                             <article className="submn-article">
+                              <div className="image-header">
+                                <img  src={item.image}   alt={item.title} loading="lazy"  decoding="async"   />
+                                <div className="over-image">
+                                  <Link
+                                    href={item.link}
+                                    key={item.link}>
+                                    <div className="link-box">
+                                      <GoArrowUpRight />
+                                    </div>
+                                  </Link>
+                                </div>
+                              </div>
+                              <Link href={item.link} key={item.link}>
+                                <strong className="text-dark text-black">
+                                  {item.title} 
+                                </strong>
+                              </Link>
+                            </article>
+                          ))} 
+                        </Carousel>
+                    </div>
                   </li>
                   <li className="nav-item ">
-                    <Link href="/about-us" className="nav-link-item drop-trigger">
+                    <Link
+                      href="/about-us"
+                      className="nav-link-item drop-trigger"
+                    >
                       Sobre nós
                     </Link>
                   </li>
@@ -528,12 +626,14 @@ const HeaderFour = () => {
                   </li>
                   <li className="nav-item">
                     <Link href={"#"}>
-                      <div className="start-project">Começe aqui o seu projecto</div>
+                      <div className="start-project">
+                        Começe aqui o seu projecto
+                      </div>
                     </Link>
                   </li>
                 </ul>
               </nav>
-            </div> 
+            </div>
             <div className="header-btn header-btn-l1 ms-auto ">
               <div className="tekup-header-icon">
                 <Link href="tel:+351210353555" className="header-icon-info-box">
@@ -547,12 +647,18 @@ const HeaderFour = () => {
                     </div>
                   </div>
                 </Link>
-                <div className="tekup-header-barger dark" onClick={() => setSideBar(!sideBar)}>
+                <div
+                  className="tekup-header-barger dark"
+                  onClick={() => setSideBar(!sideBar)}
+                >
                   <span></span>
                 </div>
               </div>
-            </div> 
-            <div className="mobile-menu-trigger" onClick={menuTriggerClickHandler}>
+            </div>
+            <div
+              className="mobile-menu-trigger"
+              onClick={menuTriggerClickHandler}
+            >
               <span></span>
             </div>
           </nav>
@@ -571,12 +677,14 @@ const HeaderFour = () => {
               </Link>
             </div>
             <p className="mb-3">
-              <strong>Soluções LED que unem eficiência, qualidade e design moderno</strong>
-              <br />
-              A Waveled é uma empresa inovadora especializada em soluções LED de iluminação e
-              display. Apoiamos marcas, eventos e espaços comerciais com projetos chave-na-mão:
-              consultoria, conceção, instalação, operação e manutenção. O nosso foco é entregar
-              impacto visual, eficiência energética e fiabilidade.
+              <strong>
+                Soluções LED que unem eficiência, qualidade e design moderno
+              </strong>
+              <br />A Waveled é uma empresa inovadora especializada em soluções
+              LED de iluminação e display. Apoiamos marcas, eventos e espaços
+              comerciais com projetos chave-na-mão: consultoria, conceção,
+              instalação, operação e manutenção. O nosso foco é entregar impacto
+              visual, eficiência energética e fiabilidade.
             </p>
             <div className="tekup-sidemenu-thumb">
               <img
@@ -629,11 +737,17 @@ const HeaderFour = () => {
               </ul>
             </div>
           </div>
-          <span className="tekup-sidemenu-close" onClick={() => setSideBar(false)}>
+          <span
+            className="tekup-sidemenu-close"
+            onClick={() => setSideBar(false)}
+          >
             <i className="ri-close-line"></i>
           </span>
         </div>
-        <div className="offcanvas-overlay" onClick={() => setSideBar(false)}></div>
+        <div
+          className="offcanvas-overlay"
+          onClick={() => setSideBar(false)}
+        ></div>
       </div>
       <div
         className={`offcanvas-overlay ${sideBar ? "active" : ""}`}
