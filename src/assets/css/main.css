@@ -2015,3 +2015,8 @@ body .custom-tabs .body-tab .tab{
 body .custom-tabs .body-tab .tab.show{
   display: block !important;
 }
+
+body .nav-item.sub-menu-item-hover:hover  .nav-tabs .nav-item span,
+body .nav-tabs .nav-item span{
+  color:var(--dark) !important;
+} 
