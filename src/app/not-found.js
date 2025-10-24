@@ -18,7 +18,7 @@ const NotFound = () => {
             </p>
             <div className="tekup-extra-mt">
               <Link className="tekup-default-btn left" href="/">
-                Voltar à página inicial <i className="ri-arrow-right-up-line"></i>
+                 Voltar à página inicial <i className="ri-arrow-right-up-line"></i>
               </Link>
             </div>
           </div>
@@ -29,5 +29,7 @@ const NotFound = () => {
     </>
   );
 };
+
+ 
 
 export default NotFound;
