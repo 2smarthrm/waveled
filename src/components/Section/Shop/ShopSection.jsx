@@ -1,13 +1,15 @@
-
-
+// ond etem o Últimos 10 produtos a diea era esta dados etarem em Mais produtos em ... no carousel e manter o estilo anteriro e nao suar os class card dos bootsapp 
 "use client";
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState, Suspense } from "react";
 import Slider from "react-slick";
 import { useSearchParams } from "next/navigation";
+import CategoryGridGalery from "./CategoryGridGalery";
 
 const BASE_URL = "https://waveledserver.vercel.app";
+const isHttpOrHttps = s => /^(https?):\/\//i.test(s);
+const baseURL = isHttpOrHttps("") === true ? " " : "https://waveledserver.vercel.app";
 
 /**
  * Wrapper que satisfaz o Next.js:
@@ -22,10 +24,12 @@ export default function ShopSection() {
             <h1 className="text-dark">A carregar...</h1>
             <div className="row" style={{ marginTop: 24 }}>
               {[0, 1, 2].map((i) => (
-                <article key={i} className="featured-article skeleton">
+                <article key={i} className="featured-article skeleton col-12 col-md-4 mb-4">
                   <div className="image skeleton-box" style={{ height: 220 }} />
                   <div className="newbadge skeleton-box" style={{ width: 64, height: 24 }} />
-                  <h3 className="skeleton-box" style={{ width: "60%", height: 24 }}>&nbsp;</h3>
+                  <h3 className="skeleton-box" style={{ width: "60%", height: 24 }}>
+                    &nbsp;
+                  </h3>
                   <small className="sku-code skeleton-box" style={{ width: "40%", height: 16 }}>
                     &nbsp;
                   </small>
@@ -53,6 +57,10 @@ function ShopSectionInner() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  // Estado para paginação dos "latest"
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 6;
+
   const settings = useMemo(
     () => ({
       dots: true,
@@ -75,7 +83,7 @@ function ShopSectionInner() {
   const Videos = {
     section1: {
       source:
-        "https://video-previews.elements.envatousercontent.com/h264-video-previews/2ec50093-3a2f-4608-a78c-0ca3b126791e/58796892.mp4",
+        "https://video-previews.elements.envatousercontent.com/h264-video-previews/d2789105-23a4-4fe8-8f1f-821c732ff74e/54867805.mp4",
       text1: "Orçamentos para medir e no mesmo dia ",
       text2: "para todo tipo de négocio",
     },
@@ -108,7 +116,10 @@ function ShopSectionInner() {
         if (!resp.ok || !json?.ok) {
           throw new Error(json?.error || `Request falhou (${resp.status})`);
         }
-        if (!abort) setData(json.data);
+        if (!abort) {
+          setData(json.data);
+          setCurrentPage(1); // reset página quando muda categoria
+        }
       } catch (e) {
         if (!abort) setErr(e?.message || "Erro ao carregar dados.");
       } finally {
@@ -126,6 +137,54 @@ function ShopSectionInner() {
   const imgSrc = (p) => (firstImage(p) ? `${BASE_URL}${firstImage(p)}` : "/placeholder.png");
   const skuText = (p) => (p?.wl_sku && p.wl_sku.trim()) || "—";
   const PageTitle = data?.category?.wl_name || "Categoria";
+
+  // Util para remover duplicados por _id preservando ordem
+  const uniqById = (arr) => {
+    const seen = new Set();
+    const out = [];
+    for (const it of arr || []) {
+      if (it && it._id && !seen.has(it._id)) {
+        seen.add(it._id);
+        out.push(it);
+      }
+    }
+    return out;
+  };
+
+  // Fonte de “latest”:
+  // 1) Se vier latestAll / recent da API, usa.
+  // 2) Caso contrário, compõe com latest3 + topProduct + others.
+  const latestAll = useMemo(() => {
+    if (!data) return [];
+    const apiLatest = data.latestAll || data.recent || [];
+    if (apiLatest && apiLatest.length) return uniqById(apiLatest);
+
+    const composed = [
+      ...(data.latest3 || []),
+      ...(data.topProduct ? [data.topProduct] : []),
+      ...(data.others || []),
+    ];
+    return uniqById(composed);
+  }, [data]);
+
+  // Paginação (9 por página)
+  const totalItems = latestAll.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+  const startIdx = (currentPage - 1) * perPage;
+  const pageItems = latestAll.slice(startIdx, startIdx + perPage);
+
+  const goToPage = (p) => {
+    const safe = Math.min(Math.max(1, p), totalPages);
+    setCurrentPage(safe);
+    // scroll suave até à grid de latest
+    if (typeof window !== "undefined") {
+      const el = document.getElementById("latest-grid-anchor");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // "Últimos 10" (para a secção final)
+  const last10 = useMemo(() => latestAll.slice(0, 10), [latestAll]);
 
   return (
     <div>
@@ -179,79 +238,147 @@ function ShopSectionInner() {
             background-position: -200% 0;
           }
         }
+        /* Cartões da grid */
+        .product-card {
+          background: #fff;
+          border: 1px solid #eee;
+          border-radius: 16px;
+          padding: 12px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .product-card .img-wrap {
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #f7f7f7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .product-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          mix-blend-mode: multiply;
+        }
+        .product-card h5 {
+          font-size: 1rem;
+          line-height: 1.25rem;
+          margin: 0;
+        }
       `}</style>
 
-      {/* HEADER + 3 últimos (latest3) */}
-      <div className="section tekup-section-padding">
-        <aside className="featured-top-products">
+      {/* HEADER (título da categoria) */}
+      <div className="section tekup-section-padding pb-0 mb-0">
+        <aside className="featured-top-products pb-0">
           <div className="container">
-            <h1 className="text-dark">{loading ? "A carregar..." : err ? "Erro" : PageTitle}</h1>
+            <h2 className="text-dark">
+              {loading ? "A carregar..." : err ? "Erro" :  PageTitle}
+            </h2>
             <br />
             {err ? (
               <p className="text-danger">{err}</p>
-            ) : loading ? (
+            ) : null}
+          </div>
+        </aside>
+      </div>
+
+      {/* === LATEST: GRADE + PAGINAÇÃO (9 por página) === */}
+      <section id="latest-grid-anchor" className="section pt-0 pb-0">
+        <div className="container">
+          {loading ? (
+            <div className="row">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="col-12 col-sm-6 col-lg-4 mb-4">
+                  <div className="product-card">
+                    <div className="img-wrap skeleton-box" />
+                    <div className="skeleton-box" style={{ width: "70%", height: 20 }} />
+                    <div className="skeleton-box" style={{ width: "40%", height: 16 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : latestAll.length === 0 ? (
+            <p className="text-muted">Sem produtos recentes nesta categoria.</p>
+          ) : (
+            <>
               <div className="row">
-                {[0, 1, 2].map((i) => (
-                  <article key={i} className="featured-article skeleton">
-                    <div className="image skeleton-box" style={{ height: 220 }} />
-                    <div className="newbadge skeleton-box" style={{ width: 64, height: 24 }} />
-                    <h3 className="skeleton-box" style={{ width: "60%", height: 24 }}>
-                      &nbsp;
-                    </h3>
-                    <small className="sku-code skeleton-box" style={{ width: "40%", height: 16 }}>
-                      &nbsp;
-                    </small>
-                    <div className="d-flex gap-3 mt-3">
-                      <span className="tekup-default-btn bg-black skeleton-box" style={{ width: 120, height: 40 }} />
-                      <span className="tekup-default-btn skeleton-box" style={{ width: 120, height: 40 }} />
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="row">
-                {(data?.latest3 || []).map((item) => (
-                  <article key={item._id} className="featured-article">
-                    <div className="image" style={{ backgroundColor: "#f7f7f7" }}>
+                {pageItems.map((item) => (
+                  <div key={item._id} className="col-12 col-sm-6 col-lg-4 mb-4">
+                      <article key={item._id} className="featured-article">
+                    <div
+                      className="image d-flex align-items-center justify-content-center"
+                      style={{ backgroundColor: "#f7f7f7",}}>
                       <img
-                        style={{ mixBlendMode: "multiply", objectFit: "contain" }}
+                        style={{
+                          mixBlendMode: "multiply",
+                          objectFit: "contain",
+                          maxWidth:"250px",
+                          padding:"20px"
+                        }}
                         src={imgSrc(item)}
                         alt={item.wl_name}
                       />
                     </div>
-                    <div className="newbadge">Novo</div>
-                    <h3>
-                      {item.wl_name.length > 50 ? item.wl_name.substring(0, 50) + "..." : item.wl_name}
-                    </h3>
-                    <small className="sku-code">
-                      <strong>SKU :</strong>
-                      <span className="text-primary"> {skuText(item)} </span>
-                    </small>
-                    <div className="d-flex gap-3 mt-3">
-                      <Link className="tekup-default-btn bg-black" href={`/single-shop?product=${item._id}`}>
-                        Saiba Mais
-                      </Link>
-                      <Link className="tekup-default-btn" href={`/single-shop?product=${item._id}`}>
-                        Comprar
-                      </Link>
+                    <div className="text-left">
+                      <Link href={`/single-shop?product=${item._id}`}>
+                        <h4 className="text-left mb-4">
+                          {item.wl_name.length > 60
+                            ? item.wl_name.substring(0, 60) + "..."
+                            : item.wl_name}
+                        </h4>
+                      </Link> 
                     </div>
                   </article>
+                  </div>
                 ))}
-                {data && data.latest3.length === 0 && (
-                  <p className="text-muted">Sem produtos recentes nesta categoria.</p>
-                )}
               </div>
-            )}
-          </div>
-        </aside>
-      </div>
+
+              {/* Paginação Bootstrap centrada */}
+              {totalPages > 1 && (
+                <nav aria-label="Paginação de produtos" className="mb-4">
+                  <ul className="pagination justify-content-center">
+                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                      <button className="page-link" onClick={() => goToPage(currentPage - 1)} aria-label="Anterior">
+                        «
+                      </button>
+                    </li>
+
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const page = idx + 1;
+                      return (
+                        <li key={page} className={`page-item ${currentPage === page ? "active" : ""}`}>
+                          <button className="page-link" onClick={() => goToPage(page)}>
+                            {page}
+                          </button>
+                        </li>
+                      );
+                    })}
+
+                    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                      <button className="page-link" onClick={() => goToPage(currentPage + 1)} aria-label="Seguinte">
+                        »
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
+            </>
+          )}
+        </div>
+        <br />
+      </section>
 
       {/* VÍDEO 1 (mantido) */}
       <aside>
         {Videos.section1?.source ? (
           <div className="video-shop-large-section">
             <div className="video-shop-large">
-              <video src={Videos.section1.source} autoPlay muted loop></video>
+              <video src={Videos.section1.source} autoPlay muted loop />
               <div className="over-video-large">
                 <div>
                   <div className="tekup-section-padding">
@@ -283,52 +410,52 @@ function ShopSectionInner() {
             </div>
           ) : data?.topProduct ? (
             <div className="content-centered-block">
-              <strong className="text-primary">Produto em destaque</strong>
-              <div style={{ maxWidth: 720, margin: "0 auto" }}>
-                <h2 className="text-dark">{data.topProduct.wl_name}</h2>
+              <div className="d-block">
+                <div className="image" style={{ maxWidth: 720, margin: "0 auto" }}>
+                  <img
+                    src={imgSrc(data.topProduct)}
+                    alt={data.topProduct.wl_name}
+                    style={{ width: "100%", height: "auto", objectFit: "contain" }}
+                  />
+                </div>
               </div>
-              <div className="image text-center" style={{ maxWidth: 720, margin: "0 auto" }}>
-                <img
-                  src={imgSrc(data.topProduct)}
-                  alt={data.topProduct.wl_name}
-                  style={{ width: "100%", height: "auto", objectFit: "contain" }}
-                />
+              <div className="black-box bg-black">
+                <strong className="text-primary">Produto em destaque</strong>
+                <div>
+                  <div style={{ maxWidth: 720 }}>
+                    <h2 className="text-light mb-2 mt-2">{data.topProduct.wl_name}</h2>
+                  </div>
+                </div>
+                <div>
+                  <small className="text-light">{data.topProduct.wl_specs_text}</small>
+                </div>
+                <div className="mt-2">
+                  <Link className="tekup-default-btn" href={`single-shop?product=${data.topProduct._id}`}>
+                    Saiba mais agora
+                  </Link>
+                </div>
               </div>
-              <br />
-              <Link className="tekup-default-btn" href={`single-shop?product=${data.topProduct._id}`}>
-                Saiba mais agora
-              </Link>
             </div>
           ) : (
-            <div className="content-centered-block"></div>
+            <div className="content-centered-block" />
           )}
         </div>
       </aside>
 
-      {/* VÍDEO 2 (mantido) */}
-      <aside className={data?.topProduct ? "" : "d-none"}>
-        {Videos.section2?.source ? (
-          <div className="video-shop-large-section">
-            <div className="video-shop-large">
-              <video src={Videos.section2.source} autoPlay muted loop></video>
-              <div className="over-video-large">
-                <div>
-                  <div className="tekup-section-padding">
-                    <div className="container">
-                      <h2>{Videos.section2.text1}</h2>
-                      <h2>{Videos.section2.text2}</h2>
-                      <br />
-                      <Link href={"/contact-us"}>
-                        <button className="tekup-default-btn">Solicitar Orçamento</button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <section className="section tekup-section-padding pb-5 pt-0" style={{ paddingLeft: "40px", paddingRight: "40px" }}>
+        <CategoryGridGalery categorycode={categoryId} />
+      </section>
+
+      <section className="gradient-category-section">
+        <div className="section tekup-section-padding">
+          <div className="container">
+            <h2>
+              "Os nossos clientes adoram. O quiosque com ecrã transparente é deslumbrante, inovadora e futurista."
+            </h2>
+            <p>-Os melhores produtos de toda europa</p>
           </div>
-        ) : null}
-      </aside>
+        </div>
+      </section>
 
       {/* CARROSSEL “OUTROS PRODUTOS” (others) */}
       <aside>
@@ -342,34 +469,32 @@ function ShopSectionInner() {
               {loading ? (
                 <div className="row">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <article key={i} className="card skeleton" style={{ width: 280 }}>
-                      <div className="card-content">
-                        <strong className="sku skeleton-box" style={{ width: "40%", height: 16 }}>
-                          &nbsp;
-                        </strong>
-                        <h5 className="skeleton-box" style={{ width: "70%", height: 20 }}>
-                          &nbsp;
-                        </h5>
-                        <p className="skeleton-box" style={{ height: 48 }} />
-                        <div className="image skeleton-box" style={{ height: 180 }} />
-                      </div>
-                    </article>
+                    <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+                      <article className="card skeleton">
+                        <div className="card-content">
+                          <strong className="sku skeleton-box" style={{ width: "40%", height: 16 }}>
+                            &nbsp;
+                          </strong>
+                          <h5 className="skeleton-box" style={{ width: "70%", height: 20 }}>
+                            &nbsp;
+                          </h5>
+                          <p className="skeleton-box" style={{ height: 48 }} />
+                          <div className="image skeleton-box" style={{ height: 180 }} />
+                        </div>
+                      </article>
+                    </div>
                   ))}
                 </div>
-              ) : (data?.others || []).length > 0 ? (
+              ) : (last10 || []).length > 0 ? (
                 <Slider {...settings}>
-                  {data.others.map((item) => (
+                  {last10.map((item)  => (
                     <article key={item._id}>
                       <div className="card-content" style={{ minHeight: "530px" }}>
                         <strong className="sku">SKU-{skuText(item)}</strong>
                         <Link href={`/single-shop?product=${item._id}`}>
-                          <h5>
-                            {item.wl_name.split("").length > 45
-                              ? item.wl_name.substring(0, 45) + "..."
-                              : item.wl_name}
-                          </h5>
+                          <h5>{item.wl_name.split("").length > 40 ? item.wl_name.substring(0, 40) + "..." : item.wl_name}</h5>
                         </Link>
-                        <p className="text-muted">{/* pequena sinopse opcional */}</p>
+                        <p className="text-muted">{/* sinopse opcional */}</p>
                         <div className="image" style={{ background: "#ffff" }}>
                           <img
                             style={{ mixBlendMode: "multiply", objectFit: "contain" }}
@@ -387,7 +512,12 @@ function ShopSectionInner() {
             </div>
           </div>
         </div>
-      </aside>
+      </aside> 
     </div>
   );
 }
+
+
+
+ 
+              

@@ -8,8 +8,7 @@ export default function SinglePortfolioSection({ item }) {
   const descHTML = item?.data?.wl_description_html || "";
   const images = Array.isArray(item?.data?.wl_images) ? item?.data?.wl_images : [];
   
-  console.clear()
-  console.log(item.data,images)
+ 
 
   return (
     <div className="section tekup-section-padding">
