@@ -33,7 +33,7 @@ const AccordionSection = () => {
                 <li>Formatos modulares: 16:9, panorâmico, totem, telão de palco.</li>
                 <li>Pixel pitch variado (P2.6, P3.9, P4.8) conforme distância.</li>
                 <li>Equipe técnica dedicada no local (quando contratado).</li>
-                <li>Pacotes flexíveis: diária ou evento completo.</li> , 
+                <li>Pacotes flexíveis: diária ou evento completo.</li> 
               </ul>
 
               <div className="tekup-extra-mt d-flex gap-3 flex-wrap">
@@ -102,3 +102,6 @@ const AccordionSection = () => {
 };
 
 export default AccordionSection;
+
+ 
+
