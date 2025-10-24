@@ -272,9 +272,10 @@ const HeaderFour = () => {
         const map = new Map(); // key: categoryName, value: {category, id, series:[]}
         items.forEach((p) => {
           const catName = p?.wl_category?.wl_name || "Outros";
+            const catSlug = p?.wl_category?.wl_slug || "Outros";
           const catId = p?.wl_category?._id || "others";
           if (!map.has(catName)) {
-            map.set(catName, { category: catName, id: catId, series: [] });
+            map.set(catName, { category: catName, id: catId, slug:catSlug, series: [] });
           }
           const cover =
             Array.isArray(p?.wl_images) && p.wl_images.length
@@ -398,7 +399,7 @@ const HeaderFour = () => {
           <nav className="navbar site-navbar">
             <div className="brand-logo">
               <Link href="/">
-                <h5 className="text-black text-dark">EXPORTECH</h5>
+                <h5 className="text-black text-dark">WAVELED</h5>
               </Link>
             </div>
 
@@ -490,7 +491,7 @@ const HeaderFour = () => {
                                 Ver todos os produtos {" > "}
                                 <Link
                                   style={{ marginLeft: "10px" }}
-                                  href={`/shop?category=${cat.category}`}
+                                  href={`/shop?category=${cat.id}`}
                                 >
                                   {cat.category}
                                 </Link>
@@ -610,15 +611,7 @@ const HeaderFour = () => {
                           ))} 
                         </Carousel>
                     </div>
-                  </li>
-                  <li className="nav-item ">
-                    <Link
-                      href="/about-us"
-                      className="nav-link-item drop-trigger"
-                    >
-                      Sobre nós
-                    </Link>
-                  </li>
+                  </li> 
                   <li className="nav-item">
                     <Link href="contact-us" className="nav-link-item">
                       Contactos

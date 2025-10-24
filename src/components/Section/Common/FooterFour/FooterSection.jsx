@@ -102,8 +102,7 @@ export default function FooterFore() {
                     </ul>
                   </div>
                 </div>
-              </div>
-
+              </div> 
               <div className="col-xl-2 offset-xl-1 col-md-3">
                 <div className="tekup-footer-menu light-color">
                   <div className="tekup-footer-title light-color">
@@ -194,12 +193,11 @@ export default function FooterFore() {
               </div>
             </div>
           </div>
-
           <div className="tekup-footer-bottom">
             <div className="row">
               <div className="col-md-6">
                 <div className="tekup-copywright light-color right">
-                  <p>© {new Date().getFullYear()} waveled. All rights reserved.</p>
+                  <p>©{new Date().getFullYear()} waveled. All rights reserved.</p>
                 </div>
               </div>
               <div className="col-md-6">
