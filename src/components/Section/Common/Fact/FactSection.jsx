@@ -3,10 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-const API_BASE =
-  location.protocol === "https:"
-    ? "https://waveledserver.vercel.app"
-    : "http://localhost:4000";
+const API_BASE = "https://waveledserver.vercel.app";
 
 const isAbs = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbs(u) ? u : `${API_BASE}${u}`) : "");
@@ -212,3 +209,4 @@ const FactSection = () => {
 };
 
 export default FactSection;
+
