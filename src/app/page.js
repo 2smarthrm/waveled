@@ -1,9 +1,6 @@
 /*
-  HomeFour.jsx — versão com axios
-  - Fetch => axios (com baseURL e abort via signal)
-  - Melhor tratamento de erros (status + mensagem)
-  - Ordenação corrigida (sem list.sort() inútil)
-  - Logs limpos (console.error uma vez)
+usar um skeleton na zona Explorar todas as soluções
+para ficar masi bonito oa inves d epor um test diznedo carregar soluções, fazer isso e devolver fullcode:
 */
 
 "use client";
@@ -44,15 +41,15 @@ const isMobileUA = () => {
 
 const responsive = {
   ultraDesktop: { breakpoint: { max: 4000, min: 2560 }, items: 6 },
-  xlDesktop:   { breakpoint: { max: 2560, min: 1920 }, items: 6 },
-  lgDesktop:   { breakpoint: { max: 1920, min: 1536 }, items: 6 },
-  desktop:     { breakpoint: { max: 1536, min: 1280 }, items: 6 },
-  smDesktop:   { breakpoint: { max: 1280, min: 1024 }, items: 4 },
-  lgTablet:    { breakpoint: { max: 1024, min: 834 }, items: 4 },
-  tablet:      { breakpoint: { max: 834,  min: 768 }, items: 3 },
-  phablet:     { breakpoint: { max: 768,  min: 576 }, items: 2 },
-  mobile:      { breakpoint: { max: 576,  min: 375 }, items: 2 },
-  miniMobile:  { breakpoint: { max: 375,  min: 0 },   items: 1 },
+  xlDesktop:    { breakpoint: { max: 2560, min: 1920 }, items: 6 },
+  lgDesktop:    { breakpoint: { max: 1920, min: 1536 }, items: 6 },
+  desktop:      { breakpoint: { max: 1536, min: 1280 }, items: 6 },
+  smDesktop:    { breakpoint: { max: 1280, min: 1024 }, items: 4 },
+  lgTablet:     { breakpoint: { max: 1024, min: 834 }, items: 4 },
+  tablet:       { breakpoint: { max: 834,  min: 768 }, items: 3 },
+  phablet:      { breakpoint: { max: 768,  min: 576 }, items: 2 },
+  mobile:       { breakpoint: { max: 576,  min: 375 }, items: 2 },
+  miniMobile:   { breakpoint: { max: 375,  min: 0 },   items: 1 },
 };
 
 // Ordena: primeiro por mais antigas (ASC), depois acrescenta as mais recentes (DESC) sem duplicar
@@ -81,9 +78,18 @@ const orderFirstOldestThenNewest = (arr) => {
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 15000,
-  // Se precisar de cookies/sessão entre domínios, ative:
   // withCredentials: true,
 });
+
+// --------- Skeleton Card (shimmer) ---------
+const SkeletonCard = () => (
+  <article className="featured-card skeleton-card" aria-hidden="true">
+    <div className="image skeleton-box" />
+    <div className="skeleton-title skeleton-box" />
+  </article>
+);
+
+const SKELETON_ITEMS = Array.from({ length: 10 }).map((_, i) => i);
 
 const HomeFour = ({ deviceType: deviceTypeProp }) => {
   const deviceType = deviceTypeProp || (isMobileUA() ? "mobile" : "desktop");
@@ -101,31 +107,21 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
         setLoading(true);
         setErr(null);
 
-        // IMPORTANTE:
-        // - endpoint relativo ao baseURL (evita duplicar hosts)
-        // - passa signal para abort (axios >= 1.4)
         const { data } = await api.get("/api/solutions", {
           signal: ac.signal,
-          // params: { q: "" } // se precisar de query
-          headers: {
-            "Accept": "application/json",
-          },
+          headers: { Accept: "application/json" },
         });
 
         const list = Array.isArray(data?.data) ? data.data : [];
-
-        // aplica a ordenação desejada (sem mutar com sort() extra)
         const ordered = orderFirstOldestThenNewest(list);
         setSolutions(ordered);
       } catch (e) {
-        if (axios.isCancel(e)) return; // abortado
-        // Monta mensagem de erro útil
+        if (axios.isCancel(e)) return;
         const status = e?.response?.status;
         const statusText = e?.response?.statusText;
-        const msg =
-          status
-            ? `HTTP ${status}${statusText ? ` — ${statusText}` : ""}`
-            : (e?.message || "Erro ao carregar soluções");
+        const msg = status
+          ? `HTTP ${status}${statusText ? ` — ${statusText}` : ""}`
+          : (e?.message || "Erro ao carregar soluções");
         console.error("Erro a obter /api/solutions:", e);
         setErr(msg);
       } finally {
@@ -160,23 +156,50 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
               <p className="text-muted">Projetos e aplicações reais dos nossos produtos.</p>
             </div>
 
-            <div className="row-featured">
+            <div
+              className="row-featured"
+              aria-live="polite"
+              aria-busy={loading ? "true" : "false"}
+            >
+              {/* SKELETON STATE */}
               {loading && (
-                <div className="text-center py-5" role="status" aria-live="polite">
-                  A carregar soluções…
-                </div>
+                <Carousel
+                  swipeable
+                  draggable={false}
+                  showDots
+                  responsive={responsive}
+                  infinite
+                  autoPlay={false}
+                  keyBoardControl={false}
+                  customTransition="all .4s ease"
+                  transitionDuration={400}
+                  containerClass="carousel-container"
+                  removeArrowOnDeviceType={["tablet", "mobile"]}
+                  deviceType={deviceType}
+                  dotListClass="custom-dot-list-style"
+                  itemClass="carousel-item-padding-40-px"
+                  renderDotsOutside
+                  aria-label="Carrossel de soluções (a carregar)"
+                >
+                  {SKELETON_ITEMS.map((k) => (
+                    <SkeletonCard key={`sk-${k}`} />
+                  ))}
+                </Carousel>
               )}
 
+              {/* ERROR STATE */}
               {!loading && err && (
                 <div className="text-center py-4 text-danger">
                   Erro: {err}
                 </div>
               )}
 
+              {/* EMPTY STATE */}
               {!loading && !err && cards.length === 0 && (
                 <div className="text-center py-4">Sem soluções registadas ainda.</div>
               )}
 
+              {/* DATA STATE */}
               {!loading && !err && cards.length > 0 && (
                 <Carousel
                   swipeable
@@ -238,6 +261,74 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
       <AccordionSection />
       <CtaThreeSection />
       <FooterFour />
+
+      {/* Skeleton styles */}
+      <style jsx>{`
+        .featured-card {
+          padding: 8px;
+        }
+        .featured-card .image {
+          aspect-ratio: 16/9;
+          width: 100%;
+          overflow: hidden;
+          border-radius: 12px;
+          background: #f3f3f3;
+          margin-bottom: 10px;
+        }
+        .featured-card strong {
+          display: block;
+          font-size: 14px;
+          line-height: 1.35;
+          color: #111;
+        }
+
+        /* Skeleton base */
+        .skeleton-box {
+          position: relative;
+          overflow: hidden;
+          background: #e9ecef;
+        }
+        .skeleton-box::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.6) 50%,
+            rgba(255,255,255,0) 100%
+          );
+          animation: shimmer 1.2s infinite;
+        }
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+
+        .skeleton-card .image {
+          background: #e9ecef;
+          border-radius: 12px;
+        }
+        .skeleton-title {
+          height: 14px;
+          width: 80%;
+          border-radius: 8px;
+        }
+
+        /* Fine-tuning spacing for skeleton cards */
+        .skeleton-card {
+          padding: 8px;
+        }
+        .skeleton-card .image {
+          aspect-ratio: 16/9;
+          margin-bottom: 10px;
+        }
+
+        /* Ensure dots don't jump during skeleton */
+        :global(.react-multi-carousel-dot-list) {
+          margin-top: 8px;
+        }
+      `}</style>
     </div>
   );
 };
