@@ -15,7 +15,7 @@ import "react-awesome-lightbox/build/style.css";
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
 
-const BaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+const BaseUrl = "https://waveledserver.vercel.app";
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${BaseUrl}${u}`) : "");
 
 // Slider settings
