@@ -108,6 +108,9 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
         const ordered = orderFirstOldestThenNewest(list.sort());
         setSolutions(ordered);
       } catch (e) {
+        setInterval(() => {
+           console.log(e);
+        }, 3000) 
         if (e?.name !== "AbortError") setErr(e?.message || "Erro ao carregar soluções");
       } finally {
         setLoading(false);
