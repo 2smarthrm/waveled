@@ -1,15 +1,9 @@
 /*
-/*
-
-HomeFour — Primeiro bloco com “primeiras imagens adicionadas e, em seguida, as mais recentes”.
-
-Lógica aplicada ao carrossel de soluções:
-- Busca /api/solutions
-- Separa por createdAt:
-  - oldestAsc: ascendente (primeiras adicionadas)
-  - newestDesc: descendente (mais recentes)
-- Concatena oldestAsc + newestDesc removendo duplicados por _id
-
+  HomeFour.jsx — versão com axios
+  - Fetch => axios (com baseURL e abort via signal)
+  - Melhor tratamento de erros (status + mensagem)
+  - Ordenação corrigida (sem list.sort() inútil)
+  - Logs limpos (console.error uma vez)
 */
 
 "use client";
@@ -17,6 +11,7 @@ Lógica aplicada ao carrossel de soluções:
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 import AccordionSection from "~/components/Section/Home-4/AccordionSection";
 import HeroSection from "~/components/Section/Home-4/HeroSection";
@@ -31,9 +26,11 @@ import CtaThreeSection from "~/components/Section/Common/CtaThree/CtaThreeSectio
 const Carousel = dynamic(() => import("react-multi-carousel"), { ssr: false });
 import "react-multi-carousel/lib/styles.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const IMG_HOST = process.env.NEXT_PUBLIC_IMG_HOST || "http://localhost:4000";
+// --------- ENV ---------
+const API_BASE = "https://waveledserver.vercel.app";
+const IMG_HOST = "https://waveledserver.vercel.app";
 
+// --------- Helpers ---------
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
@@ -58,10 +55,9 @@ const responsive = {
   miniMobile:  { breakpoint: { max: 375,  min: 0 },   items: 1 },
 };
 
-// helper: cria ordem "primeiras adicionadas" -> "mais recentes"
+// Ordena: primeiro por mais antigas (ASC), depois acrescenta as mais recentes (DESC) sem duplicar
 const orderFirstOldestThenNewest = (arr) => {
   const items = Array.isArray(arr) ? arr.slice() : [];
-  // normalizar datas (se faltar createdAt, considerar 0)
   const getTime = (x) => {
     const d = x?.createdAt ? new Date(x.createdAt) : null;
     const t = d && !isNaN(d.getTime()) ? d.getTime() : 0;
@@ -70,7 +66,6 @@ const orderFirstOldestThenNewest = (arr) => {
   const oldestAsc = items.slice().sort((a, b) => getTime(a) - getTime(b));
   const newestDesc = items.slice().sort((a, b) => getTime(b) - getTime(a));
 
-  // merge sem duplicar _id
   const seen = new Set();
   const merged = [];
   for (const it of [...oldestAsc, ...newestDesc]) {
@@ -82,6 +77,14 @@ const orderFirstOldestThenNewest = (arr) => {
   return merged;
 };
 
+// --------- Axios client ---------
+const api = axios.create({
+  baseURL: API_BASE,
+  timeout: 15000,
+  // Se precisar de cookies/sessão entre domínios, ative:
+  // withCredentials: true,
+});
+
 const HomeFour = ({ deviceType: deviceTypeProp }) => {
   const deviceType = deviceTypeProp || (isMobileUA() ? "mobile" : "desktop");
   const autoPlay = deviceType !== "mobile";
@@ -92,30 +95,44 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
 
   useEffect(() => {
     const ac = new AbortController();
+
     (async () => {
       try {
         setLoading(true);
         setErr(null);
-        const res = await fetch(`${API_BASE}/api/solutions/`, {
-          signal: ac.signal,
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const list = Array.isArray(json?.data) ? json.data : [];
 
-        // aplica a ordenação desejada
-        const ordered = orderFirstOldestThenNewest(list.sort());
+        // IMPORTANTE:
+        // - endpoint relativo ao baseURL (evita duplicar hosts)
+        // - passa signal para abort (axios >= 1.4)
+        const { data } = await api.get("/api/solutions", {
+          signal: ac.signal,
+          // params: { q: "" } // se precisar de query
+          headers: {
+            "Accept": "application/json",
+          },
+        });
+
+        const list = Array.isArray(data?.data) ? data.data : [];
+
+        // aplica a ordenação desejada (sem mutar com sort() extra)
+        const ordered = orderFirstOldestThenNewest(list);
         setSolutions(ordered);
       } catch (e) {
-        setInterval(() => {
-           console.log(e);
-        }, 3000) 
-        if (e?.name !== "AbortError") setErr(e?.message || "Erro ao carregar soluções");
+        if (axios.isCancel(e)) return; // abortado
+        // Monta mensagem de erro útil
+        const status = e?.response?.status;
+        const statusText = e?.response?.statusText;
+        const msg =
+          status
+            ? `HTTP ${status}${statusText ? ` — ${statusText}` : ""}`
+            : (e?.message || "Erro ao carregar soluções");
+        console.error("Erro a obter /api/solutions:", e);
+        setErr(msg);
       } finally {
         setLoading(false);
       }
     })();
+
     return () => ac.abort();
   }, []);
 
@@ -150,7 +167,11 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
                 </div>
               )}
 
-              {!loading && err && <div className="text-center py-4 text-danger">Erro: {err}</div>}
+              {!loading && err && (
+                <div className="text-center py-4 text-danger">
+                  Erro: {err}
+                </div>
+              )}
 
               {!loading && !err && cards.length === 0 && (
                 <div className="text-center py-4">Sem soluções registadas ainda.</div>
