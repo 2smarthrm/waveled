@@ -1,4 +1,6 @@
 /*
+
+/*
 usar um skeleton na zona Explorar todas as soluções
 para ficar masi bonito oa inves d epor um test diznedo carregar soluções, fazer isso e devolver fullcode:
 */
@@ -265,7 +267,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
       {/* Skeleton styles */}
       <style jsx>{`
         .featured-card {
-          padding: 8px;
+          padding: 8px 15px;
         }
         .featured-card .image {
           aspect-ratio: 16/9;
@@ -275,9 +277,15 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
           background: #f3f3f3;
           margin-bottom: 10px;
         }
+
+       .featured-card .image img{
+           width:100%;
+           object-fit:cover;
+        }
+
         .featured-card strong {
           display: block;
-          font-size: 14px;
+          font-size: 17px;
           line-height: 1.35;
           color: #111;
         }
@@ -334,3 +342,4 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
 };
 
 export default HomeFour;
+
