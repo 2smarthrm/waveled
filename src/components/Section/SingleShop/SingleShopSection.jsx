@@ -1,5 +1,5 @@
 /*
-USAR REACT-AWESOME-LIGHTBOX PARA VER MELHOR AS IMAGENS
+ 
 */
 
 "use client";
@@ -848,4 +848,5 @@ export default function SingleShopSection() {
     </>
   );
 }
+
 
