@@ -1,16 +1,16 @@
-/* -------------------------------------------
-   Single product page + ProductIndustries
-   - Agora ordena exemplos por createdAt ASC
-   - Primeiros 4 (mais antigos) no ProductIndustries
-   - Restantes na secção "Indústrias e Soluções Aplicáveis"
-   - Ambos os blocos somem se não houver exemplos
---------------------------------------------*/
+/*
+USAR REACT-AWESOME-LIGHTBOX PARA VER MELHOR AS IMAGENS
+*/
 
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState, useRef } from "react";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
+
+// >>> Lightbox
+import Lightbox from "react-awesome-lightbox";
+import "react-awesome-lightbox/build/style.css";
 
 const API_BASE = "https://waveledserver.vercel.app";
 const IMG_HOST = "https://waveledserver.vercel.app";
@@ -41,15 +41,10 @@ async function fetchJson(url) {
   return res.json();
 }
 
-/* =========================
-   ProductIndustries (usa até 4 exemplos)
-   o slide exibe oseitem eardos na arae das imagens em ralçaoa aso tetxos , evejoimagem d eum produto erardo mostrano tetxo de outro, 
-
-========================= */ 
-
-
-// ainda funciona do mesmo jeito 
-
+/* =========================================================
+   COMPONENTE: ProductIndustries (usa até 4 exemplos)
+   - Agora com Lightbox próprio (local)
+========================================================= */
 function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
   const data = useMemo(
     () =>
@@ -117,6 +112,18 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
     start();
   };
 
+  // ---- Lightbox local (para os 4 slides) ----
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
+  const lbImages = useMemo(
+    () => data.map((d) => ({ url: d.image, title: d.title })),
+    [data]
+  );
+  const openLightbox = (startAt = 0) => {
+    setLbIndex(startAt);
+    setLbOpen(true);
+  };
+
   return (
     <div className="pi-root" onKeyDown={onKeyDown}>
       <div
@@ -137,9 +144,15 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
             transform: `translateX(-${(100 / len) * idx}%)`,
           }}
         >
-          {data.map((it) => (
+          {data.map((it, i) => (
             <div key={it.key} className="pi-slide">
-              <img src={it.image} alt={it.title} />
+              <img
+                src={it.image}
+                alt={it.title}
+                role="button"
+                style={{ cursor: "zoom-in" }}
+                onClick={() => openLightbox(i)}
+              />
             </div>
           ))}
         </div>
@@ -167,16 +180,17 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
         </div>
       </div>
 
-      {/* cartões à direita — SEMPRE o mesmo índice do slide */}
+      {/* cartões à direita — sincronizados com o slide */}
       <div className="pi-right" onMouseEnter={stop} onMouseLeave={start}>
         {data.map((item, i) => (
           <article
             key={item.key}
             className={`pi-card ${i === idx ? "active" : ""}`}
             onMouseEnter={() => goTo(i)}
-            onClick={() => goTo(i)}
+            onClick={() => openLightbox(i)}
             role="button"
             tabIndex={0}
+            title="Ver em ecrã inteiro"
           >
             <h5>{item.title}</h5>
             {item.description && <p>{item.description}</p>}
@@ -278,20 +292,29 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
         }
         .pi-card h5 { margin: 0 0 6px; }
         .pi-card p  { margin: 0; opacity: 0.9; }
-
         .pi-card.active h5,
         .pi-card.active p{ 
           color: #fff;
         }
       `}</style>
+
+      {/* Lightbox local para os 4 slides */}
+      {lbOpen && (
+        <Lightbox
+          images={lbImages}
+          startIndex={lbIndex}
+          onClose={() => setLbOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
-
-/* =========================
-   Página do produto
-========================= */
+/* =========================================================
+   PÁGINA: SingleShopSection
+   - Lightbox na galeria principal (todas as imagens do produto)
+   - Lightbox na grelha de exemplos (examplesRest)
+========================================================= */
 export default function SingleShopSection() {
   // Em vez de useSearchParams()
   const [productId, setProductId] = useState(null);
@@ -371,7 +394,7 @@ export default function SingleShopSection() {
         if (abort) return;
         setItem(prod);
 
-        // 2) Exemplos (por categoria e produto) — inverter a ordem atual (usar os mais antigos primeiro)
+        // 2) Exemplos (por categoria e produto) — ordenar ASC (mais antigos primeiro)
         const categoryId =
           prod?.wl_category?._id || prod?.wl_categoryId || prod?.categoryId;
         const qs = new URLSearchParams();
@@ -382,7 +405,6 @@ export default function SingleShopSection() {
           const examplesRaw = await fetchJson(`${API_BASE}/api/examples?${qs.toString()}`);
           if (!abort) {
             const arr = toArray(examplesRaw);
-            // A API devolve createdAt DESC; queremos ASC (primeiros adicionados primeiro)
             const asc = [...arr].sort((a, b) => {
               const da = new Date(a?.createdAt || 0).getTime();
               const db = new Date(b?.createdAt || 0).getTime();
@@ -394,7 +416,7 @@ export default function SingleShopSection() {
           if (!abort) setExamples([]);
         }
 
-        // 3) Relacionados (igual ao teu fluxo)
+        // 3) Relacionados
         let relatedList = [];
         const catName = prod?.wl_category?.wl_name;
 
@@ -451,9 +473,39 @@ export default function SingleShopSection() {
   const catName = safeText(item?.wl_category?.wl_name, "Sem categoria");
   const shortDescription = safeText(item?.wl_specs_text, "");
 
-  // exemplos processados (já vêm em ASC; os primeiros 4 são os "primeiros adicionados")
+  // exemplos processados
   const examplesTop4 = useMemo(() => (examples || []).slice(0, 4), [examples]);
   const examplesRest = useMemo(() => (examples || []).slice(4), [examples]);
+
+  // -------- Lightbox do produto (galeria principal) --------
+  const [lbOpenProduct, setLbOpenProduct] = useState(false);
+  const [lbIndexProduct, setLbIndexProduct] = useState(0);
+  const lbImagesProduct = useMemo(
+    () => images.map((src) => ({ url: src, title })),
+    [images, title]
+  );
+  const openProductLightbox = (i = 0) => {
+    setLbIndexProduct(i);
+    setLbOpenProduct(true);
+  };
+
+  // -------- Lightbox dos exemplos (grelha examplesRest) --------
+  const [lbOpenExamples, setLbOpenExamples] = useState(false);
+  const [lbIndexExamples, setLbIndexExamples] = useState(0);
+  const lbImagesExamples = useMemo(
+    () =>
+      (examplesRest || [])
+        .map((ex) => ({
+          url: withHost(ex?.image),
+          title: safeText(ex?.title, "Exemplo"),
+        }))
+        .filter((x) => !!x.url),
+    [examplesRest]
+  );
+  const openExamplesLightbox = (i = 0) => {
+    setLbIndexExamples(i);
+    setLbOpenExamples(true);
+  };
 
   if (loading) {
     return (
@@ -494,7 +546,10 @@ export default function SingleShopSection() {
                       <img
                         src={images[activeImage] || ""}
                         alt={`${title} — imagem`}
-                        style={{ width: "100%", borderRadius: 12 }}
+                        style={{ width: "100%", borderRadius: 12, cursor: images.length ? "zoom-in" : "default" }}
+                        role={images.length ? "button" : undefined}
+                        onClick={() => images.length && openProductLightbox(activeImage)}
+                        title={images.length ? "Ver em ecrã inteiro" : ""}
                       />
                     </div>
                   </div>
@@ -509,6 +564,7 @@ export default function SingleShopSection() {
                         onMouseEnter={() => setActiveImage(idx)}
                         onClick={() => setActiveImage(idx)}
                         style={{ cursor: "pointer" }}
+                        title="Pré-visualizar"
                       >
                         <img
                           src={src}
@@ -561,7 +617,7 @@ export default function SingleShopSection() {
                   </ul>
                 </div>
                 <div className="tekup-product-wrap mt-4">
-                  <Link className="tekup-product-btn" href="/contact-us">
+                  <Link className="tekup-product-btn" href="#">
                     Comprar Agora
                   </Link>
                 </div>
@@ -571,7 +627,7 @@ export default function SingleShopSection() {
         </div>
       </div>
 
-      {/* BLOCOS ADICIONAIS (restantes exemplos) — só se houver exemplosRest */}
+      {/* BLOCOS ADICIONAIS (restantes exemplos) — só se houver examplesRest */}
       {examplesRest.length > 0 && (
         <>
           <br />
@@ -594,16 +650,19 @@ export default function SingleShopSection() {
                   <div className="row single-portofolio-area">
                     {examplesRest.map((ex, index) => {
                       const img = withHost(ex?.image);
-                      const title = safeText(ex?.title, "Exemplo");
+                      const exTitle = safeText(ex?.title, "Exemplo");
                       if (!img) return null;
                       return (
                         <article key={index} className="col-md-3 mb-3">
                           <img
                             src={img}
-                            alt={title}
-                            style={{ width: "100%", borderRadius: 8, objectFit: "cover" }}
+                            alt={exTitle}
+                            style={{ width: "100%", borderRadius: 8, objectFit: "cover", cursor: "zoom-in" }}
+                            role="button"
+                            title="Ver em ecrã inteiro"
+                            onClick={() => openExamplesLightbox(index)}
                           />
-                          <strong className="text-silver d-block mt-2">{title}</strong>
+                          <strong className="text-silver d-block mt-2">{exTitle}</strong>
                         </article>
                       );
                     })}
@@ -698,18 +757,10 @@ export default function SingleShopSection() {
                     ))
                   ) : (
                     <>
-                      <a
-                        className="tekup-default-btn"
-                        href="#"
-                        onClick={(e) => e.preventDefault()}
-                      >
+                      <a  className="tekup-default-btn"  href="#" onClick={(e) => e.preventDefault()}   >
                         Download Datasheet
                       </a>
-                      <a
-                        className="tekup-default-btn"
-                        href="#"
-                        onClick={(e) => e.preventDefault()}
-                      >
+                      <a  className="tekup-default-btn"  href="#" onClick={(e) => e.preventDefault()} >
                         Manual de Instalação
                       </a>
                     </>
@@ -727,6 +778,8 @@ export default function SingleShopSection() {
           <div className="tekup-section-title center">
             <h2>Produtos relacionados</h2>
           </div>
+        </div>
+        <div className="container">
           <div className="row">
             {related.map((p) => {
               const cover =
@@ -774,6 +827,25 @@ export default function SingleShopSection() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox da galeria principal do produto */}
+      {lbOpenProduct && (
+        <Lightbox
+          images={lbImagesProduct}
+          startIndex={lbIndexProduct}
+          onClose={() => setLbOpenProduct(false)}
+        />
+      )}
+
+      {/* Lightbox dos exemplos (grelha) */}
+      {lbOpenExamples && (
+        <Lightbox
+          images={lbImagesExamples}
+          startIndex={lbIndexExamples}
+          onClose={() => setLbOpenExamples(false)}
+        />
+      )}
     </>
   );
 }
+
