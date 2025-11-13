@@ -1,0 +1,1510 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <title>TaskBoard LocalStorage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Google Font: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/phosphor-icons@1.4.2/src/css/phosphor.css">
+
+  <style>
+    :root {
+      --bg-app: #f5f7fb;
+      --sidebar-bg: #ffffff;
+      --card-bg: #ffffff;
+      --border-soft: #e3e5f0;
+      --primary: #6557ff;
+      --primary-soft: #ece9ff;
+      --text-main: #1f2430;
+      --text-muted: #8a8fad;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at top left,#f9fbff 0,#f2f4fb 40%,#edf1ff 100%);
+      font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+    }
+
+    .app-sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border-soft);
+      padding: 20px 18px;
+    }
+
+    .app-sidebar .nav-link {
+      border-radius: 14px;
+      color: #4b4f68;
+      font-weight: 500;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-sidebar .nav-link .ph {
+      font-size: 1.1rem;
+    }
+
+    .app-sidebar .nav-link.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .app-sidebar .nav-link:hover:not(.active) {
+      background: #f4f5fb;
+    }
+
+    .topbar {
+      height: 72px;
+      border-bottom: 1px solid var(--border-soft);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+    }
+
+    .page-wrapper {
+      padding: 24px 32px 32px;
+      background: transparent;
+    }
+
+    .card-soft {
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      background: var(--card-bg);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.05);
+    }
+
+    .card-soft-flat {
+      border-radius: 16px;
+      border: 1px solid var(--border-soft);
+      background: var(--card-bg);
+    }
+
+    .badge-soft {
+      border-radius: 999px;
+      font-size: 0.7rem;
+      padding: 4px 10px;
+    }
+
+    .btn-rounded {
+      border-radius: 999px;
+    }
+
+    .kanban-column {
+      min-width: 280px;
+      max-width: 340px;
+    }
+
+    .kanban-column-body {
+      min-height: 80px;
+      max-height: calc(100vh - 260px);
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .task-card {
+      cursor: grab;
+      border-radius: 14px;
+      border: 1px solid #e4e5f2;
+      background: #ffffff;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      transition: box-shadow .15s ease, transform .15s ease;
+    }
+
+    .task-card:hover {
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
+      transform: translateY(-1px);
+    }
+
+    .task-card.dragging {
+      opacity: .6;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+    }
+
+    .kanban-column-body.drop-hover {
+      outline: 2px dashed var(--primary);
+      outline-offset: 4px;
+      border-radius: 14px;
+    }
+
+    .cursor-pointer { cursor: pointer; }
+
+    .board-card {
+      position: relative;
+      overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .board-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, #a866ff 0, #6557ff 40%, #2f89ff 80%);
+      opacity: .16;
+      pointer-events: none;
+    }
+
+    .board-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(55, 65, 81, 0.12);
+      border-color: #d0d3ff;
+    }
+
+    .board-card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .table-modern thead {
+      background: #f6f7fd;
+    }
+
+    .table-modern tbody tr {
+      border-bottom-color: #f1f2fa;
+      cursor: grab;
+    }
+
+    .table-modern tbody tr.dragging-row {
+      opacity: .6;
+      background: #eef1ff !important;
+    }
+
+    .table-modern tbody tr:hover {
+      background: #f9f9ff;
+    }
+
+    tbody.drop-hover {
+      outline: 2px dashed var(--primary);
+      outline-offset: 3px;
+    }
+
+    .pill-status {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: .7rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-status.todo {
+      background: #fff3e9;
+      color: #f97316;
+    }
+
+    .pill-status.progress {
+      background: #e6f4ff;
+      color: #2563eb;
+    }
+
+    .pill-status.done {
+      background: #e6fce9;
+      color: #16a34a;
+    }
+
+    .form-control, .form-select {
+      border-radius: 12px;
+    }
+
+    .badge-priority-urgent {
+      background: rgba(239, 68, 68, 0.10);
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .badge-priority-normal {
+      background: rgba(245, 158, 11, 0.10);
+      color: #b45309;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .badge-priority-low {
+      background: rgba(34, 197, 94, 0.10);
+      color: #15803d;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .login-card {
+      max-width: 440px;
+      width: 100%;
+      border-radius: 22px;
+      border: 1px solid var(--border-soft);
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+      padding: 26px 26px 22px;
+    }
+
+    .small-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: #6b7280;
+    }
+
+    .pill-tag {
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f3f4ff;
+      color: #6366f1;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .scroll-x-soft {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-view" class="min-vh-100 d-flex align-items-center justify-content-center">
+  <div class="login-card">
+    <div class="d-flex align-items-center mb-4">
+      <div class="rounded-4 d-flex align-items-center justify-content-center me-2"
+           style="width:44px;height:44px;background:linear-gradient(135deg,#6557ff,#8b5cf6);">
+        <i class="ph ph-check-square text-white fs-4"></i>
+      </div>
+      <div>
+        <h5 class="mb-0 fw-semibold">TaskBoard Local</h5>
+        <small class="text-muted">Painel de tarefas com dados em LocalStorage</small>
+      </div>
+    </div>
+
+    <ul class="nav nav-pills nav-fill mb-3" id="authTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="login-tab" data-bs-toggle="pill"
+                data-bs-target="#login-pane" type="button" role="tab">
+          Entrar
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="register-tab" data-bs-toggle="pill"
+                data-bs-target="#register-pane" type="button" role="tab">
+          Criar conta
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+        <form id="login-form">
+          <div class="mb-3">
+            <label class="form-label small-label">Email</label>
+            <input type="email" class="form-control" id="login-email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small-label">Password</label>
+            <input type="password" class="form-control" id="login-password" required>
+          </div>
+          <div class="text-danger small mb-2 d-none" id="login-error"></div>
+          <button class="btn btn-primary w-100 btn-rounded">
+            <i class="ph ph-sign-in me-1"></i> Entrar
+          </button>
+        </form>
+      </div>
+
+      <div class="tab-pane fade" id="register-pane" role="tabpanel">
+        <form id="register-form">
+          <div class="mb-3">
+            <label class="form-label small-label">Nome</label>
+            <input type="text" class="form-control" id="reg-name" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small-label">Email</label>
+            <input type="email" class="form-control" id="reg-email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small-label">Password</label>
+            <input type="password" class="form-control" id="reg-password" required>
+          </div>
+          <div class="text-danger small mb-2 d-none" id="register-error"></div>
+          <button class="btn btn-success w-100 btn-rounded">
+            <i class="ph ph-user-plus me-1"></i> Criar conta
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-layout" class="d-none">
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <aside class="app-sidebar d-flex flex-column">
+      <div class="d-flex align-items-center mb-4">
+        <div class="rounded-4 d-flex align-items-center justify-content-center me-2"
+             style="width:40px;height:40px;background:linear-gradient(135deg,#6557ff,#8b5cf6);">
+          <i class="ph ph-check-square text-white fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-semibold">TaskBoard</div>
+          <small class="text-muted" id="sidebar-user-email"></small>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <small class="text-uppercase text-muted fw-semibold" style="font-size:0.7rem;">Menu</small>
+      </div>
+      <nav class="nav flex-column gap-1 mb-4">
+        <button class="nav-link active" data-view="boards-view">
+          <i class="ph ph-layout-columns"></i> Quadros
+        </button>
+        <button class="nav-link" data-view="tasks-view">
+          <i class="ph ph-list-bullets"></i> Tarefas (Lista)
+        </button>
+        <button class="nav-link" data-view="kanban-view">
+          <i class="ph ph-kanban"></i> Kanban
+        </button>
+        <button class="nav-link" data-view="users-view">
+          <i class="ph ph-users-three"></i> Utilizadores
+        </button>
+      </nav>
+
+      <div class="mt-auto">
+        <div class="small text-muted mb-2">Backup</div>
+        <div class="d-flex gap-2 mb-3">
+          <button class="btn btn-outline-secondary btn-sm flex-fill btn-rounded" id="btn-export">
+            <i class="ph ph-download-simple me-1"></i> Exportar
+          </button>
+          <label class="btn btn-outline-secondary btn-sm flex-fill btn-rounded mb-0">
+            <i class="ph ph-upload-simple me-1"></i> Importar
+            <input type="file" id="import-file" accept=".txt,.json" hidden>
+          </label>
+        </div>
+        <button class="btn btn-outline-danger w-100 btn-rounded mb-2" id="btn-logout">
+          <i class="ph ph-sign-out me-1"></i> Logout
+        </button>
+        <small class="text-muted">&copy; 2025 – Local TaskBoard</small>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+      <!-- Topbar -->
+      <div class="topbar px-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="mb-0 fw-semibold" id="page-title">Quadros</h5>
+          <span class="badge badge-soft bg-light text-secondary d-flex align-items-center">
+            <i class="ph ph-sun-dim me-1"></i>
+            Bom trabalho!
+          </span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="input-group input-group-sm" style="max-width:260px;">
+            <span class="input-group-text bg-transparent border-end-0">
+              <i class="ph ph-magnifying-glass"></i>
+            </span>
+            <input type="text" id="global-search" class="form-control border-start-0" placeholder="Pesquisar tarefa/quadro...">
+          </div>
+          <div class="d-flex align-items-center ms-2">
+            <div class="me-2 text-end">
+              <div class="small fw-semibold" id="topbar-user-name">Utilizador</div>
+              <small class="text-muted">Conta local</small>
+            </div>
+            <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+              <i class="ph ph-user text-primary"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGES -->
+      <div class="page-wrapper flex-grow-1 overflow-auto">
+        <!-- BOARDS VIEW -->
+        <section id="boards-view">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="mb-0 fw-semibold">Os teus quadros</h6>
+              <small class="text-muted">Organiza projetos por equipas e áreas.</small>
+            </div>
+            <button class="btn btn-primary btn-rounded" data-bs-toggle="modal" data-bs-target="#boardModal">
+              <i class="ph ph-plus me-1"></i> Novo Quadro
+            </button>
+          </div>
+
+          <div class="row g-3" id="boards-list">
+            <!-- boards cards -->
+          </div>
+        </section>
+
+        <!-- TASKS LIST VIEW -->
+        <section id="tasks-view" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="mb-0 fw-semibold">Tarefas – Lista</h6>
+              <small class="text-muted">Arrasta linhas para reordenar ou mover entre grupos.</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <select id="tasks-board-select" class="form-select form-select-sm">
+                <!-- boards options -->
+              </select>
+              <button class="btn btn-outline-primary btn-sm btn-rounded" id="btn-new-group-list">
+                <i class="ph ph-plus me-1"></i> Novo grupo
+              </button>
+              <button class="btn btn-primary btn-sm btn-rounded" id="btn-new-task-list">
+                <i class="ph ph-plus me-1"></i> Nova tarefa
+              </button>
+            </div>
+          </div>
+
+          <div id="tasks-groups-list">
+            <!-- grupos + tabelas -->
+          </div>
+        </section>
+
+        <!-- KANBAN VIEW -->
+        <section id="kanban-view" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="mb-0 fw-semibold">Kanban</h6>
+              <small class="text-muted">Arrasta cartões para reordenar ou mover de coluna.</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <select id="kanban-board-select" class="form-select form-select-sm">
+                <!-- boards -->
+              </select>
+              <button class="btn btn-outline-primary btn-sm btn-rounded" id="btn-new-group-kanban">
+                <i class="ph ph-plus me-1"></i> Novo grupo
+              </button>
+              <button class="btn btn-primary btn-sm btn-rounded" id="btn-new-task-kanban">
+                <i class="ph ph-plus me-1"></i> Nova tarefa
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex flex-row gap-3 flex-nowrap scroll-x-soft" id="kanban-columns">
+            <!-- columns -->
+          </div>
+        </section>
+
+        <!-- USERS VIEW -->
+        <section id="users-view" class="d-none">
+          <div class="row g-3">
+            <div class="col-lg-7">
+              <div class="card card-soft-flat p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0 fw-semibold">Utilizadores</h6>
+                  <span class="pill-tag">
+                    <i class="ph ph-users-three me-1"></i>
+                    <span id="users-count">0</span> ativos
+                  </span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                    </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                    <!-- users -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div class="card card-soft-flat p-3">
+                <h6 class="fw-semibold mb-3">Criar novo utilizador</h6>
+                <form id="create-user-form">
+                  <div class="mb-2">
+                    <label class="form-label small-label">Nome</label>
+                    <input type="text" class="form-control" id="user-name" required>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small-label">Email</label>
+                    <input type="email" class="form-control" id="user-email" required>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small-label">Password</label>
+                    <input type="password" class="form-control" id="user-password" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small-label">Role</label>
+                    <select class="form-select" id="user-role">
+                      <option value="member">Membro</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-success btn-rounded w-100">
+                    <i class="ph ph-user-plus me-1"></i> Adicionar utilizador
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO QUADRO -->
+<div class="modal fade" id="boardModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" id="board-form">
+      <div class="modal-header">
+        <h5 class="modal-title">Novo quadro / projeto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label small-label">Nome do quadro</label>
+          <input type="text" class="form-control" id="board-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small-label">Descrição</label>
+          <textarea class="form-control" id="board-description" rows="2"></textarea>
+        </div>
+        <div class="mb-1">
+          <label class="form-label small-label">Membros</label>
+        </div>
+        <div id="board-members-list" class="border rounded-3 p-2" style="max-height:180px; overflow-y:auto;">
+          <!-- checkboxes de users -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-rounded" data-bs-dismiss="modal" type="button">Cancelar</button>
+        <button class="btn btn-primary btn-rounded" type="submit">
+          <i class="ph ph-check me-1"></i> Guardar quadro
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL NOVO GRUPO/TAREFA (reutilizável via JS) -->
+<div class="modal fade" id="simpleModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" id="simple-modal-form">
+      <div class="modal-header">
+        <h5 class="modal-title" id="simple-modal-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="simple-modal-body">
+        <!-- preenchido via JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-rounded" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-rounded">
+          <i class="ph ph-check me-1"></i> Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // ======= DATA & HELPERS =======
+  const STORAGE_KEY = "taskboard_local_v1";
+
+  function generateId() {
+    return "id-" + Math.random().toString(36).slice(2, 10) + "-" + Date.now().toString(36);
+  }
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return {
+        currentUserId: null,
+        users: [],
+        boards: []
+      };
+    }
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error("Erro ao ler localStorage:", e);
+      return { currentUserId: null, users: [], boards: [] };
+    }
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function findUserById(id) {
+    return data.users.find(u => u.id === id) || null;
+  }
+
+  function getCurrentUser() {
+    return findUserById(data.currentUserId);
+  }
+
+  function getBoardById(id) {
+    return data.boards.find(b => b.id === id) || null;
+  }
+
+  function findTaskInBoard(board, taskId) {
+    for (const g of board.groups) {
+      const t = g.tasks.find(t => t.id === taskId);
+      if (t) return t;
+    }
+    return null;
+  }
+
+  let data = loadData();
+  let selectedBoardId = data.boards[0]?.id || null;
+  let currentView = "boards-view";
+
+  // ======= AUTH / LOGIN =======
+  function showMainLayout() {
+    const user = getCurrentUser();
+    if (!user) {
+      data.currentUserId = null;
+      saveData();
+      document.getElementById("login-view").classList.remove("d-none");
+      document.getElementById("main-layout").classList.add("d-none");
+      return;
+    }
+    document.getElementById("login-view").classList.add("d-none");
+    document.getElementById("main-layout").classList.remove("d-none");
+
+    document.getElementById("sidebar-user-email").textContent = user.email;
+    document.getElementById("topbar-user-name").textContent = user.name || "Utilizador";
+
+    if (!selectedBoardId && data.boards[0]) {
+      selectedBoardId = data.boards[0].id;
+    }
+
+    renderAll();
+  }
+
+  function renderAll() {
+    renderBoards();
+    renderUsers();
+    renderBoardSelectors();
+    renderTasksList();
+    renderKanban();
+  }
+
+  // LOGIN
+  document.getElementById("login-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const errorEl = document.getElementById("login-error");
+    const user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    if (!user) {
+      errorEl.textContent = "Credenciais inválidas.";
+      errorEl.classList.remove("d-none");
+      return;
+    }
+    errorEl.classList.add("d-none");
+    data.currentUserId = user.id;
+    saveData();
+    showMainLayout();
+  });
+
+  // REGISTO
+  document.getElementById("register-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const errorEl = document.getElementById("register-error");
+
+    if (data.users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      errorEl.textContent = "Este email já existe.";
+      errorEl.classList.remove("d-none");
+      return;
+    }
+    errorEl.classList.add("d-none");
+
+    const newUser = {
+      id: generateId(),
+      name,
+      email,
+      password,
+      role: "admin"
+    };
+    data.users.push(newUser);
+    data.currentUserId = newUser.id;
+    saveData();
+
+    // quadro de exemplo
+    if (data.boards.length === 0) {
+      const sampleBoard = {
+        id: generateId(),
+        name: "Exemplo – Projeto Demo",
+        description: "Quadro criado automaticamente só para demonstração.",
+        members: [newUser.id],
+        groups: [
+          {
+            id: generateId(),
+            name: "Por fazer",
+            tasks: [
+              {
+                id: generateId(),
+                title: "Configurar TaskBoard",
+                description: "Explorar a app e criar os teus próprios quadros.",
+                assignees: [newUser.id],
+                dueDate: "",
+                priority: "Normal",
+                status: "Por fazer"
+              }
+            ]
+          },
+          { id: generateId(), name: "Em progresso", tasks: [] },
+          { id: generateId(), name: "Concluído", tasks: [] }
+        ]
+      };
+      data.boards.push(sampleBoard);
+      selectedBoardId = sampleBoard.id;
+      saveData();
+    }
+
+    showMainLayout();
+  });
+
+  // LOGOUT
+  document.getElementById("btn-logout").addEventListener("click", () => {
+    data.currentUserId = null;
+    saveData();
+    document.getElementById("main-layout").classList.add("d-none");
+    document.getElementById("login-view").classList.remove("d-none");
+  });
+
+  // ======= SIDEBAR NAV =======
+  document.querySelectorAll(".app-sidebar .nav-link").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const viewId = btn.getAttribute("data-view");
+      if (!viewId) return;
+
+      currentView = viewId;
+      document.querySelectorAll(".app-sidebar .nav-link").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document.querySelectorAll(".page-wrapper section").forEach(sec => {
+        sec.classList.toggle("d-none", sec.id !== viewId);
+      });
+
+      const titleMap = {
+        "boards-view": "Quadros",
+        "tasks-view": "Tarefas – Lista",
+        "kanban-view": "Kanban",
+        "users-view": "Utilizadores"
+      };
+      document.getElementById("page-title").textContent = titleMap[viewId] || "TaskBoard";
+
+      if (viewId === "kanban-view") {
+        initKanbanDrag();
+      }
+      if (viewId === "tasks-view") {
+        initTableDrag();
+      }
+    });
+  });
+
+  // ======= BOARDS =======
+  function renderBoards() {
+    const listEl = document.getElementById("boards-list");
+    listEl.innerHTML = "";
+    if (data.boards.length === 0) {
+      listEl.innerHTML = '<div class="col-12"><div class="alert alert-light border rounded-3">Ainda não tens quadros. Clica em <strong>Novo Quadro</strong> para começar.</div></div>';
+      return;
+    }
+
+    data.boards.forEach(board => {
+      const members = board.members.map(id => findUserById(id)?.name || "User").join(", ");
+      const tasksCount = board.groups.reduce((acc, g) => acc + g.tasks.length, 0);
+      const groupsCount = board.groups.length;
+
+      const col = document.createElement("div");
+      col.className = "col-md-6 col-xl-4";
+
+      col.innerHTML = `
+        <div class="card card-soft board-card h-100 cursor-pointer" data-board-id="${board.id}">
+          <div class="board-card-inner p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="small text-muted mb-1">Quadro</div>
+                <h6 class="mb-0 fw-semibold">${board.name}</h6>
+              </div>
+              <span class="pill-tag">
+                <i class="ph ph-clipboard-text me-1"></i>${tasksCount} tarefas
+              </span>
+            </div>
+            <p class="text-muted small mb-3">${board.description || "Sem descrição."}</p>
+            <div class="d-flex justify-content-between align-items-center small text-muted">
+              <span>
+                <i class="ph ph-users-three me-1"></i>
+                ${members || "Sem membros"}
+              </span>
+              <span>
+                <i class="ph ph-folders me-1"></i>${groupsCount} grupos
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(col);
+
+      col.querySelector(".card").addEventListener("click", () => {
+        selectedBoardId = board.id;
+        renderBoardSelectors();
+        renderTasksList();
+        renderKanban();
+        document.querySelector('.app-sidebar .nav-link[data-view="tasks-view"]').click();
+      });
+    });
+  }
+
+  // MODAL: preencher lista de membros
+  function fillBoardMembersList() {
+    const container = document.getElementById("board-members-list");
+    container.innerHTML = "";
+    if (data.users.length === 0) {
+      container.innerHTML = '<small class="text-muted">Ainda não existem utilizadores.</small>';
+      return;
+    }
+    data.users.forEach(user => {
+      const id = "board-member-" + user.id;
+      const wrapper = document.createElement("div");
+      wrapper.className = "form-check small";
+      wrapper.innerHTML = `
+        <input class="form-check-input" type="checkbox" value="${user.id}" id="${id}">
+        <label class="form-check-label" for="${id}">
+          ${user.name} <span class="text-muted">(${user.email})</span>
+        </label>
+      `;
+      container.appendChild(wrapper);
+    });
+  }
+
+  document.getElementById("boardModal").addEventListener("show.bs.modal", fillBoardMembersList);
+
+  document.getElementById("board-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("board-name").value.trim();
+    const description = document.getElementById("board-description").value.trim();
+    const memberCheckboxes = document.querySelectorAll("#board-members-list input[type=checkbox]");
+    const members = [];
+    memberCheckboxes.forEach(cb => { if (cb.checked) members.push(cb.value); });
+
+    const newBoard = {
+      id: generateId(),
+      name,
+      description,
+      members,
+      groups: [
+        { id: generateId(), name: "Por fazer", tasks: [] },
+        { id: generateId(), name: "Em progresso", tasks: [] },
+        { id: generateId(), name: "Concluído", tasks: [] }
+      ]
+    };
+    data.boards.push(newBoard);
+    selectedBoardId = newBoard.id;
+    saveData();
+    renderBoards();
+    renderBoardSelectors();
+    renderTasksList();
+    renderKanban();
+
+    document.getElementById("board-form").reset();
+    bootstrap.Modal.getInstance(document.getElementById("boardModal")).hide();
+  });
+
+  // ======= USERS =======
+  function renderUsers() {
+    const tbody = document.getElementById("users-table-body");
+    tbody.innerHTML = "";
+    data.users.forEach(user => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td><span class="badge bg-light text-secondary rounded-pill px-3">${user.role || "member"}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("users-count").textContent = data.users.length.toString();
+  }
+
+  document.getElementById("create-user-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("user-name").value.trim();
+    const email = document.getElementById("user-email").value.trim();
+    const password = document.getElementById("user-password").value;
+    const role = document.getElementById("user-role").value;
+
+    if (!name || !email || !password) return;
+
+    if (data.users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      alert("Já existe um utilizador com este email.");
+      return;
+    }
+
+    const newUser = { id: generateId(), name, email, password, role };
+    data.users.push(newUser);
+    saveData();
+    renderUsers();
+    fillBoardMembersList();
+
+    e.target.reset();
+  });
+
+  // ======= SELECTORES DE QUADRO =======
+  function renderBoardSelectors() {
+    const selects = [document.getElementById("tasks-board-select"), document.getElementById("kanban-board-select")];
+    selects.forEach(sel => {
+      sel.innerHTML = "";
+      data.boards.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b.id;
+        opt.textContent = b.name;
+        if (b.id === selectedBoardId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    });
+  }
+
+  document.getElementById("tasks-board-select").addEventListener("change", e => {
+    selectedBoardId = e.target.value;
+    renderTasksList();
+    renderKanban();
+  });
+
+  document.getElementById("kanban-board-select").addEventListener("change", e => {
+    selectedBoardId = e.target.value;
+    renderKanban();
+  });
+
+  // ======= PRIORIDADE -> BADGE =======
+  function priorityToBadge(priority) {
+    const p = (priority || "Normal").toLowerCase();
+    if (p === "urgent" || p === "urgente") {
+      return '<span class="badge-priority-urgent">Urgente</span>';
+    }
+    if (p === "low" || p === "baixa") {
+      return '<span class="badge-priority-low">Baixa</span>';
+    }
+    return '<span class="badge-priority-normal">Normal</span>';
+  }
+
+  // ======= TASKS LIST VIEW =======
+  function renderTasksList() {
+    const container = document.getElementById("tasks-groups-list");
+    container.innerHTML = "";
+    const board = getBoardById(selectedBoardId);
+    if (!board) {
+      container.innerHTML = '<div class="alert alert-light border rounded-3">Nenhum quadro selecionado.</div>';
+      return;
+    }
+
+    board.groups.forEach(group => {
+      const card = document.createElement("div");
+      card.className = "card card-soft-flat mb-3";
+      card.innerHTML = `
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <span class="pill-tag">
+              <i class="ph ph-tag me-1"></i>${group.name}
+            </span>
+            <small class="text-muted">${group.tasks.length} tarefas</small>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary btn-rounded btn-add-task-group" data-group-id="${group.id}">
+            <i class="ph ph-plus me-1"></i> Tarefa
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-modern mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th style="width:32%;">Tarefa</th>
+                  <th style="width:26%;">Responsáveis</th>
+                  <th style="width:13%;">Prazo</th>
+                  <th style="width:13%;">Prioridade</th>
+                  <th style="width:16%;">Estado</th>
+                </tr>
+              </thead>
+              <tbody data-group-id="${group.id}">
+                ${
+                  group.tasks.map(task => {
+                    const assignees = (task.assignees || [])
+                      .map(id => findUserById(id)?.name || "User")
+                      .join(", ") || "<span class='text-muted'>—</span>";
+                    const priorityBadge = priorityToBadge(task.priority);
+                    const statusClass =
+                      (group.name.toLowerCase().includes("conclu") ? "done" :
+                      group.name.toLowerCase().includes("progresso") ? "progress" : "todo");
+                    return `
+                      <tr class="task-row"
+                          draggable="true"
+                          data-task-id="${task.id}"
+                          data-group-id="${group.id}">
+                        <td>${task.title}</td>
+                        <td class="small">${assignees}</td>
+                        <td class="small">${task.dueDate || "<span class='text-muted'>—</span>"}</td>
+                        <td>${priorityBadge}</td>
+                        <td class="small">
+                          <span class="pill-status ${statusClass}">
+                            ${group.name}
+                          </span>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("") || `<tr><td colspan="5" class="text-muted small">Nenhuma tarefa neste grupo.</td></tr>`
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    container.querySelectorAll(".btn-add-task-group").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const groupId = btn.getAttribute("data-group-id");
+        openTaskModal({ mode: "create", groupId, context: "list" });
+      });
+    });
+
+    initTableDrag();
+  }
+
+  // ======= KANBAN VIEW =======
+  function renderKanban() {
+    const container = document.getElementById("kanban-columns");
+    container.innerHTML = "";
+    const board = getBoardById(selectedBoardId);
+    if (!board) {
+      container.innerHTML = '<div class="alert alert-light border rounded-3">Nenhum quadro selecionado.</div>';
+      return;
+    }
+
+    board.groups.forEach(group => {
+      const col = document.createElement("div");
+      col.className = "kanban-column";
+      const statusClass =
+        (group.name.toLowerCase().includes("conclu") ? "done" :
+        group.name.toLowerCase().includes("progresso") ? "progress" : "todo");
+
+      col.innerHTML = `
+        <div class="card card-soft-flat h-100">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+              <span class="pill-status ${statusClass}">
+                <i class="ph ph-circle-half-tilt me-1"></i>${group.name}
+              </span>
+              <small class="text-muted">${group.tasks.length} tarefas</small>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary btn-rounded btn-add-task-group" data-group-id="${group.id}">
+              <i class="ph ph-plus"></i>
+            </button>
+          </div>
+          <div class="card-body kanban-column-body" data-group-id="${group.id}">
+            ${
+              group.tasks.map(task => {
+                const assignees = (task.assignees || [])
+                  .map(id => (findUserById(id)?.name || "User").split(" ")[0])
+                  .join(", ");
+                const priorityBadge = priorityToBadge(task.priority);
+                return `
+                  <div class="task-card"
+                       draggable="true"
+                       data-task-id="${task.id}"
+                       data-group-id="${group.id}">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <div class="fw-semibold small">${task.title}</div>
+                      ${priorityBadge}
+                    </div>
+                    <div class="small text-muted mb-1">${task.description || ""}</div>
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                      <span>
+                        <i class="ph ph-user me-1"></i>${assignees || "Sem responsável"}
+                      </span>
+                      <span><i class="ph ph-calendar me-1"></i>${task.dueDate || "Sem prazo"}</span>
+                    </div>
+                  </div>
+                `;
+              }).join("")
+            }
+          </div>
+        </div>
+      `;
+      container.appendChild(col);
+    });
+
+    container.querySelectorAll(".btn-add-task-group").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const groupId = btn.getAttribute("data-group-id");
+        openTaskModal({ mode: "create", groupId, context: "kanban" });
+      });
+    });
+
+    initKanbanDrag();
+  }
+
+  // ======= DRAG & DROP (com reorder) =======
+  let dragContext = { taskId: null };
+
+  // Helper para encontrar posição de inserção com base em Y
+  function getDragAfterElement(container, y, selector) {
+    const elements = [...container.querySelectorAll(selector + ":not(.dragging,:scope .dragging-row)")];
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+    elements.forEach(child => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        closest = { offset, element: child };
+      }
+    });
+    return closest.element;
+  }
+
+  // --- Kanban ---
+  function initKanbanDrag() {
+    const cards = document.querySelectorAll(".task-card");
+    const columns = document.querySelectorAll(".kanban-column-body");
+
+    cards.forEach(card => {
+      card.addEventListener("dragstart", e => {
+        dragContext.taskId = card.getAttribute("data-task-id");
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      card.addEventListener("dragend", e => {
+        card.classList.remove("dragging");
+        dragContext.taskId = null;
+      });
+    });
+
+    columns.forEach(col => {
+      col.addEventListener("dragover", e => {
+        e.preventDefault();
+        const dragging = document.querySelector(".task-card.dragging");
+        if (!dragging) return;
+        col.classList.add("drop-hover");
+        const afterElement = getDragAfterElement(col, e.clientY, ".task-card");
+        if (!afterElement) col.appendChild(dragging);
+        else col.insertBefore(dragging, afterElement);
+      });
+
+      col.addEventListener("dragleave", e => {
+        col.classList.remove("drop-hover");
+      });
+
+      col.addEventListener("drop", e => {
+        e.preventDefault();
+        col.classList.remove("drop-hover");
+        syncBoardFromKanbanDOM();
+      });
+    });
+  }
+
+  function syncBoardFromKanbanDOM() {
+    const board = getBoardById(selectedBoardId);
+    if (!board) return;
+
+    // Mapa id -> task
+    const taskMap = {};
+    board.groups.forEach(g => g.tasks.forEach(t => { taskMap[t.id] = t; }));
+
+    board.groups.forEach(group => {
+      const col = document.querySelector('.kanban-column-body[data-group-id="' + group.id + '"]');
+      if (!col) return;
+      const ids = [...col.querySelectorAll(".task-card")].map(el => el.getAttribute("data-task-id"));
+      group.tasks = ids.map(id => taskMap[id]).filter(Boolean);
+      // atualizar estado simples
+      group.tasks.forEach(t => { t.status = group.name; });
+    });
+
+    saveData();
+    renderTasksList(); // manter lista alinhada
+  }
+
+  // --- Tabela ---
+  function initTableDrag() {
+    const rows = document.querySelectorAll(".task-row");
+    const bodies = document.querySelectorAll("#tasks-groups-list tbody[data-group-id]");
+
+    rows.forEach(row => {
+      row.addEventListener("dragstart", e => {
+        dragContext.taskId = row.getAttribute("data-task-id");
+        row.classList.add("dragging-row");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      row.addEventListener("dragend", e => {
+        row.classList.remove("dragging-row");
+        dragContext.taskId = null;
+      });
+    });
+
+    bodies.forEach(body => {
+      body.addEventListener("dragover", e => {
+        e.preventDefault();
+        const dragging = document.querySelector(".task-row.dragging-row");
+        if (!dragging) return;
+        body.classList.add("drop-hover");
+        const afterElement = getDragAfterElement(body, e.clientY, ".task-row");
+        if (!afterElement) body.appendChild(dragging);
+        else body.insertBefore(dragging, afterElement);
+      });
+
+      body.addEventListener("dragleave", e => {
+        body.classList.remove("drop-hover");
+      });
+
+      body.addEventListener("drop", e => {
+        e.preventDefault();
+        body.classList.remove("drop-hover");
+        syncBoardFromTableDOM();
+      });
+    });
+  }
+
+  function syncBoardFromTableDOM() {
+    const board = getBoardById(selectedBoardId);
+    if (!board) return;
+
+    const taskMap = {};
+    board.groups.forEach(g => g.tasks.forEach(t => { taskMap[t.id] = t; }));
+
+    board.groups.forEach(group => {
+      const tbody = document.querySelector('#tasks-groups-list tbody[data-group-id="' + group.id + '"]');
+      if (!tbody) return;
+      const ids = [...tbody.querySelectorAll(".task-row")].map(el => el.getAttribute("data-task-id"));
+      group.tasks = ids.map(id => taskMap[id]).filter(Boolean);
+      group.tasks.forEach(t => { t.status = group.name; });
+    });
+
+    saveData();
+    renderTasksList();
+    renderKanban();
+  }
+
+  // ======= MODAL SIMPLES (GRUPO / TAREFA) =======
+  const simpleModal = new bootstrap.Modal(document.getElementById("simpleModal"));
+
+  function openGroupModal() {
+    const board = getBoardById(selectedBoardId);
+    if (!board) {
+      alert("Nenhum quadro selecionado.");
+      return;
+    }
+
+    document.getElementById("simple-modal-title").textContent = "Novo grupo";
+    const body = document.getElementById("simple-modal-body");
+    body.innerHTML = `
+      <div class="mb-3">
+        <label class="form-label small-label">Nome do grupo</label>
+        <input type="text" class="form-control" id="group-name-input" required>
+      </div>
+    `;
+
+    const form = document.getElementById("simple-modal-form");
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      const name = document.getElementById("group-name-input").value.trim();
+      if (!name) return;
+      board.groups.push({ id: generateId(), name, tasks: [] });
+      saveData();
+      renderTasksList();
+      renderKanban();
+      simpleModal.hide();
+    };
+
+    simpleModal.show();
+  }
+
+  function openTaskModal({ mode, groupId }) {
+    const board = getBoardById(selectedBoardId);
+    if (!board) {
+      alert("Nenhum quadro selecionado.");
+      return;
+    }
+    const group = board.groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    document.getElementById("simple-modal-title").textContent = "Nova tarefa em " + group.name;
+    const body = document.getElementById("simple-modal-body");
+    body.innerHTML = `
+      <div class="mb-2">
+        <label class="form-label small-label">Título</label>
+        <input type="text" class="form-control" id="task-title" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label small-label">Descrição</label>
+        <textarea class="form-control" id="task-desc" rows="2"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label small-label">Responsáveis</label>
+        <select class="form-select" id="task-assignees" multiple>
+          ${
+            data.users.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join("") ||
+            '<option disabled>Nenhum utilizador</option>'
+          }
+        </select>
+        <small class="text-muted small">Usa Ctrl/Command para selecionar vários.</small>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-2">
+          <label class="form-label small-label">Prazo</label>
+          <input type="date" class="form-control" id="task-due">
+        </div>
+        <div class="col-sm-6 mb-2">
+          <label class="form-label small-label">Prioridade</label>
+          <select class="form-select" id="task-priority">
+            <option value="Normal" selected>Normal</option>
+            <option value="Urgent">Urgente</option>
+            <option value="Low">Baixa</option>
+          </select>
+        </div>
+      </div>
+    `;
+
+    const form = document.getElementById("simple-modal-form");
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      const title = document.getElementById("task-title").value.trim();
+      const desc = document.getElementById("task-desc").value.trim();
+      const assigneesSelect = document.getElementById("task-assignees");
+      const due = document.getElementById("task-due").value;
+      const priority = document.getElementById("task-priority").value;
+      const assignees = Array.from(assigneesSelect.selectedOptions).map(o => o.value);
+      if (!title) return;
+
+      const newTask = {
+        id: generateId(),
+        title,
+        description: desc,
+        assignees,
+        dueDate: due,
+        priority,
+        status: group.name
+      };
+      group.tasks.push(newTask);
+      saveData();
+      renderTasksList();
+      renderKanban();
+      simpleModal.hide();
+    };
+
+    simpleModal.show();
+  }
+
+  document.getElementById("btn-new-group-list").addEventListener("click", openGroupModal);
+  document.getElementById("btn-new-group-kanban").addEventListener("click", openGroupModal);
+
+  document.getElementById("btn-new-task-list").addEventListener("click", () => {
+    const board = getBoardById(selectedBoardId);
+    if (!board || board.groups.length === 0) {
+      alert("Cria primeiro um grupo.");
+      return;
+    }
+    openTaskModal({ mode: "create", groupId: board.groups[0].id });
+  });
+
+  document.getElementById("btn-new-task-kanban").addEventListener("click", () => {
+    const board = getBoardById(selectedBoardId);
+    if (!board || board.groups.length === 0) {
+      alert("Cria primeiro um grupo.");
+      return;
+    }
+    openTaskModal({ mode: "create", groupId: board.groups[0].id });
+  });
+
+  // ======= BACKUP EXPORT / IMPORT =======
+  document.getElementById("btn-export").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "taskboard-backup.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("import-file").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!imported || typeof imported !== "object") throw new Error("Formato inválido");
+        data = imported;
+        selectedBoardId = data.boards[0]?.id || null;
+        saveData();
+        showMainLayout();
+        alert("Backup importado com sucesso!");
+      } catch (err) {
+        alert("Erro ao importar ficheiro: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ======= PESQUISA GLOBAL (simples, em consola) =======
+  document.getElementById("global-search").addEventListener("input", e => {
+    const query = e.target.value.trim().toLowerCase();
+    if (!query) return;
+    const matches = [];
+    data.boards.forEach(board => {
+      if (board.name.toLowerCase().includes(query)) {
+        matches.push("Quadro: " + board.name);
+      }
+      board.groups.forEach(g => {
+        g.tasks.forEach(t => {
+          if (t.title.toLowerCase().includes(query)) {
+            matches.push("Tarefa: " + t.title + " (" + board.name + " > " + g.name + ")");
+          }
+        });
+      });
+    });
+    if (matches.length > 0) {
+      console.log("Resultados de pesquisa:", matches);
+    }
+  });
+
+  // ======= INIT =======
+  if (data.currentUserId) {
+    showMainLayout();
+  } else {
+    document.getElementById("login-view").classList.remove("d-none");
+  }
+</script>
+
+</body>
+</html>
