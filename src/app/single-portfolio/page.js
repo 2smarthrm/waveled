@@ -8,7 +8,9 @@ import SinglePortfolioSection from "~/components/Section/Portfolio/SinglePortfol
 async function getCase(id) {
   if (!id) return { error: "Falta o parâmetro ?project=<id>." };
 
-  const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/success-cases/${id}`;
+const isBrowser = typeof window !== "undefined";
+const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
+const url = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
 
   const res = await fetch(url, { cache: "no-store" });
 
