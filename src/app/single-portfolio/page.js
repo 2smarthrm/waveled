@@ -1,54 +1,51 @@
-import axios from "axios";
+ import axios from "axios";
+import { headers } from "next/headers";
 
 import FooterFour from "~/components/Section/Common/FooterFour";
 import HeaderFour from "~/components/Section/Common/Header/HeaderFour";
 import PageHeader from "~/components/Section/Common/PageHeader";
 import SinglePortfolioSection from "~/components/Section/Portfolio/SinglePortfolio/SinglePortfolioSection";
 
-// URL base da API (ajusta como preferires)
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (process.env.NODE_ENV === "production"
-    ? "https://waveledserver.vercel.app"
-    : "http://localhost:4000");
+function getApiBaseUrl() {
+  const protocol = headers().get("x-forwarded-proto") || "https";
+
+  // Aqui tens a tua regra:
+  // Se estivermos em HTTP → usar localhost:4000
+  // Se estivermos em HTTPS → usar servidor vercel
+  if (protocol === "http") {
+    return "http://localhost:4000";
+  }
+
+  return "https://waveledserver.vercel.app";
+}
 
 async function getCase(id) {
   if (!id) return { error: "Falta o parâmetro ?project=<id>." };
 
+  const API_BASE_URL = getApiBaseUrl();
+
   try {
-    // ⚠️ Ajusta o endpoint conforme a tua API real
-    // Exemplo: /cases/:id
-    const response = await axios.get(`${API_BASE_URL}/cases/${id}`, {
-      // Se quiseres garantir que não há cache em proxies intermédios:
+    // Ajusta o endpoint conforme a tua API
+    const response = await axios.get(`${API_BASE_URL}/api/success-cases/${id}`, {
       headers: {
         "Cache-Control": "no-cache",
       },
     });
 
-    const data = response.data;
-    return { data };
+    return { data: response.data };
   } catch (error) {
-    console.error("Erro a buscar caso:", error?.message || error);
+    console.error("Erro ao buscar caso:", error.message);
 
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
 
-      if (status === 404) {
-        return { error: "Caso de sucesso não encontrado." };
-      }
+      if (status === 404) return { error: "Caso de sucesso não encontrado." };
+      if (status) return { error: `Falha ao carregar (HTTP ${status}).` };
 
-      if (status) {
-        return { error: `Falha ao carregar (HTTP ${status}).` };
-      }
-
-      return {
-        error: "Erro de rede ao contactar o servidor de Casos de Sucesso.",
-      };
+      return { error: "Erro de rede ao contactar o servidor." };
     }
 
-    return {
-      error: "Ocorreu um erro inesperado ao carregar o caso.",
-    };
+    return { error: "Erro interno inesperado." };
   }
 }
 
@@ -80,5 +77,3 @@ export default async function SinglePortfolioPage({ searchParams }) {
     </div>
   );
 }
-
-
