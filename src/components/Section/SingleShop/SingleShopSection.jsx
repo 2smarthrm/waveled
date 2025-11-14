@@ -417,10 +417,7 @@ function IndustriesSkeleton() {
 
 function ProductSkeleton() {
   return (
-    <>
-      {/* bloco dinâmico (simulado) */}
-      <IndustriesSkeleton />
-
+    <> 
       <div className="section">
         <div className="container">
           <div className="row align-items-center">
@@ -487,6 +484,9 @@ function ProductSkeleton() {
           </div>
         </div>
       </div>
+
+      {/* bloco dinâmico (simulado) */}
+      <IndustriesSkeleton />
 
       {/* BLOCOS ADICIONAIS (examplesRest) */}
       <section className="mt-4 bg-black">
@@ -811,6 +811,7 @@ export default function SingleShopSection() {
 
       <div className="section">
         <div className="container">
+          <br /><br /><br /><br />
           <div className="row align-items-center">
        
                {/* GALERIA */}
@@ -934,7 +935,7 @@ export default function SingleShopSection() {
       )}
 
         {/* TABS */}
-      <div className="section tekup-section-padding">
+      <div className="section tekup-section-padding pt-4 pb-2">
         <div className="container">
           <div className="tekup-product-tab">
             <ul className="nav nav-pills" id="pills-tab" role="tablist">
@@ -1063,9 +1064,7 @@ export default function SingleShopSection() {
 
       {/* BLOCOS ADICIONAIS (restantes exemplos) — só se houver examplesRest */}
       {examplesRest.length > 0 && (
-        <>
-          <br />
-          <br />
+        <> 
           <section className="mt-4 bg-black ">
             <div className="section tekup-section-padding">
               <div className="container">
@@ -1120,7 +1119,7 @@ export default function SingleShopSection() {
  
   <br /><br />
       {/* PRODUTOS RELACIONADOS */}
-      <div className="tekup-related-product-section">
+      <div className="tekup-related-product-section pb-2">
         <div className="container">
           <div className="tekup-section-title center">
             <h2>Produtos relacionados</h2>
