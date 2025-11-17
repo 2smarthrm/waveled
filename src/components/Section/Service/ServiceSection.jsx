@@ -15,11 +15,11 @@ export default function ServiceSection() {
 
  const settings = {
     dots: true,
-    infinite: false,
+    infinite: true,
     speed: 500,
-    arrows: false,
-    slidesToShow: 3.6,
-    slidesToScroll: 3.6,
+    arrows: true,
+    slidesToShow: 3.1,
+    slidesToScroll: 3.1,
     responsive: [
       {
         breakpoint: 1050,
@@ -232,10 +232,10 @@ const Sections = [
         <aside style={{backgroundColor:"#f2f3fc"}} > 
         <div className="container">          
           <h2>Produtos em destaque</h2> 
-        </div>
-        <div className="products-carousel pt-0 mb-0">
+          
+        <div id="products-carousel" className="products-carousel pt-0 mb-0">
           <div className="carousel-featured-products">
-            <div className="container"> 
+            <div className="container-fluid"> 
               {LoadingStatus === true ?
               <Slider {...settings}>
                 {LoadingData?.map((item, index) => (
@@ -244,7 +244,7 @@ const Sections = [
                     <div style={{minHeight:"500px"}} className="card-content"  >
                       <strong className="sku">SKU-{item.wl_product?.wl_sku}</strong>
                      <Link href={`single-shop?product=${item?.wl_product?._id}`}>
-                         <h5>{item?.wl_product?.wl_name.split("").length > 40 ? item?.wl_product?.wl_name.substring(0, 40)+"...": item?.wl_product?.wl_name} </h5>
+                         <h5>{item?.wl_product?.wl_name.split("").length > 30 ? item?.wl_product?.wl_name.substring(0, 30)+"...": item?.wl_product?.wl_name} </h5>
                       </Link>
                       <p>{item.description}</p>
                       <div className="image"  > 
@@ -261,6 +261,7 @@ const Sections = [
             </div>
           </div>
         </div>
+        </div> 
       </aside>
     </>
   );
