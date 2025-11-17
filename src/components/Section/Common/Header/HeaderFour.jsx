@@ -1,3 +1,66 @@
+/* 
+NO MENU PRODUTO NO MEUC OCE AO LADO DO LINK VER TODOS OS PRODUTOS, POR UMA OPÇAÕ PARA VER AS SOULÇÕES ASSOIDAS ACTEFGROIA., FAZER ISSO E EDEVOLVER FULLCODE EM .JSX
+PARA IR PARA AS SOLUÇÕES /solutions?sl=68ff9b5de52f0a547ad28d86 - ID DA SOLUÇÃO , 
+FAZER ISSO SEM DISTRURI OU EATGARA O DESGN DO MEU MENU. 
+PODE USAR ESTE ENDPOINT:
+
+
+// --------- /api/categories/:catId/solutions (listar soluções de uma categoria) ---------
+app.get(
+  "/api/categories/:catId/solutions",
+  [
+    param("catId")
+      .isMongoId()
+      .withMessage("catId inválido"),
+  ],
+  requireAuth(["admin", "editor", "viewer"]),
+  asyncH(async (req, res) => {
+    const err = ensureValid(req, res);
+    if (err) return err;
+
+    const { catId } = req.params;
+
+    // 1) garantir que a categoria existe
+    const category = await WaveledCategory.findById(catId).lean();
+    if (!category) {
+      return res.status(404).json({ error: "Categoria não encontrada" });
+    }
+
+    // 2) procurar soluções que tenham esta categoria associada
+    //    (campo: categories: [ObjectId] no modelo Solution)
+    const solutions = await Solution.find({
+      categories: catId,
+    })
+      .select("_id title image createdAt") // só os campos necessários
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // 3) podes devolver só nomes ou o objeto minimal da solução
+    //    aqui já vai com _id + title + image
+    return res.json({
+      ok: true,
+      data: {
+        category: {
+          _id: category._id,
+          wl_name: category.wl_name,
+          wl_slug: category.wl_slug,
+        },
+        solutions,
+      },
+    });
+  })
+);
+
+
+AFZER ISTO E DEVOLVER FULLCODE:
+
+
+
+*/
+/*
+  Header com mega menu de Produtos + Soluções
+*/
+
 "use client";
 
 import Link from "next/link";
@@ -119,6 +182,9 @@ const HeaderFourInner = () => {
   const [loadingSolutions, setLoadingSolutions] = useState(true);
   const [solutionsError, setSolutionsError] = useState("");
 
+  // soluções associadas por categoria (catId -> [solutions...])
+  const [solutionsByCat, setSolutionsByCat] = useState({});
+
   const [key, setKey] = useState("0");
 
   // ——— Estado de megamenu
@@ -137,30 +203,26 @@ const HeaderFourInner = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Sempre que mudar a rota (ou só a query), fechamos tudo.
   useEffect(() => {
-    // fecha megamenu, remove forcings e fecha mobile menu
     setActiveMenu(null);
     setForceWhite(false);
     setIsLocked(false);
     setIsActive(false);
-    // limpa timers/anim frames pendentes
     if (forceTimer.current) clearTimeout(forceTimer.current);
     cancelAnimationFrame(postUnlockRafRef.current);
     cancelAnimationFrame(rafRef.current);
-    // recalcula transparência após navegação
     setTimeout(() => {
       if (typeof window !== "undefined") {
         setIsTransparent(computeShouldBeTransparent());
       }
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams?.toString()]); // importante para /single-shop?product=XXXX
+  }, [pathname, searchParams?.toString()]);
 
   // ======= Deve estar transparente? =======
   const computeShouldBeTransparent = useCallback(() => {
     if (typeof window === "undefined") return false;
-    if (forceWhite || isLocked || activeMenu) return false; // prioridade ao branco/lock/mega aberto
+    if (forceWhite || isLocked || activeMenu) return false;
 
     const header = headerRef.current;
     if (!header) return false;
@@ -184,11 +246,9 @@ const HeaderFourInner = () => {
     return overlapping;
   }, [forceWhite, isLocked, activeMenu]);
 
-  // ——— Helpers hover/lock
   const incLock = useCallback(() => setIsLocked(true), []);
   const decLock = useCallback(() => setIsLocked(false), []);
 
-  // ——— Helpers de forçar branco (com micro-delay na saída para cobrir gaps)
   const setWhiteOn = useCallback(() => {
     if (forceTimer.current) clearTimeout(forceTimer.current);
     setForceWhite(true);
@@ -197,7 +257,6 @@ const HeaderFourInner = () => {
 
   const setWhiteOff = useCallback(() => {
     if (forceTimer.current) clearTimeout(forceTimer.current);
-    // delay para cobrir o “gap” entre label/tab e conteúdo
     forceTimer.current = setTimeout(() => {
       setForceWhite(false);
       decLock();
@@ -225,7 +284,7 @@ const HeaderFourInner = () => {
           slidesToSlide: 5,
         },
         tabletLg: {
-          breakpoint: { max: 1024, min: 601 },
+          breakpoint: { max: 1304, min: 1000 },
           items: 4,
           slidesToSlide: 4,
         },
@@ -288,7 +347,7 @@ const HeaderFourInner = () => {
 
     window.addEventListener("scroll", onScrollOrResize, { passive: true });
     window.addEventListener("resize", onScrollOrResize);
-    onScrollOrResize(); // 1ª avaliação
+    onScrollOrResize();
     const t = setTimeout(onScrollOrResize, 120);
 
     return () => {
@@ -301,7 +360,6 @@ const HeaderFourInner = () => {
     };
   }, [isLocked, forceWhite, activeMenu, computeShouldBeTransparent]);
 
-  // Força branco enquanto o megamenu está aberto por qualquer motivo
   useEffect(() => {
     if (activeMenu) {
       setForceWhite(true);
@@ -446,7 +504,7 @@ const HeaderFourInner = () => {
     };
   }, []);
 
-  /** ---------- Fetch Soluções ---------- */
+  /** ---------- Fetch Soluções (todas para o menu "Soluções") ---------- */
   useEffect(() => {
     const ac = new AbortController();
     (async () => {
@@ -472,7 +530,52 @@ const HeaderFourInner = () => {
     return () => ac.abort();
   }, []);
 
-  // cards para soluções
+  /** ---------- Fetch soluções por categoria (para o link "Ver soluções associadas") ---------- */
+  useEffect(() => {
+    if (!categories || !categories.length) return;
+
+    let abort = false;
+
+    (async () => {
+      const map = {};
+      for (const cat of categories) {
+        const catId = cat.id;
+        if (!catId) continue;
+        try {
+          const res = await fetch(
+            `${API_BASE}/api/categories/${catId}/solutions`,
+            { cache: "no-store" }
+          );
+
+ 
+
+
+          if (!res.ok) continue;
+          const json = await res.json();
+          const list = Array.isArray(json?.data?.solutions)
+            ? json.data.solutions
+            : [];
+          if (list.length) {
+            map[catId] = list;
+          }
+
+
+        } catch {
+          // silencioso – se falhar, simplesmente não mostra o link de soluções
+        }
+        if (abort) break;
+      }
+      if (!abort) {
+        setSolutionsByCat(map);
+      }
+    })();
+
+    return () => {
+      abort = true;
+    };
+  }, [categories]);
+
+  // cards para soluções (menu Soluções)
   const solutionCards = useMemo(() => {
     return (solutions || []).map((item) => {
       const id = String(item?._id || "");
@@ -514,12 +617,10 @@ const HeaderFourInner = () => {
   const closeMega = useCallback(() => {
     cancelTabHover();
     setActiveMenu(null);
-    setWhiteOff(); // liberta lock com pequeno delay seguro
+    setWhiteOff();
   }, [cancelTabHover, setWhiteOff]);
 
-  // fechar ao carregar em qualquer link dentro dos megamenus
   const onMegaLinkClick = useCallback(() => {
-    // fecha imediatamente para não ficar aberto durante troca de produto
     setActiveMenu(null);
     setForceWhite(false);
     setIsLocked(false);
@@ -527,7 +628,7 @@ const HeaderFourInner = () => {
     if (forceTimer.current) clearTimeout(forceTimer.current);
   }, []);
 
-  // fechar com ESC
+  // ESC fecha menu
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") closeMega();
@@ -536,7 +637,7 @@ const HeaderFourInner = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, [closeMega]);
 
-  // fechar ao clicar fora dos megamenus
+  // click fora fecha megamenu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!activeMenu) return;
@@ -621,13 +722,9 @@ const HeaderFourInner = () => {
         .sub-menu-box .react-multi-carousel-track {
           will-change: transform;
         }
-
-        /* Header transparente: prioridade máxima quando classe presente */
         .transparent-header .tekup-header-bottom {
           background: transparent !important;
         }
-
-        /* Header branco forçado (trigger/painel megamenu ou lock) */
         .header-force-white .tekup-header-bottom {
           background: #fff !important;
         }
@@ -760,117 +857,147 @@ const HeaderFourInner = () => {
                             mountOnEnter={false}
                             unmountOnExit={false}
                           >
-                            {categories.map((cat, index) => (
-                              <Tab
-                                key={cat.id || index}
-                                eventKey={String(index)}
-                                mountOnEnter={false}
-                                unmountOnExit={false}
-                                title={
-                                  <span
-                                    className="text-dark"
-                                    onMouseEnter={() => {
-                                      handleTabHover(index);
-                                      setWhiteOn();
-                                    }}
-                                    onMouseLeave={() => {
-                                      cancelTabHover(); /* mantemos lock até sair da área */
-                                    }}
-                                    onFocus={() => {
-                                      setKey(String(index));
-                                      setWhiteOn();
-                                    }}
-                                    style={{
-                                      cursor: "pointer",
-                                      color: "#000",
-                                    }}
-                                  >
-                                    {cat.category}
-                                  </span>
-                                }
-                              >
-                                <div className="mb-6 d-flex text-dark">
-                                  Ver todos os produtos {" > "}
-                                  <Link
-                                    style={{ marginLeft: "10px" }}
-                                    href={`/shop?category=${cat.id}`}
-                                    onClick={onMegaLinkClick}
-                                  >
-                                    {cat.category}
-                                  </Link>
-                                </div>
-                                <br />
-                                <Carousel
-                                  responsive={carouselCfg.responsive}
-                                  arrows={carouselCfg.arrows}
-                                  infinite={carouselCfg.infinite}
-                                  transitionDuration={
-                                    carouselCfg.transitionDuration
-                                  }
-                                  swipeable={carouselCfg.swipeable}
-                                  draggable={carouselCfg.draggable}
-                                  keyBoardControl={
-                                    carouselCfg.keyBoardControl
-                                  }
-                                  renderDotsOutside={
-                                    carouselCfg.renderDotsOutside
-                                  }
-                                  showDots={carouselCfg.showDots}
-                                  lazyLoad={carouselCfg.lazyLoad}
-                                  ssr={carouselCfg.ssr}
-                                  minimumTouchDrag={
-                                    carouselCfg.minimumTouchDrag
-                                  }
-                                  containerClass={carouselCfg.containerClass}
-                                  itemClass={carouselCfg.itemClass}
-                                  sliderClass={carouselCfg.sliderClass}
-                                  onMouseEnter={setWhiteOn}
-                                  onMouseLeave={setWhiteOff}
-                                >
-                                  {cat.series.map((itemCat) => (
-                                    <article
-                                      className="submn-article"
-                                      key={`${cat.id}-${itemCat._id}`}
+                            {categories.map((cat, index) => {
+                              const catId = cat.id;
+                              const catSolutions =
+                                solutionsByCat[catId] || [];
+                              const firstSol = catSolutions[0] || null;
+                              const solutionHref = firstSol
+                                ? `/solutions?sl=${encodeURIComponent(
+                                    String(firstSol._id)
+                                  )}`
+                                : null;
+
+                              return (
+                                <Tab
+                                  key={catId || index}
+                                  eventKey={String(index)}
+                                  mountOnEnter={false}
+                                  unmountOnExit={false}
+                                  title={
+                                    <span
+                                      className="text-dark"
+                                      onMouseEnter={() => {
+                                        handleTabHover(index);
+                                        setWhiteOn();
+                                      }}
+                                      onMouseLeave={() => {
+                                        cancelTabHover();
+                                      }}
+                                      onFocus={() => {
+                                        setKey(String(index));
+                                        setWhiteOn();
+                                      }}
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#000",
+                                      }}
                                     >
-                                      <div
-                                        className="image-header"
-                                        onMouseEnter={setWhiteOn}
-                                        onMouseLeave={setWhiteOff}
-                                      >
-                                        <img
-                                          src={
-                                            itemCat.image.startsWith("http")
-                                              ? itemCat.image
-                                              : API_BASE + itemCat.image
-                                          }
-                                          alt={itemCat.title}
-                                          loading="lazy"
-                                          decoding="async"
-                                        />
-                                        <div className="over-image">
-                                          <Link
-                                            href={itemCat.link}
-                                            onClick={onMegaLinkClick}
-                                          >
-                                            <div className="link-box">
-                                              <GoArrowUpRight />
-                                            </div>
-                                          </Link>
-                                        </div>
-                                      </div>
+                                      {cat.category}
+                                    </span>
+                                  }
+                                >
+                                  {/* Linha de ações por categoria */}
+                                  <div className="mb-6 d-flex  align-items-center gap-3 text-dark">
+                                    <span className="d-flex">
+                                      Ver todos os produtos {" > "}
                                       <Link
-                                        href={itemCat.link}
+                                        style={{ marginLeft: "6px" }}
+                                        href={`/shop?category=${catId}`}
                                         onClick={onMegaLinkClick}
                                       >
-                                        <strong className="text-dark text-black">
-                                          {itemCat.title}
-                                        </strong>
+                                        {cat.category}
                                       </Link>
-                                    </article>
-                                  ))}
-                                </Carousel>
-                              </Tab>
-                            ))}
+                                    </span>
+
+                                    {solutionHref && (
+                                      <span className="d-flex">
+                                        Ver soluções associadas à categoria{" "}
+                                        {" > "}
+                                        <Link
+                                          style={{ marginLeft: "6px" }}
+                                          href={solutionHref}
+                                          onClick={onMegaLinkClick}
+                                        >
+                                          {"Ver soluções" || "Solução"}
+                                        </Link>
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <br />
+                                  <Carousel
+                                    responsive={carouselCfg.responsive}
+                                    arrows={carouselCfg.arrows}
+                                    infinite={carouselCfg.infinite}
+                                    transitionDuration={
+                                      carouselCfg.transitionDuration
+                                    }
+                                    swipeable={carouselCfg.swipeable}
+                                    draggable={carouselCfg.draggable}
+                                    keyBoardControl={
+                                      carouselCfg.keyBoardControl
+                                    }
+                                    renderDotsOutside={
+                                      carouselCfg.renderDotsOutside
+                                    }
+                                    showDots={carouselCfg.showDots}
+                                    lazyLoad={carouselCfg.lazyLoad}
+                                    ssr={carouselCfg.ssr}
+                                    minimumTouchDrag={
+                                      carouselCfg.minimumTouchDrag
+                                    }
+                                    containerClass={carouselCfg.containerClass}
+                                    itemClass={carouselCfg.itemClass}
+                                    sliderClass={carouselCfg.sliderClass}
+                                    onMouseEnter={setWhiteOn}
+                                    onMouseLeave={setWhiteOff}
+                                  >
+                                    {cat.series.map((itemCat) => (
+                                      <article
+                                        className="submn-article"
+                                        key={`${catId}-${itemCat._id}`}
+                                      >
+                                        <div
+                                          className="image-header"
+                                          onMouseEnter={setWhiteOn}
+                                          onMouseLeave={setWhiteOff}
+                                        >
+                                          <img
+                                            src={
+                                              itemCat.image.startsWith("http")
+                                                ? itemCat.image
+                                                : API_BASE + itemCat.image
+                                            }
+                                            alt={itemCat.title}
+                                            loading="lazy"
+                                            decoding="async"
+                                          />
+                                          <div className="over-image">
+                                            <Link
+                                              href={itemCat.link}
+                                              onClick={onMegaLinkClick}
+                                            >
+                                              <div className="link-box">
+                                                <GoArrowUpRight />
+                                              </div>
+                                            </Link>
+                                          </div>
+                                        </div>
+                                        <Link
+                                          href={itemCat.link}
+                                          onClick={onMegaLinkClick}
+                                        >
+                                          <strong className="text-dark text-black">
+                                            {itemCat.title}
+                                          </strong>
+                                        </Link>
+                                      </article>
+                                    ))}
+                                  </Carousel>
+                                </Tab>
+                              );
+                            })}
                           </Tabs>
                         </div>
                       )}
