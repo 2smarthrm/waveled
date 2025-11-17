@@ -7042,3 +7042,10 @@ body .featured-card:hover strong{
 }
 
 
+body .products-carousel {
+  justify-content: flex-start !important; 
+}
+
+body .carousel-featured-products{
+  width:100% !important; 
+}
