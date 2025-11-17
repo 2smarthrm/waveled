@@ -1,21 +1,4 @@
-/*
-  Página de Solução /solutions?sl=ID
-
-  Melhorias:
-  - Consome o endpoint /api/solutions/:id/examples (solution + examples.*)
-  - Mistura main + showcase.allShowcase + related* num array único de exemplos
-  - Layout:
-      1) Hero: 4 imagens (BlockSection)
-      2) Depois padrão repetido:
-          [2 exemplos com descrição >= 150 chars]  -> BlockItem section
-          [vários exemplos seguintes]              -> Slider "Indústrias e Soluções Aplicáveis"
-  - Em BlockItem só usamos exemplos com descrição >= 150 chars
-  - Na secção "Indústrias e Soluções Aplicáveis" usamos react-multi-carousel:
-      - 2 items por slide (desktop/tablet)
-      - 1 item por slide (mobile)
-      - margem entre os items
-*/
-
+ 
 "use client";
 import HeaderFour from "~/components/Section/Common/Header/HeaderFour";
 import FooterFour from "~/components/Section/Common/FooterFour";
@@ -35,7 +18,7 @@ import { Placeholder, Spinner } from "react-bootstrap";
 // Helpers de imagem/texto
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
-const hasLongDescription = (ex, min = 150) => {
+const hasLongDescription = (ex, min = 30) => {
   const d = (ex?.description || "").replace(/\s+/g, " ").trim();
   return d.length >= min;
 };
@@ -613,7 +596,7 @@ function buildLayout(examples = []) {
 
     // 2) Secção de blocos (BlockItem) – apenas exemplos com descrição >= 150
     const blockCandidates = remaining.filter((ex) =>
-      hasLongDescription(ex, 150)
+      hasLongDescription(ex, 30)
     );
 
     if (blockCandidates.length) {
