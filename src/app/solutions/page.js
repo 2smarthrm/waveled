@@ -1,20 +1,33 @@
 /*
-  /*
-  SolutionPage.jsx — com Skeletons (React-Bootstrap)
-  - Renderiza placeholders enquanto loading === true
-  - Wrapper: <div className="skeleton-soft skeleton-light">…</div>
+  Página de Solução /solutions?sl=ID
+
+  Melhorias:
+  - Consome o endpoint /api/solutions/:id/examples (solution + examples.*)
+  - Mistura main + showcase.allShowcase + related* num array único de exemplos
+  - Layout:
+      1) Hero: 4 imagens (BlockSection)
+      2) Depois padrão repetido:
+          [2 exemplos com descrição >= 150 chars]  -> BlockItem section
+          [vários exemplos seguintes]              -> Slider "Indústrias e Soluções Aplicáveis"
+  - Em BlockItem só usamos exemplos com descrição >= 150 chars
+  - Na secção "Indústrias e Soluções Aplicáveis" usamos react-multi-carousel:
+      - 2 items por slide (desktop/tablet)
+      - 1 item por slide (mobile)
+      - margem entre os items
 */
 
 "use client";
-import HeaderFour from '~/components/Section/Common/Header/HeaderFour';
-import FooterFour from '~/components/Section/Common/FooterFour';
-import CtaThreeSection from '~/components/Section/Common/CtaThree/CtaThreeSection';
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import axios from 'axios';
+import HeaderFour from "~/components/Section/Common/Header/HeaderFour";
+import FooterFour from "~/components/Section/Common/FooterFour";
+import CtaThreeSection from "~/components/Section/Common/CtaThree/CtaThreeSection";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import axios from "axios";
 import Slider from "react-slick";
-import Link from 'next/link';
+import Link from "next/link";
 import Lightbox from "react-awesome-lightbox";
 import "react-awesome-lightbox/build/style.css";
+import Carousel from "react-multi-carousel";
+import "react-multi-carousel/lib/styles.css";
 
 // === Skeletons (React-Bootstrap) ===
 import { Placeholder, Spinner } from "react-bootstrap";
@@ -22,13 +35,22 @@ import { Placeholder, Spinner } from "react-bootstrap";
 // Helpers de imagem/texto
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
+const hasLongDescription = (ex, min = 150) => {
+  const d = (ex?.description || "").replace(/\s+/g, " ").trim();
+  return d.length >= min;
+};
 
 const isBrowser = typeof window !== "undefined";
-const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const BaseUrl =  protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
-const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${BaseUrl}${u}`) : "");
+const protocol =
+  isBrowser && window.location.protocol === "https:" ? "https" : "http";
+const BaseUrl =
+  protocol === "https"
+    ? "https://waveledserver.vercel.app"
+    : "http://localhost:4000";
+const withHost = (u) =>
+  u ? (isAbsoluteUrl(u) ? u : `${BaseUrl}${u}`) : "";
 
-// Slider settings
+// Slider settings para os Kits (react-slick)
 const sliderProducts = {
   dots: false,
   infinite: false,
@@ -39,9 +61,28 @@ const sliderProducts = {
   responsive: [
     { breakpoint: 1280, settings: { slidesToShow: 3.5, slidesToScroll: 3.5 } },
     { breakpoint: 1024, settings: { slidesToShow: 3, slidesToScroll: 3 } },
-    { breakpoint: 768,  settings: { slidesToShow: 2, slidesToScroll: 2 } },
-    { breakpoint: 480,  settings: { slidesToShow: 1, slidesToScroll: 1 } },
+    { breakpoint: 768, settings: { slidesToShow: 2, slidesToScroll: 2 } },
+    { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } },
   ],
+};
+
+// Slider settings para "Indústrias e Soluções Aplicáveis" (react-multi-carousel)
+const industriesResponsive = {
+  desktop: {
+    breakpoint: { max: 3000, min: 1024 },
+    items: 2,
+    partialVisibilityGutter: 24,
+  },
+  tablet: {
+    breakpoint: { max: 1024, min: 768 },
+    items: 2,
+    partialVisibilityGutter: 20,
+  },
+  mobile: {
+    breakpoint: { max: 768, min: 0 },
+    items: 1,
+    partialVisibilityGutter: 16,
+  },
 };
 
 function useSolutionId() {
@@ -68,10 +109,15 @@ const toLbImages = (arr = []) =>
     }))
     .filter((x) => !!x.url);
 
-/** ========== Skeleton Components (layout fiel ao design) ========== */
+/* ===========================================================
+   SKELETONS
+   =========================================================== */
 
-// título + texto curtos
-const TitleParagraphSkeleton = ({ lines = 2, titleWidth = "40%", textWidth = "80%" }) => (
+const TitleParagraphSkeleton = ({
+  lines = 2,
+  titleWidth = "40%",
+  textWidth = "80%",
+}) => (
   <div>
     <Placeholder as="h2" animation="wave">
       <Placeholder xs={6} style={{ maxWidth: titleWidth, height: 32 }} />
@@ -96,7 +142,11 @@ const BlockSectionSkeleton = () => (
     <div className="images-area">
       <div className="large-image">
         <div className="skeleton-soft skeleton-light">
-          <Placeholder as="div" animation="wave" style={{ width: "100%", height: 360, borderRadius: 12 }}>
+          <Placeholder
+            as="div"
+            animation="wave"
+            style={{ width: "100%", height: 360, borderRadius: 12 }}
+          >
             <Placeholder xs={12} style={{ width: "100%", height: "100%" }} />
           </Placeholder>
         </div>
@@ -105,18 +155,29 @@ const BlockSectionSkeleton = () => (
       <div className="block-images">
         <div className="md-image">
           <div className="skeleton-soft skeleton-light">
-            <Placeholder as="div" animation="wave" style={{ width: "100%", height: 170, borderRadius: 12 }}>
+            <Placeholder
+              as="div"
+              animation="wave"
+              style={{ width: "100%", height: 170, borderRadius: 12 }}
+            >
               <Placeholder xs={12} style={{ width: "100%", height: "100%" }} />
             </Placeholder>
           </div>
         </div>
 
         <div className="group-images">
-          {[0,1].map((i) => (
+          {[0, 1].map((i) => (
             <div className="img" key={i}>
               <div className="skeleton-soft skeleton-light">
-                <Placeholder as="div" animation="wave" style={{ width: "100%", height: 82, borderRadius: 12 }}>
-                  <Placeholder xs={12} style={{ width: "100%", height: "100%" }} />
+                <Placeholder
+                  as="div"
+                  animation="wave"
+                  style={{ width: "100%", height: 82, borderRadius: 12 }}
+                >
+                  <Placeholder
+                    xs={12}
+                    style={{ width: "100%", height: "100%" }}
+                  />
                 </Placeholder>
               </div>
             </div>
@@ -127,7 +188,6 @@ const BlockSectionSkeleton = () => (
   </aside>
 );
 
-// bloco item com imagem grande à direita/esquerda
 const BlockItemSkeleton = () => (
   <aside className="block-solution-section">
     <div className="block-side">
@@ -138,7 +198,11 @@ const BlockItemSkeleton = () => (
     <div className="images-area">
       <div className="col large-image">
         <div className="skeleton-soft skeleton-light">
-          <Placeholder as="div" animation="wave" style={{ width: "100%", height: 340, borderRadius: 12 }}>
+          <Placeholder
+            as="div"
+            animation="wave"
+            style={{ width: "100%", height: 340, borderRadius: 12 }}
+          >
             <Placeholder xs={12} style={{ width: "100%", height: "100%" }} />
           </Placeholder>
         </div>
@@ -147,16 +211,21 @@ const BlockItemSkeleton = () => (
   </aside>
 );
 
-// cards dos kits (slider-like)
 const KitsSectionSkeleton = () => (
-  <div className="product-kit-area mt-4 bg-dark" style={{ borderRadius: 12, padding: "24px" }}>
+  <div
+    className="product-kit-area mt-4 bg-dark"
+    style={{ borderRadius: 12, padding: "24px" }}
+  >
     <div className="d-flex align-items-center justify-content-between mb-3">
       <div className="skeleton-soft skeleton-light" style={{ flex: 1 }}>
         <Placeholder as="h4" animation="wave">
           <Placeholder xs={4} style={{ height: 28 }} />
         </Placeholder>
       </div>
-      <div className="skeleton-soft skeleton-light" style={{ width: 120, textAlign: "right" }}>
+      <div
+        className="skeleton-soft skeleton-light"
+        style={{ width: 120, textAlign: "right" }}
+      >
         <Placeholder as="small" animation="wave">
           <Placeholder xs={6} style={{ height: 14 }} />
         </Placeholder>
@@ -165,10 +234,17 @@ const KitsSectionSkeleton = () => (
 
     <div className="row">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-3" key={i}>
+        <div
+          className="col-12 col-sm-6 col-md-4 col-lg-3 mb-3"
+          key={i}
+        >
           <div className="p-2">
             <div className="skeleton-soft skeleton-light">
-              <Placeholder as="div" animation="wave" style={{ width: "100%", height: 180, borderRadius: 8 }} />
+              <Placeholder
+                as="div"
+                animation="wave"
+                style={{ width: "100%", height: 180, borderRadius: 8 }}
+              />
             </div>
             <div className="skeleton-soft skeleton-light mt-2">
               <Placeholder as="div" animation="wave">
@@ -185,16 +261,18 @@ const KitsSectionSkeleton = () => (
   </div>
 );
 
-// imagem principal da solução
 const SolutionImageSkeleton = () => (
   <div className="solution-image bg-white pt-0 mt-0 mb-0">
     <div className="skeleton-soft skeleton-light">
-      <Placeholder as="div" animation="wave" style={{ width: "100%", maxHeight: 560, height: 420, borderRadius: 8 }} />
+      <Placeholder
+        as="div"
+        animation="wave"
+        style={{ width: "100%", maxHeight: 560, height: 420, borderRadius: 8 }}
+      />
     </div>
   </div>
 );
 
-// grelha final (até 6 imgs)
 const GridSixSkeleton = () => (
   <section className="mt-4 bg-black">
     <div className="section tekup-section-padding">
@@ -220,7 +298,11 @@ const GridSixSkeleton = () => (
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="col-sm-6 col-md-4 col-lg-3 mb-4">
                 <div className="skeleton-soft skeleton-light">
-                  <Placeholder as="div" animation="wave" style={{ width: "100%", height: 180, borderRadius: 8 }} />
+                  <Placeholder
+                    as="div"
+                    animation="wave"
+                    style={{ width: "100%", height: 180, borderRadius: 8 }}
+                  />
                 </div>
                 <div className="skeleton-soft skeleton-light mt-2">
                   <Placeholder as="div" animation="wave">
@@ -236,7 +318,10 @@ const GridSixSkeleton = () => (
   </section>
 );
 
-/** ==================== Componentes reais ==================== **/
+/* ===========================================================
+   COMPONENTES REAIS
+   =========================================================== */
+
 function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
   // Espera até 4 imagens: [0]=large, [1]=md, [2]=small1, [3]=small2
   const present = useMemo(() => imgs.filter(Boolean), [imgs]);
@@ -261,7 +346,9 @@ function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
   return (
     <aside className="block-solution-section">
       <div className="block-side">
-        <h2 className="tekup-section-title pt-0 pb-0 mb-4 text-dark">{safeText(title)}</h2>
+        <h2 className="tekup-section-title pt-0 pb-0 mb-4 text-dark">
+          {safeText(title)}
+        </h2>
         <p className="col-lg-8 mt-0 pt-0">{safeText(description)}</p>
       </div>
       <div className="images-area">
@@ -276,8 +363,8 @@ function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
             />
           )}
         </div>
-        <div className={'block-images'}>
-          <div className='md-image'>
+        <div className={"block-images"}>
+          <div className="md-image">
             {!!md && (
               <img
                 src={withHost(md.image)}
@@ -288,8 +375,8 @@ function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
               />
             )}
           </div>
-          <div className='group-images'>
-            <div className='img'>
+          <div className="group-images">
+            <div className="img">
               {!!s1 && (
                 <img
                   src={withHost(s1.image)}
@@ -300,7 +387,7 @@ function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
                 />
               )}
             </div>
-            <div className='img'>
+            <div className="img">
               {!!s2 && (
                 <img
                   src={withHost(s2.image)}
@@ -319,23 +406,32 @@ function BlockSection({ title, description, imgs = [], onOpenLightbox }) {
 }
 
 function BlockItem({ reverse = false, title, description, img, onOpenLightbox }) {
-  const lbImages = useMemo(() => toLbImages([img ? { image: img, title } : null]), [img, title]);
+  const lbImages = useMemo(
+    () => toLbImages([img ? { image: img, title } : null]),
+    [img, title]
+  );
 
   return (
-    <aside className={reverse ? 'block-solution-section reverse' : 'block-solution-section'}>
-      <div className='block-side'>
-        <h2 className='tekup-section-title pt-0 pb-0 mb-4 text-dark'>{safeText(title)}</h2>
-        <p className='col-lg-8 mt-0 pt-0'>{safeText(description)}</p>
+    <aside
+      className={reverse ? "block-solution-section reverse" : "block-solution-section"}
+    >
+      <div className="block-side">
+        <h2 className="tekup-section-title pt-0 pb-0 mb-4 text-dark">
+          {safeText(title)}
+        </h2>
+        <p className="col-lg-8 mt-0 pt-0">{safeText(description)}</p>
       </div>
-      <div className={reverse ? "reverse images-area" : 'images-area'}>
-        <div className='col large-image'>
+      <div className={reverse ? "reverse images-area" : "images-area"}>
+        <div className="col large-image">
           {img ? (
             <img
               src={withHost(img)}
               alt={safeText(title)}
               role="button"
               style={{ width: "100%", cursor: "zoom-in" }}
-              onClick={() => onOpenLightbox && onOpenLightbox(lbImages, 0)}
+              onClick={() =>
+                onOpenLightbox && onOpenLightbox(lbImages, 0)
+              }
             />
           ) : null}
         </div>
@@ -378,7 +474,9 @@ function KitsSection({ kits = [], productMap = {}, onOpenLightbox }) {
           <div key={kit._id} className="mb-5">
             <div className="d-flex align-items-center justify-content-between">
               <h4 className="text-light mb-3">{safeText(kit.name)}</h4>
-              <small className="text-silver">{prods.length} produto(s)</small>
+              <small className="text-silver">
+                {prods.length} produto(s)
+              </small>
             </div>
             <Slider {...sliderProducts}>
               {prods.map((p, idx) => {
@@ -412,7 +510,8 @@ function KitsSection({ kits = [], productMap = {}, onOpenLightbox }) {
                             cursor: "zoom-in",
                           }}
                           onClick={() =>
-                            onOpenLightbox && onOpenLightbox(gallery, idx)
+                            onOpenLightbox &&
+                            onOpenLightbox(gallery, idx)
                           }
                         />
                       ) : (
@@ -430,7 +529,9 @@ function KitsSection({ kits = [], productMap = {}, onOpenLightbox }) {
                       className="d-block mt-2"
                     >
                       <strong className="text-white" title={name}>
-                        {name.length > 45 ? name.slice(0, 45) + "…" : name}
+                        {name.length > 45
+                          ? name.slice(0, 45) + "…"
+                          : name}
                       </strong>
                     </Link>
                     {p?.wl_category?.wl_name ? (
@@ -449,16 +550,114 @@ function KitsSection({ kits = [], productMap = {}, onOpenLightbox }) {
   );
 }
 
-/** ==================== Página ==================== **/
+/* ===========================================================
+   HELPERS PARA CONSTRUIR LISTA DE EXEMPLOS + LAYOUT
+   =========================================================== */
+
+// Mistura os vários grupos do endpoint em 1 única lista de exemplos
+function buildExamplesArray(examplesObj) {
+  const ex = examplesObj || {};
+  const main = Array.isArray(ex.main) ? ex.main : [];
+  const relCat = Array.isArray(ex.relatedByCategory) ? ex.relatedByCategory : [];
+  const relProd = Array.isArray(ex.relatedByProducts) ? ex.relatedByProducts : [];
+
+  const showAll = Array.isArray(ex.showcase?.allShowcase)
+    ? ex.showcase.allShowcase
+    : [];
+
+  const result = [];
+  const seen = new Set();
+
+  const pushUnique = (item) => {
+    if (!item) return;
+    const id = String(item._id || "");
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    result.push(item);
+  };
+
+  // Ordem de prioridade:
+  // 1) main (curados para a solução)
+  main.forEach(pushUnique);
+  // 2) exemplos showcase (categoria + produtos)
+  showAll.forEach(pushUnique);
+  // 3) related (categoria/produtos) para complementar
+  relCat.forEach(pushUnique);
+  relProd.forEach(pushUnique);
+
+  return result;
+}
+
+// Constrói o layout: hero (4) + [block(2) + grid(…)] repetido
+function buildLayout(examples = []) {
+  const all = Array.isArray(examples) ? examples : [];
+  if (!all.length) {
+    return { heroExamples: [], sections: [] };
+  }
+
+  // 1) Hero: primeiras 4 imagens
+  const heroExamples = all.slice(0, 4);
+  const usedIds = new Set(
+    heroExamples.map((ex) => String(ex._id || ""))
+  );
+
+  const sections = [];
+  const findRemaining = () =>
+    all.filter((ex) => !usedIds.has(String(ex._id || "")));
+
+  let remaining = findRemaining();
+  let guard = 0;
+
+  while (remaining.length && guard < 50) {
+    guard++;
+
+    // 2) Secção de blocos (BlockItem) – apenas exemplos com descrição >= 150
+    const blockCandidates = remaining.filter((ex) =>
+      hasLongDescription(ex, 150)
+    );
+
+    if (blockCandidates.length) {
+      const blockItems = blockCandidates.slice(
+        0,
+        Math.min(2, blockCandidates.length)
+      );
+      sections.push({ type: "block", items: blockItems });
+      blockItems.forEach((ex) =>
+        usedIds.add(String(ex._id || ""))
+      );
+    }
+
+    // atualizar remaining
+    remaining = findRemaining();
+    if (!remaining.length) break;
+
+    // 3) Secção "grid" – vamos usar slider com TODOS os restantes desta ronda
+    const gridItems = remaining.slice(0, 100);
+    if (gridItems.length) {
+      sections.push({ type: "grid", items: gridItems });
+      gridItems.forEach((ex) =>
+        usedIds.add(String(ex._id || ""))
+      );
+    }
+
+    remaining = findRemaining();
+  }
+
+  return { heroExamples, sections };
+}
+
+/* ===========================================================
+   PÁGINA
+   =========================================================== */
 
 const SolutionPage = () => {
   const solutionId = useSolutionId();
 
   const [loading, setLoading] = useState(true);
   const [solution, setSolution] = useState(null);
-  const [products, setProducts] = useState([]);   // /solutions/:id/products
-  const [kits, setKits] = useState([]);           // /solutions/:id/kits
-  const [examples, setExamples] = useState([]);   // /solutions/:id/examples
+  const [products, setProducts] = useState([]); // /solutions/:id/products
+  const [kits, setKits] = useState([]); // /solutions/:id/kits
+  const [examples, setExamples] = useState([]); // lista já misturada
   const [error, setError] = useState(null);
 
   // Estado do Lightbox
@@ -488,9 +687,10 @@ const SolutionPage = () => {
     return map;
   }, [products]);
 
-  const first4 = useMemo(() => examples.slice(0, 4), [examples]);
-  const next2 = useMemo(() => examples.slice(4, 6), [examples]);
-  const next6 = useMemo(() => examples.slice(6, 12), [examples]);
+  const { heroExamples, sections } = useMemo(
+    () => buildLayout(examples),
+    [examples]
+  );
 
   useEffect(() => {
     let cancel = false;
@@ -500,42 +700,60 @@ const SolutionPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const solListResp = await axios.get(`${BaseUrl}/api/solutions`, { withCredentials: true });
-        const solList = (solListResp?.data?.data || []).reverse();
-
-        const sol = solList.find(s => String(s._id) === String(solutionId));
-        if (!sol) throw new Error("Solução não encontrada.");
-        if (cancel) return;
-        setSolution(sol);
-
+        // Podemos buscar tudo em paralelo
         const [prodResp, kitsResp, exResp] = await Promise.all([
-          axios.get(`${BaseUrl}/api/solutions/${solutionId}/products`, { withCredentials: true }),
-          axios.get(`${BaseUrl}/api/solutions/${solutionId}/kits`, { withCredentials: true }),
-          axios.get(`${BaseUrl}/api/solutions/${solutionId}/examples`, { withCredentials: true }),
+          axios.get(
+            `${BaseUrl}/api/solutions/${solutionId}/products`,
+            { withCredentials: true }
+          ),
+          axios.get(`${BaseUrl}/api/solutions/${solutionId}/kits`, {
+            withCredentials: true,
+          }),
+          axios.get(
+            `${BaseUrl}/api/solutions/${solutionId}/examples`,
+            { withCredentials: true }
+          ),
         ]);
 
         if (cancel) return;
+
+        // Produtos e kits
         setProducts(prodResp?.data?.data || []);
         setKits(kitsResp?.data?.data || []);
-        setExamples(exResp?.data?.data || []);
+
+        // Endpoint de examples agora devolve solution + examples.*
+        const exPayload = exResp?.data?.data || {};
+        const solMeta = exPayload.solution;
+        if (!solMeta) throw new Error("Solução não encontrada.");
+
+        // Solução: preferimos alldata se existir
+        setSolution(solMeta.alldata || solMeta);
+
+        const examplesObj = exPayload.examples || {};
+        const allExamples = buildExamplesArray(examplesObj);
+        setExamples(allExamples);
       } catch (err) {
         console.error(err);
-        setError(err?.response?.data?.error || err?.message || "Erro ao carregar dados.");
+        setError(
+          err?.response?.data?.error ||
+            err?.message ||
+            "Erro ao carregar dados."
+        );
       } finally {
         if (!cancel) setLoading(false);
       }
     }
 
     run();
-    return () => { cancel = true; };
+    return () => {
+      cancel = true;
+    };
   }, [solutionId]);
-
-  const next6Gallery = useMemo(() => toLbImages(next6), [next6]);
 
   return (
     <div className="solutions-page">
       <HeaderFour />
-              <title>Soluções</title>
+      <title>Soluções</title>
       <br />
 
       <section className="section pb-0 mb-0 tekup-section-padding">
@@ -544,8 +762,14 @@ const SolutionPage = () => {
           {loading && (
             <div className="py-4">
               <div className="d-flex align-items-center gap-2 mb-3">
-                <Spinner animation="border" size="sm" variant="secondary" />
-                <span className="text-muted">A carregar solução…</span>
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  variant="secondary"
+                />
+                <span className="text-muted">
+                  A carregar solução…
+                </span>
               </div>
 
               {/* 1) Cabeçalho + 4 exemplos */}
@@ -555,17 +779,19 @@ const SolutionPage = () => {
               <KitsSectionSkeleton />
 
               {/* 3) Imagem principal */}
-              <br /><br />
+              <br />
+              <br />
               <SolutionImageSkeleton />
 
-              {/* 4) Dois blocos seguintes */}
+              {/* 4) Dois blocos seguintes (placeholder) */}
               <div className="mt-4">
                 <BlockItemSkeleton />
                 <BlockItemSkeleton />
               </div>
 
               {/* 5) Grelha final */}
-              <br /><br />
+              <br />
+              <br />
               <GridSixSkeleton />
             </div>
           )}
@@ -581,21 +807,25 @@ const SolutionPage = () => {
           {/* ======= SUCCESS ======= */}
           {!loading && !error && solution && (
             <>
-              {/* 1) Cabeçalho + 4 exemplos */}
+              {/* 1) Cabeçalho + 4 exemplos (hero) */}
               <BlockSection
                 title={solution.title}
                 description={solution.description}
                 imgs={[
-                  first4[0],
-                  first4[1],
-                  first4[2],
-                  first4[3],
+                  heroExamples[0],
+                  heroExamples[1],
+                  heroExamples[2],
+                  heroExamples[3],
                 ]}
                 onOpenLightbox={openLightbox}
               />
 
               {/* 2) Kits */}
-              <KitsSection kits={kits} productMap={productMap} onOpenLightbox={openLightbox} />
+              <KitsSection
+                kits={kits}
+                productMap={productMap}
+                onOpenLightbox={openLightbox}
+              />
             </>
           )}
         </div>
@@ -604,89 +834,163 @@ const SolutionPage = () => {
       {/* 3) Imagem principal da solução */}
       {!loading && !error && solution?.image ? (
         <>
-          <br /><br />
+          <br />
+          <br />
           <div className="solution-image bg-white pt-0 mt-0 mb-0">
             <img
               src={withHost(solution.image)}
               alt={safeText(solution.title)}
-              style={{ width: "100%", maxHeight: 560, objectFit: "cover", cursor: "zoom-in" }}
+              style={{
+                width: "100%",
+                maxHeight: 560,
+                objectFit: "cover",
+                cursor: "zoom-in",
+              }}
               role="button"
               onClick={() =>
                 openLightbox(
-                  toLbImages([{ image: solution.image, title: solution.title }]),
+                  toLbImages([
+                    { image: solution.image, title: solution.title },
+                  ]),
                   0
                 )
               }
             />
           </div>
-          <br /><br />
+          <br />
+          <br />
         </>
       ) : null}
 
-      {/* 4) Dois exemplos seguintes */}
-      {!loading && !error && next2.length > 0 && (
-        <section className="section pb-0 mb-0 pt-0 tekup-section-padding">
-          <div className="container">
-            {next2.map((ex, idx) => (
-              <BlockItem
-                key={ex._id || idx}
-                reverse={idx % 2 === 0}
-                title={safeText(ex.title, solution?.title || "Exemplo")}
-                description={safeText(ex.description, solution?.description || "")}
-                img={ex.image}
-                onOpenLightbox={openLightbox}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 5) Até 6 exemplos restantes (grid) */}
-      {!loading && !error && next6.length > 0 && (
+      {/* 4 & 5) Padrão repetido: [BlockItem x2] + [Slider de Indústrias] */}
+      {!loading && !error && sections.length > 0 && (
         <>
-          <br /><br />
-          <section className="mt-4 bg-black ">
-            <div className="section tekup-section-padding">
-              <div className="container">
-                <hr />
-                <br />
-                <div className="col">
-                  <div className="d-flex col justify-content-between">
-                    <div>
-                      <h3 className="text-light mt-4">Indústrias e Soluções Aplicáveis</h3>
-                    </div>
-                    <div style={{ maxWidth: "550px" }}>
-                      <p className="text-silver mt-2">
-                        Combinações de produtos e projetos interessantes baseados nesta solução.
-                      </p> 
+          {sections.map((section, sIdx) => {
+            if (section.type === "block") {
+              const items = section.items || [];
+              if (!items.length) return null;
+
+              return (
+                <section
+                  key={`block-${sIdx}`}
+                  className="section pb-0 mb-0 pt-0 tekup-section-padding"
+                >
+                  <div className="container">
+                    {items.map((ex, idx) => (
+                      <BlockItem
+                        key={ex._id || `${sIdx}-${idx}`}
+                        reverse={idx % 2 === 0}
+                        title={safeText(
+                          ex.title,
+                          solution?.title || "Exemplo"
+                        )}
+                        description={safeText(
+                          ex.description,
+                          solution?.description || ""
+                        )}
+                        img={ex.image}
+                        onOpenLightbox={openLightbox}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+
+            if (section.type === "grid") {
+              const items = section.items || [];
+              if (!items.length) return null;
+
+              const gallery = toLbImages(items);
+
+              return (
+                <section
+                  key={`grid-${sIdx}`}
+                  className="mt-4 bg-black "
+                >
+                  <div className="section tekup-section-padding">
+                    <div className="container">
+                      <hr />
+                      <br />
+                      <div className="col">
+                        <div className="d-flex col justify-content-between">
+                          <div>
+                            <h3 className="text-light mt-4">
+                              Indústrias e Soluções Aplicáveis
+                            </h3>
+                          </div>
+                          <div style={{ maxWidth: "550px" }}>
+                            <p className="text-silver mt-2">
+                              Combinações de produtos e projetos
+                              interessantes baseados nesta solução.
+                            </p>
+                          </div>
+                        </div>
+                        <br />
+                        {/* Slider react-multi-carousel */}
+                        <Carousel
+                          responsive={industriesResponsive}
+                          infinite={false}
+                          arrows={true}
+                          draggable={true}
+                          swipeable={true}
+                          autoPlay={true}
+                          autoPlaySpeed={3000}
+                          keyBoardControl={true}
+                          containerClass="industries-carousel-container"
+                          itemClass="industries-carousel-item"
+                        >
+                          {items.map((ex, index) => {
+                            const img = withHost(ex?.image);
+                            const title = safeText(
+                              ex?.title,
+                              "Exemplo"
+                            );
+                            if (!img) return null;
+                            return (
+                              <article
+                                key={ex._id || `${sIdx}-${index}`}
+                                style={{ padding: "0 12px", marginBottom: 24 }}
+                              >
+                                <img
+                                  src={img}
+                                  alt={title}
+                                  style={{
+                                    width: "100%",
+                                    height: 480,
+                                    borderRadius: 8,
+                                    objectFit: "cover",
+                                    cursor: "zoom-in",
+                                  }}
+                                  role="button"
+                                  onClick={() =>
+                                    openLightbox(
+                                      gallery,
+                                      index
+                                    )
+                                  }
+                                />
+                                <strong
+                                  className="text-silver d-block mt-2"
+                                  title={title}
+                                >
+                                  {title.length > 60
+                                    ? title.slice(0, 60) + "…"
+                                    : title}
+                                </strong>
+                              </article>
+                            );
+                          })}
+                        </Carousel>
+                      </div>
                     </div>
                   </div>
-                  <br />
-                  <div className="row single-portofolio-area">
-                    {next6.map((ex, index) => {
-                      const img = withHost(ex?.image);
-                      const title = safeText(ex?.title, "Exemplo");
-                      if (!img) return null;
-                      return (
-                        <article key={ex._id || index} className="col-sm-6 col-md-4 col-lg-3 mb-4">
-                          <img
-                            src={img}
-                            alt={title}
-                            style={{ width: "100%", height: 180, borderRadius: 8, objectFit: "cover", cursor: "zoom-in" }}
-                            role="button"
-                            onClick={() => openLightbox(next6Gallery, index)}
-                          />
-                          <strong className="text-silver d-block mt-2" title={title}>
-                            {title.length > 60 ? title.slice(0, 60) + "…" : title}
-                          </strong>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+                </section>
+              );
+            }
+
+            return null;
+          })}
         </>
       )}
 
