@@ -17,7 +17,7 @@ const HeroSection = () => {
       <div className="main-home-hero-overlay">
         <div className="container-fluid"> 
           <div className="text-content"> 
-             <h1>De Brilho e Luz ao Seu Projeto ideial</h1>
+             <h1>De Brilho e Luz ao Seu Projeto  ideal</h1>
              <p>
               Somos especialistas na venda, montagem e Aluguer de ecrãs LED para eventos, publicidade, empresas e projetos especiais. Oferecemos soluções modernas, de alta qualidade e adaptadas a cada cliente.
              </p>

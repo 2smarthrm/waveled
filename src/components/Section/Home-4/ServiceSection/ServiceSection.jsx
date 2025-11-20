@@ -53,7 +53,9 @@ const ServiceSection = () => {
                         <Link href={`single-shop?product=${item?._id}`}>
                            <button className="tekup-default-btn tekup-white-btn">Saiba mais</button>
                          </Link>
-                         <button className="tekup-default-btn">Comprar</button>
+                         <a href={item?.wl_link} target="_blank" rel="noopener noreferrer">
+                             <button className="tekup-default-btn">Comprar</button>
+                         </a> 
                       </div>
                   </div>  
                </article>
