@@ -1,8 +1,3 @@
-/* 
-se a tela ja estiver ou tiver 1050 ou menos de with exibir apenas um sldier, ma snao funciona , resolver e dvolver fullcode:
-
-
-*/
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -117,7 +112,7 @@ const Sections = [
     description:
       "Transformamos objetivos em especificações técnicas: levantamento de espaço, simulação de visibilidade, cálculo de pitch e luminosidade, cronograma e logística. Para eventos (feiras, congressos, ativações) entregamos aluguer chave-na-mão com transporte, montagem, calibração e operação no local — alta resolução, brilho consistente e prazos cumpridos, sem dores de cabeça.",
     image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(21).png",
-    over_text: { text_1: "Planeamos para impressionar", text_2: "Estudo • Simulação • Logística" },
+    over_text: { text_1: "Planeamos para impressionar", text_2: "Estudo • Simulação • execução" },
   },
   {
     video: "https://video-previews.elements.envatousercontent.com/h264-video-previews/dfb54a0f-40b7-4d07-a2c7-01951cc5996d/59570406.mp4",
@@ -136,7 +131,11 @@ const Sections = [
       "Acompanhamos do primeiro dia ao dia-a-dia: auditoria técnica, manutenção preventiva e corretiva, atualizações de firmware, calibração de cor e formação de equipas. Suporte remoto e on-site, SLAs claros e stock de peças críticas para maximizar o tempo de atividade e a longevidade do investimento.",
     image:
       "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(20).jpg",
-    over_text: { text_1: "Tempo de atividade no máximo", text_2: "SLA • Remote • On-site" },
+over_text: { 
+  text_1: "Assistência sempre disponível",
+  text_2: "Suporte remoto e no local"
+}
+
   },
   { 
     title: "Orçamentação",

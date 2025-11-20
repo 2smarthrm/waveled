@@ -682,6 +682,7 @@ export default function SingleShopSection() {
           const examplesRaw = await fetchJson(
             `${API_BASE}/api/examples?${qs.toString()}`
           );
+          
           if (!abort) {
             const arr = toArray(examplesRaw);
             const asc = [...arr].sort((a, b) => {
@@ -908,9 +909,9 @@ export default function SingleShopSection() {
                   </ul>
                 </div>
                 <div className="tekup-product-wrap mt-4">
-                  <Link className="tekup-product-btn" href="#">
+                  <a  target="_blank" className="tekup-product-btn" href={item?.wl_link} > 
                     Comprar Agora
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

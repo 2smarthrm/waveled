@@ -170,7 +170,7 @@ const TestimonialSection = () => {
               <Carousel
                 responsive={responsive}
                 infinite={false}
-                arrows={false}
+                arrows={true}
                 showDots={true}
                 keyBoardControl={true}
                 draggable={true}
