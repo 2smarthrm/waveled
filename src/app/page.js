@@ -229,6 +229,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
                       <Link href={href} aria-label={title}>
                         <div className="image">
                           {img ? (
+                            
                             <img src={img} alt={title} loading="lazy" decoding="async" />
                           ) : (
                             <div
