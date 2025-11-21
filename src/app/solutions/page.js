@@ -1,4 +1,3 @@
- 
 "use client";
 import HeaderFour from "~/components/Section/Common/Header/HeaderFour";
 import FooterFour from "~/components/Section/Common/FooterFour";
@@ -9,8 +8,7 @@ import Slider from "react-slick";
 import Link from "next/link";
 import Lightbox from "react-awesome-lightbox";
 import "react-awesome-lightbox/build/style.css";
-import Carousel from "react-multi-carousel";
-import "react-multi-carousel/lib/styles.css";
+// removido react-multi-carousel
 
 // === Skeletons (React-Bootstrap) ===
 import { Placeholder, Spinner } from "react-bootstrap";
@@ -49,23 +47,27 @@ const sliderProducts = {
   ],
 };
 
-// Slider settings para "Indústrias e Soluções Aplicáveis" (react-multi-carousel)
-const industriesResponsive = {
-  desktop: {
-    breakpoint: { max: 3000, min: 1024 },
-    items: 2,
-    partialVisibilityGutter: 24,
-  },
-  tablet: {
-    breakpoint: { max: 1024, min: 768 },
-    items: 2,
-    partialVisibilityGutter: 20,
-  },
-  mobile: {
-    breakpoint: { max: 768, min: 0 },
-    items: 1,
-    partialVisibilityGutter: 16,
-  },
+// Slider settings para "Indústrias e Soluções Aplicáveis" (react-slick)
+const industriesSliderSettings = {
+  dots: false,
+  infinite: false,
+  speed: 500,
+  arrows: true,
+  slidesToShow: 2,
+  slidesToScroll: 1,
+  autoplay: true,
+  autoplaySpeed: 3000,
+  swipeToSlide: true,
+  responsive: [
+    {
+      breakpoint: 1024,
+      settings: { slidesToShow: 2, slidesToScroll: 1 },
+    },
+    {
+      breakpoint: 768,
+      settings: { slidesToShow: 1, slidesToScroll: 1 },
+    },
+  ],
 };
 
 function useSolutionId() {
@@ -910,18 +912,10 @@ const SolutionPage = () => {
                           </div>
                         </div>
                         <br />
-                        {/* Slider react-multi-carousel */}
-                        <Carousel
-                          responsive={industriesResponsive}
-                          infinite={false}
-                          arrows={true}
-                          draggable={true}
-                          swipeable={true}
-                          autoPlay={true}
-                          autoPlaySpeed={3000}
-                          keyBoardControl={true}
-                          containerClass="industries-carousel-container"
-                          itemClass="industries-carousel-item"
+                        {/* Slider react-slick (substitui react-multi-carousel) */}
+                        <Slider
+                          {...industriesSliderSettings}
+                          className="industries-carousel-container"
                         >
                           {items.map((ex, index) => {
                             const img = withHost(ex?.image);
@@ -931,8 +925,10 @@ const SolutionPage = () => {
                             );
                             if (!img) return null;
                             return (
-                              <article
+                              <div  style={{ padding: "0 12px", marginBottom: 24 }}>
+                                 <article
                                 key={ex._id || `${sIdx}-${index}`}
+                                className="industries-carousel-item"
                                 style={{ padding: "0 12px", marginBottom: 24 }}
                               >
                                 <img
@@ -962,9 +958,10 @@ const SolutionPage = () => {
                                     : title}
                                 </strong>
                               </article>
+                              </div>
                             );
                           })}
-                        </Carousel>
+                        </Slider>
                       </div>
                     </div>
                   </div>
