@@ -98,7 +98,7 @@ function CategoryGridGalery({ categoryId = null, productId = null, productCode =
       {/* Estados simples */}
       {loading && <div>A carregar…</div>}
       {err && !loading && <div>⚠️ {err}</div>}
-      {!loading && !err && !items.length && <div>Sem exemplos.</div>}
+      {!loading && !err && !items.length && <div></div>}
 
       {!!items.length && (
         <div className="gallery-wrapper">

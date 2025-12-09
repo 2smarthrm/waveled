@@ -10,6 +10,7 @@ import "react-awesome-lightbox/build/style.css";
 
 // >>> React-Bootstrap (Skeletons / Placeholders)
 import { Placeholder } from "react-bootstrap";
+import RequestModal from "../Common/RequestBudgetModal/RequestModal";
 
 const isBrowser = typeof window !== "undefined";
 const protocol =
@@ -908,10 +909,15 @@ export default function SingleShopSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="tekup-product-wrap mt-4">
-                  <a  target="_blank" className="tekup-product-btn" href={item?.wl_link} > 
-                    Comprar Agora
-                  </a>
+                <div className="tekup-product-wrap mt-4"> 
+                   <RequestModal
+                      item={item}
+                      toggle_button={(open) => (
+                        <a href="#" className="tekup-default-btn col-lg-12 col" onClick={open}>
+                          Solicitar Produto
+                        </a>
+                      )}
+                    />
                 </div>
               </div>
             </div>

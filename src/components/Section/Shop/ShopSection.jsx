@@ -1,4 +1,3 @@
-// usar bootspat skeleton aqui tambem, com a mesma esrura e design atual, e ao lsiatar os produtos tambem pegar osm produtos da categria em quetsoa basedo no endpoint 
 "use client";
 
 import Link from "next/link";
@@ -72,7 +71,7 @@ function ShopSectionInner() {
       dots: true,
       infinite: false,
       speed: 500,
-      arrows: false,
+      arrows: true,
       slidesToShow: 3.6,
       slidesToScroll: 3.6,
       responsive: [
@@ -325,8 +324,8 @@ function ShopSectionInner() {
                 <div key={i} className="col-12 col-sm-6 col-lg-4 mb-4">
                   <div className="product-card">
                     <div className="img-wrap skeleton-box" />
-                    <div className="skeleton-box" style={{ width: "70%", height: 20 }} />
-                    <div className="skeleton-box" style={{ width: "40%", height: 16 }} />
+                    <div className="skeleton-box" style={{ width: "70%", height: 20}} />
+                    <div className="skeleton-box" style={{ width: "40%", height: 16}} />
                   </div>
                 </div>
               ))}
