@@ -18,7 +18,7 @@ const RecentProjectsSection = () => {
   const [error, setError] = useState("");
 
  
-  useEffect(() => {
+  useEffect(() => { 
     setMounted(true);
   }, []);
 
@@ -51,14 +51,14 @@ const RecentProjectsSection = () => {
         {
           breakpoint: 991,
           settings: {
-            slidesToShow: 1.4,
+            slidesToShow: 1,
             slidesToScroll: 1,
           },
         },
         {
           breakpoint: 576,
           settings: {
-            slidesToShow: 1.1,
+            slidesToShow: 1,
             slidesToScroll: 1,
           },
         },

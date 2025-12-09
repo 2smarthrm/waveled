@@ -1,0 +1,322 @@
+
+
+
+function MessagesTab() {
+  const [decrypt, setDecrypt] = useState(true);
+  const { data, reload } = useFetch(
+    async () =>
+      (await axios.get(`/api/messages${decrypt ? "?decrypt=1" : ""}`)).data
+        .data || [],
+    [decrypt]
+  );
+
+  const items = data || [];
+
+  const columns = [
+    {
+      accessorKey: "created",
+      header: () => "Data",
+      cell: ({ row }) =>
+        new Date(
+          row.original.created_at || row.original.wl_created_at
+        ).toLocaleString(),
+    },
+    {
+      accessorKey: "source",
+      header: () => "Origem",
+      cell: ({ row }) => <Badge bg="info">{row.original.source || "—"}</Badge>,
+    },
+    {
+      accessorKey: "payload.nome",
+      header: () => "Nome",
+      cell: ({ row }) => row.original?.payload?.nome || "—",
+    },
+    {
+      accessorKey: "payload.email",
+      header: () => "Email",
+      cell: ({ row }) => row.original?.payload?.email || "—",
+    },
+    {
+      accessorKey: "payload.tipo",
+      header: () => "Tipo",
+      cell: ({ row }) => row.original?.payload?.tipo || "—",
+    },
+    {
+      accessorKey: "payload.mensagem",
+      header: () => "Mensagem",
+      cell: ({ row }) => (
+        <span
+          className="text-truncate d-inline-block"
+          style={{ maxWidth: 260 }}
+          title={row.original?.payload?.mensagem || "—"}
+        >
+          {row.original?.payload?.mensagem || "—"}
+        </span>
+      ),
+    },
+  ];
+
+ 
+  const handleReload = async () => {
+    await toast.promise(
+      (async () => {
+        await reload();
+      })(),
+      {
+        loading: "A recarregar…",
+        success: "Mensagens atualizadas.",
+        error: "Não foi possível recarregar.",
+      }
+    );
+  };
+
+  return (
+    <div>
+      <Toaster position="top-right" />
+      <Form.Check
+        type="switch"
+        id="dec"
+        label="Mostrar dados desencriptados"
+        checked={decrypt}
+        onChange={(e) => setDecrypt(e.target.checked)}
+      />
+      <div className="mt-3">
+        <Table data={items} columns={columns} />
+      </div>
+      <Button
+        variant="outline-secondary"
+        onClick={handleReload}
+        className="mt-2"
+      >
+        Recarregar
+      </Button>
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
+para qe sjea posisvel ver todos os detalhes nommdoal d eforma organizada e bonita:
+
+app.post(
+  "/api/public/contact", 
+  body("tipo")
+    .isIn(["info", "quote"])
+    .withMessage("Tipo inválido.")
+    .bail(),
+
+  // comuns
+  body("nome").isString().isLength({ min: 2 }).trim().escape()
+    .withMessage("Nome obrigatório."),
+  body("telefone").isString().isLength({ min: 6 }).trim().escape()
+    .withMessage("Telefone inválido."),
+  body("email").isEmail().normalizeEmail()
+    .withMessage("Email inválido."),
+  body("mensagem").isString().isLength({ min: 5 })
+    .withMessage("Mensagem muito curta."),
+
+  // consent → converte e valida boolean true
+  body("consent")
+    .customSanitizer((v) => {
+      if (v === true || v === "true" || v === 1 || v === "1") return true;
+      return false;
+    })
+    .isBoolean()
+    .custom((v) => v === true)
+    .withMessage("É necessário consentimento."),
+
+  // Campos apenas quando tipo === "quote"
+  body("solucao")
+    .if((value, { req }) => req.body.tipo === "quote")
+    .isIn(["led-rental", "led-fixed", "led-iluminacao", "outro"])
+    .withMessage("Solução inválida."),
+  body("datas")
+    .if((value, { req }) => req.body.tipo === "quote")
+    .isString().isLength({ min: 2 }).trim().escape()
+    .withMessage("Datas/Período obrigatório."),
+  body("local")
+    .if((value, { req }) => req.body.tipo === "quote")
+    .isString().isLength({ min: 2 }).trim().escape()
+    .withMessage("Local obrigatório."),
+  body("dimensoes")
+    .if((value, { req }) => req.body.tipo === "quote")
+    .isString().isLength({ min: 1 }).trim().escape()
+    .withMessage("Dimensões obrigatórias."),
+  body("orcamentoPrevisto")
+    .optional()
+    .isString().trim().escape(),
+
+  validate,
+  audit("public.contact"),
+
+  asyncH(async (req, res) => {
+    const payload = {
+      tipo: req.body.tipo,
+      nome: req.body.nome,
+      telefone: req.body.telefone,
+      email: req.body.email, 
+      solucao: req.body.solucao ?? "outro",
+      datas: req.body.datas ?? "n/d",
+      local: req.body.local ?? "n/d",
+      dimensoes: req.body.dimensoes ?? "n/d",
+      orcamentoPrevisto: req.body.orcamentoPrevisto || "",
+      precisaMontagem: req.body.precisaMontagem === "nao" ? "nao" : "sim",
+      mensagem: req.body.mensagem,
+      consent: req.body.consent === true,
+    };
+
+    const blob = encrypt(payload);
+    await WaveledMessage.create({
+      wl_encrypted_blob: blob,
+      wl_source: "public_form",
+    });
+
+    const html = `
+      <h2>Novo pedido (${payload.tipo})</h2>
+      <p><strong>Nome:</strong> ${payload.nome}</p>
+      <p><strong>Email:</strong> ${payload.email}</p>
+      <p><strong>Telefone:</strong> ${payload.telefone}</p>
+      <p><strong>Solução:</strong> ${payload.solucao}</p>
+      <p><strong>Datas:</strong> ${payload.datas}</p>
+      <p><strong>Local:</strong> ${payload.local}</p>
+      <p><strong>Dimensões:</strong> ${payload.dimensoes}</p>
+      <p><strong>Orçamento:</strong> ${payload.orcamentoPrevisto || "-"}</p>
+      <p><strong>Montagem:</strong> ${payload.precisaMontagem}</p>
+      <p><strong>Mensagem:</strong></p>
+      <pre>${payload.mensagem}</pre>
+    `;
+
+    try {
+      await transporter.sendMail({
+        from:'"Waveled" <no-reply@waveled.pt>',
+        to: "comercial@waveled.pt, geral@waveled.pt",
+        subject: `Waveled • Novo pedido (${payload.tipo}) de ${payload.nome}`,
+        html,
+      });
+    } catch (e) {
+      console.error("Email falhou:", e);
+    }
+
+    ok(res, { received: true });
+  })
+);
+
+
+
+
+
+
+
+ app.post(
+  "/api/public/project-request",
+  limiterPublicPost,
+  body("_hp").optional().isString().isLength({ max: 0 }).withMessage("honeypot not empty"),
+  body("nome").isString().isLength({ min: 2, max: 120 }).trim(),
+  body("email").isEmail().normalizeEmail(),
+  body("telefone").isString().isLength({ min: 5, max: 40 }).trim(),
+  body("descricao").isString().isLength({ min: 5, max: 1500 }).trim(),
+  body("produtoId").optional().isString().trim(),
+  body("produtoNome").optional().isString().trim(),
+  body("produtoCategoria").optional().isString().trim(),
+  body("produtoImagem").optional().isString().trim(),
+  body("produtoUrl").optional().isString().trim(),
+  body("origem").optional().isString().isLength({ max: 120 }).trim(),
+  body("page").optional().isString().isLength({ max: 2048 }),
+  body("utm").optional().isObject(), 
+  audit("public.project_request"),
+  asyncH(async (req, res) => { 
+    if (req.body._hp !== undefined) return ok(res, { received: true });
+
+    const now = new Date();
+ 
+    let produtoImagem = req.body.produtoImagem || "";
+    function isHttpUrl(e) {
+      return e.startsWith("https");
+    }
+ 
+    if (produtoImagem && !isHttpUrl(produtoImagem)) {
+      try { 
+        const filename = produtoImagem.replace(/^\/?uploads\/?/, "");
+        const filePath = path.resolve(UPLOAD_DIR, filename);
+ 
+        const buffer = await fs.readFile(filePath);
+ 
+        const fakeFile = {
+          buffer,
+          size: buffer.length,
+        };
+ 
+        const [cloudUrl] = await uploadFilesToCloudinary(
+          [fakeFile],
+          "waveled/images" 
+        );
+
+        if (cloudUrl) {
+          produtoImagem = cloudUrl; 
+        }
+      } catch (err) {
+        console.error("Erro ao subir imagem do produto para Cloudinary:", err); 
+      }
+    }
+
+    const payload = {
+      tipo: "project-request",
+      nome: req.body.nome,
+      email: req.body.email,
+      telefone: req.body.telefone,
+      descricao: req.body.descricao,
+      produtoId: req.body.produtoId || "",
+      produtoNome: req.body.produtoNome || "",
+      produtoCategoria: req.body.produtoCategoria || "",
+      produtoImagem,  
+      produtoUrl: req.body.produtoUrl || "",
+      origem: req.body.origem || "modal-orcamento",
+      requestedAt: now.toISOString(),
+      meta: {
+        ip: req.ip,
+        ua: req.get("user-agent") || "",
+        referer: req.get("referer") || "",
+        page: req.body.page || "",
+        utm: req.body.utm || null,
+      },
+    };
+ 
+    const blob = encrypt(payload);
+    await WaveledMessage.create({
+      wl_encrypted_blob: blob,
+      wl_source: "public_form",
+    });
+ 
+    try {
+      await Promise.all(
+        INTERNAL_RECIPIENTS.map(async (dest) => {
+          const html = buildProjectRequestHtml(payload, dest.name);
+
+        const result =   await transporter.sendMail({
+            from: '"Waveled" <no-reply@waveled.pt>',
+            to: dest.email,
+            subject: `Waveled • Nova solicitação de projeto de ${payload.nome}`,
+            html,
+          });
+ 
+          console.log(result); 
+
+        })
+      );
+    } catch (e) {
+      console.error("Email de solicitação de projeto falhou:", e); 
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message: "Solicitação de projeto recebida com sucesso.",
+    });
+  })
+);
+
+ 

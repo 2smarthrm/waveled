@@ -13,7 +13,7 @@ const MapSection = () => {
         <div className="image">
           <img
             className="blurhash-auto"
-            src="https://exportech.com.pt/static/media/1.1.98dcb3ffc1bbebba15e1.jpg"
+            src="https://exportech.com.pt/static/media/1.2.f39b0282c15b58a90af8.webp"
             alt="Sede Exportech Lisboa"
           />
         </div>
@@ -26,7 +26,7 @@ const MapSection = () => {
             <br />
             +351 210 353 555 | +351 212 456 082
             <br />
-            geral@exportech.com.pt
+            sales@waveled.com
           </p>
         </div>
         <div className="map">
@@ -59,7 +59,7 @@ const MapSection = () => {
             <br />
             +351 291 601 603 | +351 968 084 534
             <br />
-            geral@exportech.com.pt
+             sales@waveled.com
           </p>
         </div>
         <div className="map">
@@ -91,7 +91,7 @@ const MapSection = () => {
             <br />
             +351 210 353 555 | +351 967 018 509
             <br />
-            geral@exportech.com.pt
+             sales@waveled.com
           </p>
         </div>
         <div className="map">

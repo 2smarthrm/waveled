@@ -233,13 +233,13 @@ const HeaderFourInner = () => {
         },
         tablet: {
           breakpoint: { max: 600, min: 481 },
-          items: 3,
-          slidesToSlide: 3,
+          items:1,
+          slidesToSlide: 1,
         },
         mobile: {
           breakpoint: { max: 480, min: 0 },
-          items: 2,
-          slidesToSlide: 2,
+          items: 1,
+          slidesToSlide: 1,
         },
       },
       arrows: true,
@@ -754,7 +754,7 @@ const HeaderFourInner = () => {
                     }}
                   >
                     <Link
-                      href="/shop"
+                      href="#"
                       className="nav-link-item"
                       onClick={onMegaLinkClick}
                     >
@@ -841,7 +841,7 @@ const HeaderFourInner = () => {
                                   }
                                 >
                                   {/* Linha de ações por categoria */}
-                                  <div className="mb-6 d-flex  align-items-center gap-3 text-dark">
+                                  <div className="mb-6 d-flex products-links-header align-items-center gap-3 text-dark">
                                     <span className="d-flex">
                                       Ver todos os produtos {" > "}
                                       <Link

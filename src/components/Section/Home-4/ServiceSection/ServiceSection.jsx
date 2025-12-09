@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
 import services from "~/db/homeTwoServiceData.json";
+import RequestModal from "../../Common/RequestBudgetModal/RequestModal";
 
 const ServiceSection = () => { 
   const [LoadingStatus,SetLoadingStatus] =  useState(null);
@@ -53,9 +54,15 @@ const ServiceSection = () => {
                         <Link href={`single-shop?product=${item?._id}`}>
                            <button className="tekup-default-btn tekup-white-btn">Saiba mais</button>
                          </Link>
-                         <a href={item?.wl_link} target="_blank" rel="noopener noreferrer">
-                             <button className="tekup-default-btn">Comprar</button>
-                         </a> 
+
+                         <RequestModal
+                          item={item}
+                          toggle_button={(open) => (
+                            <button className="tekup-default-btn" onClick={open}>
+                              Solicitar 
+                            </button>
+                          )}
+                        />
                       </div>
                   </div>  
                </article>
