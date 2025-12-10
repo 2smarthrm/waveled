@@ -260,7 +260,7 @@ export default function RequestModal({ item, toggle_button }) {
 
                 <div className="mb-3">
                   <label className="form-label">
-                    Descrição curta do projeto{" "}
+                    Descrição  do projeto{" "}
                     <span className="text-danger">*</span>
                   </label>
                   <textarea
