@@ -101,7 +101,8 @@ const ItSolutionSection = () => {
       const section = document.getElementById("counter-home-four");
       if (section) {
         const rect = section.getBoundingClientRect();
-        const isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
+        const isVisible =
+          rect.top <= window.innerHeight && rect.bottom >= 0;
         setIsVisible(isVisible);
       }
     };
@@ -112,6 +113,7 @@ const ItSolutionSection = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
   return (
     <div
       className="section py-2 pb-0 tekup-section-padding"
@@ -121,76 +123,96 @@ const ItSolutionSection = () => {
       <div id="tekup-counter"></div>
       <div className="container">
         <div className="row">
+          {/* IMAGEM PRINCIPAL */}
           <div className="col-lg-6 order-lg-2">
             <div className="tekup-thumb ml-60">
               <img
                 className="sport-img"
                 src="https://ddw.usa18.mega--cloud.com/uploads/image/65fa8c0fab636.jpg"
-                alt=""
+                alt="Painel LED instalado em contexto desportivo"
               />
             </div>
           </div>
 
+          {/* TEXTO PRINCIPAL */}
           <div className="col-lg-6 d-flex align-items-center">
             <div className="tekup-default-content mr-60">
-              <h2>Especialistas em painéis desportivos</h2>
+              <h2>Especialistas em painéis LED para empresas e desporto</h2>
               <p>
-                Somos uma equipa profissional dedicada à montagem e venda de
-                painéis LED para empresas. Garantimos soluções personalizadas,
-                tecnologia de ponta e produtos de elevada durabilidade, ajudando
-                a sua marca a destacar-se dia e noite.
+                Somos uma equipa especializada na montagem e fornecimento de
+                painéis LED para empresas, espaços desportivos e eventos.
+                Garantimos soluções personalizadas, tecnologia de ponta e
+                equipamentos de elevada fiabilidade, ajudando a sua marca a
+                destacar-se todos os dias — em interiores ou exteriores.
               </p>
 
               <div className="tekup-extra-mt">
-                <Link className="tekup-default-btn" href="/solutions?sl=68ff9b5de52f0a547ad28d86">
-                  Saiba Mais <i className="ri-arrow-right-up-line"></i>
+                <Link
+                  className="tekup-default-btn"
+                  href="/solutions?sl=68ff9b5de52f0a547ad28d86"
+                >
+                  Saiba mais <i className="ri-arrow-right-up-line"></i>
                 </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <section className="section  py-2 pb-0 tekup-section-padding">
+
+      {/* CARDS DE PRODUTO / SOLUÇÕES */}
+      <section className="section py-2 pb-0 tekup-section-padding">
         <div className="home-top-product">
-          <article className="top-product-card">
-            <div className="image">
-              <img  src="https://www.bizzabo.com/wp-content/uploads/2018/11/3686-1024x683.jpg"   alt="#"
-              />
-            </div>
-            <div className="over-card">
-              <h3>De destaque a sua apresentação com telas modernas</h3>
-              <p>
-                <small>
-                 Destaque a sua marca e organize o seu espaço com  painéis personalizados para eventos.
-                </small>
-              </p>
-              <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
-              </Link>
-            </div>
-          </article>
+          {/* 1º CARD – TELAS LED PARA QUIOSQUES */}
           <article className="top-product-card">
             <div className="image">
               <img
-                src="https://rigardled.com/wp-content/uploads/2024/09/beijing-auto-shows-grand-return-1030x643.png"
-                alt="#"
+                src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(36).png"
+                alt="Telas LED em quiosque digital"
               />
             </div>
             <div className="over-card">
-              <h3>Paineis para eventos corporativos e feiras de négocio</h3>
+              <h3>Telas LED para quiosques e pontos de informação</h3>
               <p>
                 <small>
-                  Melhore a sua organização com os nossos calendários para
-                  empresas. nossos calendários.
+                  Transforme quiosques, receções e pontos de atendimento com
+                  telas LED personalizadas. Ideal para menus digitais, sinalética
+                  interativa, campanhas promocionais e informação em tempo real.
                 </small>
               </p>
               <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
+                Solicitar projeto{" "}
+                <i className="ri-arrow-right-up-line"></i>
+              </Link>
+            </div>
+          </article>
+
+          {/* 2º CARD – TELAS TRANSPARENTES MODERNAS */}
+          <article className="top-product-card">
+            <div className="image">
+              <img
+                src="https://ik.imagekit.io/fsobpyaa5i/uh4ur4uh4.jpg"
+                alt="Telas LED transparentes em montra"
+              />
+            </div>
+            <div className="over-card">
+              <h3>Telas LED transparentes para empresas modernas</h3>
+              <p>
+                <small>
+                  Dê um aspeto futurista à sua empresa com telas LED
+                  transparentes para montras, showrooms e escritórios.
+                  Perfeitas para comunicar ofertas, reforçar o branding e criar
+                  experiências visuais inovadoras sem bloquear a visibilidade.
+                </small>
+              </p>
+              <Link className="tekup-default-btn" href="/contact-us">
+                Solicitar projeto{" "}
+                <i className="ri-arrow-right-up-line"></i>
               </Link>
             </div>
           </article>
         </div>
-      </section> 
+      </section>
+
       <br />
       <br />
     </div>

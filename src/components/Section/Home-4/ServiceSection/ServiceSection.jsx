@@ -41,7 +41,7 @@ const ServiceSection = () => {
         </div> 
         <div className="row">
           {LoadingData.map((item, index)=>{
-          return <article key={index} className={`featured-product box-${index === 3 ? "1" : ""}`} style={{background:`${index === 3 ? "#000" : ""}`}}>
+          return <article key={index} className={`featured-product box-${index === 3 ? "1" : (8*index+4)}`} style={{background:`${index === 3 ? "#000" : ""}`}}>
                   <div className="image">
                      <img style={index !== 3 ? {mixBlendMode:"multiply"} :  {}} src={item?.wl_images?.length > 0 ?  (item?.wl_images[0].startsWith('http') ?  (item?.wl_images[0])  : (BaseUrl +  item?.wl_images[0]))  : ""} alt={item?.wl_name} />
                     </div>  
@@ -64,7 +64,7 @@ const ServiceSection = () => {
                           )}
                         />
                       </div>
-                  </div>  
+                  </div>     
                </article>
            })}
         </div>
@@ -75,4 +75,4 @@ const ServiceSection = () => {
 
 
 
-export default ServiceSection;
+export default ServiceSection; 

@@ -82,7 +82,10 @@ export default function FooterFore() {
               <div className="col-xl-3 col-lg-12">
                 <div className="tekup-footer-textarea light-color">
                   <Link href="/">
-                      <img src="https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png" alt="" style={{maxHeight:"65px"}} />
+                      <img src={document.querySelectorAll(".version-2-page").length < 1 ?
+                      "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png" :
+                       "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png"}
+                      alt="" style={{maxHeight:"65px"}} />
                   </Link>
                   <p>
                     Waveled é uma empresa inovadora especializada em soluções
@@ -92,12 +95,12 @@ export default function FooterFore() {
                   <div className="tekup-social-icon-box style-two">
                     <ul>
                       <li>
-                        <Link href="#">
+                        <Link  className="social-link" href="#">
                           <i className="ri-facebook-fill" />
                         </Link>
                       </li>
                       <li>
-                        <Link href="#">
+                        <Link  className="social-link" href="#">
                           <i className="ri-linkedin-fill" />
                         </Link>
                       </li>
