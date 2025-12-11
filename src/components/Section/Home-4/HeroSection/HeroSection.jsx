@@ -632,10 +632,8 @@ function HeaderWithSlick() {
 const HeroSection = () => {
   const [isVersion2, setIsVersion2] = useState(false);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const hasV2 = document.body.classList.contains("version-2-page");
-    setIsVersion2(hasV2);
+  useEffect(() => { 
+    setIsVersion2(false);
   }, []);
 
   function Hero() {
