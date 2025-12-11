@@ -1,0 +1,74 @@
+ 
+
+body.version-2-page .header-slick-wrapper .slick-arrow-custom{
+  width:70px;
+  height:70px;
+  border-radius:100%;
+  min-width:70px;
+  min-height:70px;
+  background:rgb(255, 255, 255); 
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  position: absolute;
+  top:40%;
+  z-index:10;
+  left:-10px;
+  box-shadow:0px 3px 10px rgba(0,0,0,0.2);
+}
+
+body.version-2-page  .slick-arrow-custom.slick-arrow-custom-next{
+ right:-10px;
+ left: unset !important;
+} 
+
+body.version-2-page .tekup-footer-section {
+  background:#fff !important;
+  border-top:1px solid #eeeeee;
+}
+
+
+body.version-2-page .tekup-footer-section p,
+body.version-2-page .tekup-footer-section h5,
+body.version-2-page .tekup-footer-section span,
+body.version-2-page .tekup-footer-section a{
+  color:#000 !important;
+}
+
+body.version-2-page .tekup-footer-section h5{
+  font-size:20px;
+}
+
+body.version-2-page .tekup-footer-section .social-link{
+  color:#fff !important;
+}
+
+
+body.version-2-page .featured-product.box-4{
+  background-color:#FFBE0B !important;  
+}
+
+body.version-2-page .featured-product.box-4 img{
+  mix-blend-mode:unset !important;
+}
+
+body.version-2-page .featured-product h1{
+  font-size:32px;
+  line-height:40px;
+  max-width:500px !important;
+}
+
+body.version-2-page .featured-product p{
+  font-weight:500 !important;
+}
+
+ body.version-2-page .featured-product.box-4 .tekup-default-btn{
+  background:#000 !important;
+ }
+
+  body.version-2-page .featured-product.box-4 .tekup-white-btn{
+    background-color:#fff !important;
+  }
+
+
+  
