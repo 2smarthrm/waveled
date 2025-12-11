@@ -251,7 +251,7 @@ over_text: {
                       </div>
                     </div> 
                     </article>   
-                    <div style={{padding:"10px 15px"}}></div>
+                    <div className="dvpd" style={{padding:"10px 15px"}}></div>
                   </div> 
                 ))}
               </Slider>

@@ -1072,7 +1072,7 @@ export default function SingleShopSection() {
       {/* BLOCOS ADICIONAIS (restantes exemplos) — só se houver examplesRest */}
       {examplesRest.length > 0 && (
         <> 
-          <section className="mt-4 bg-black ">
+          <section className="mt-4 bg-black product-details-slider-solution">
             <div className="section tekup-section-padding">
               <div className="container">
                 <hr />
