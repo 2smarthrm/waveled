@@ -78,13 +78,11 @@ export default function FooterFore() {
       <footer className="tekup-footer-section dark-bg">
         <div className="container">
           <div className="tekup-footer-top tekup-section-padding">
-            <div className="row">
+            <div className="row"> 
               <div className="col-xl-3 col-lg-12">
                 <div className="tekup-footer-textarea light-color">
                   <Link href="/">
-                      <img src={document.querySelectorAll(".version-2-page").length < 1 ?
-                      "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png" :
-                       "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png"}
+                      <img src={"https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png"}
                       alt="" style={{maxHeight:"65px"}} />
                   </Link>
                   <p>
