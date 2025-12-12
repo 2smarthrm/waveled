@@ -14,7 +14,7 @@
     "bootstrap": "^5.3.3",
     "isotope-layout": "^3.0.6",
     "lightbox.js-react": "^1.6.2",
-    "next": "^15.5.4",
+    "next": "^15.4.8",
     "next-google-translate-widget": "^1.0.1",
     "nookies": "^2.5.2",
     "primereact": "^10.9.7",
