@@ -2,19 +2,21 @@
   "name": "takeup-next",
   "version": "0.1.0",
   "private": true,
-"scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint"
-},
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@types/isotope-layout": "^3.0.13",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.3",
     "isotope-layout": "^3.0.6",
     "lightbox.js-react": "^1.6.2",
-    "next": "^15.5.7",
+    "next": "^15.5.4",
+    "next-google-translate-widget": "^1.0.1",
+    "nookies": "^2.5.2",
     "primereact": "^10.9.7",
     "quill": "^2.0.3",
     "react": "^19.1.1",
