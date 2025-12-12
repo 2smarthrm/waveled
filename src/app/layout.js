@@ -15,9 +15,11 @@ import React, { useEffect, useState } from "react";
 import { Metadata } from "~/components/Section/Common/Metadata/Metadata";
 import { usePathname } from "next/navigation";
 import Loading from "~/components/Section/Common/Loading/Loading";
+import SwitchMode from "~/components/Section/SwithMode/SwitchMode";
+import Script from "next/script";
 
- 
- 
+
+
 export default function RootLayout({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
@@ -33,7 +35,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-        <head>
+      <head>
         <title>{"Waveled" || Metadata.title}</title>
         <meta name="description" content={"A Waveled é uma empresa inovadora especializada em soluções display led. Apoiamos marcas, eventos e espaços comerciais com projetos chave-na-mão: consultoria, conceção, instalação, operação e manutenção" || Metadata.description} />
         {Metadata.icons && (
@@ -48,12 +50,36 @@ export default function RootLayout({ children }) {
               <link key={index} rel="shortcut icon" href={shortcutIcon} />
             ))}
           </React.Fragment>
-        )}
+        )} 
+
+          <Script
+          dangerouslySetInnerHTML={{
+            __html: `
+            function googleTranslateElementInit() {
+              new google.translate.TranslateElement(
+                {
+                  pageLanguage: 'pt',
+                  includedLanguages: 'pt,en,es,fr',
+                  autoDisplay: false
+                },
+                'google_translate_element'
+              );
+            }
+          `,
+          }}
+        /> 
+        <Script
+          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+          async
+        /> 
       </head>
-      <body >  
-         <Loading isLoading={isLoading} />
+      <body > 
+        <Loading isLoading={isLoading} />
+        <SwitchMode />
         {!isLoading && children}
       </body>
+
+
     </html>
   );
 }
