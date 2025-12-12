@@ -2820,4 +2820,66 @@ body .react-multiple-carousel__arrow {
        width: 100% !important;
     }
 
+
+  body .home-top-product .top-product-card {
+    height:auto !important;
+    min-height:600px;
+  }
+
+  body .mobile-menu-trigger{
+    margin-left:10px !important;
+  }
+
+}
+
+
+
+
+
+
+/* Esconder barra superior do Google Translate */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+/* Esconder tooltip e branding */
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-text-highlight {
+  display: none !important;
+}
+
+/* Esconder select original */
+.goog-te-gadget, .skiptranslate {
+  display: none !important;
+}
+
+
+body .dropdown-lang{ 
+  margin-left:20px;
+  color:#fff;
+}
+
+body .dropdown-lang svg{
+  margin-right:5px !important;
+}
+
+.site-header .dropdown-lang svg{
+   color:#000 !important;
+}
+
+body .site-header.transparent-header  .dropdown-lang svg {
+  color:#fff !important;
+}
+
+body #pills-description ul{
+  padding-left:15px !important;
+}
+
+body #pills-description li{
+  list-style:disc !important;
 }
