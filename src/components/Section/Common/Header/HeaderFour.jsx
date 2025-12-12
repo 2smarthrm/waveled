@@ -20,7 +20,8 @@ import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
-import { GoArrowUpRight } from "react-icons/go";
+import { GoArrowUpRight } from "react-icons/go";  
+import LanguageSwitcher from "~/components/components/lang-switcher/lang-switcher";
 
 // ====== Config ======
 const isBrowser = typeof window !== "undefined";
@@ -1091,7 +1092,7 @@ const HeaderFourInner = () => {
               </nav>
             </div>
 
-            <div className="header-btn header-btn-l1 ms-auto ">
+            <div className="header-btn header-btn-l1 ms-auto "> 
               <div className="tekup-header-icon">
                 <Link
                   href="tel:+351210353555"
@@ -1117,12 +1118,14 @@ const HeaderFourInner = () => {
               </div>
             </div>
 
-            <div
-              className="mobile-menu-trigger"
-              onClick={() => setIsActive(true)}
-            >
+          <div className="d-flex"> 
+              <div className="lang-block">
+                <LanguageSwitcher />
+              </div>
+            <div className="mobile-menu-trigger"   onClick={() => setIsActive(true)}  >
               <span></span>
             </div>
+          </div>
           </nav>
         </div>
       </div>
