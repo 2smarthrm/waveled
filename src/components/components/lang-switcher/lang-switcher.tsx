@@ -5,10 +5,10 @@ import { parseCookies, setCookie } from "nookies";
 import { FaGlobeEurope } from "react-icons/fa";
 
 const LANGUAGES = [
-  { code: "pt", label: "Português", flag: "🇵🇹" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "pt", label: "Português", flag: "🇵🇹"},
+  { code: "en", label: "Englês", flag: "🇬🇧"},
+  { code: "es", label: "Espanhol", flag: "🇪🇸"},
+  { code: "fr", label: "Francês", flag: "🇫🇷"},
 ];
 
 export default function LanguageSwitcher() {
@@ -71,39 +71,19 @@ export default function LanguageSwitcher() {
 
       {open && (
         <div
-          style={{
-            position: "absolute",
-            top: "120%",
-            right: 0,
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: "10px",
-            padding: "6px",
-            boxShadow: "0 10px 30px rgba(0,0,0,.1)",
-            zIndex: 999,
-            minWidth: "160px",
-          }}
-        >
+          style={{ position: "absolute",  top: "120%", right: 0, background: "#fff", border: "1px solid #e5e7eb",borderRadius: "10px", 
+          padding: "6px", boxShadow: "0 10px 30px rgba(0,0,0,.1)", zIndex: 99, minWidth: "120px",}}>
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
               onClick={() => changeLanguage(lang.code)}
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: "6px",
-                background: current === lang.code ? "#f1f5f9" : "transparent",
-                border: "none",
-                textAlign: "left",
-                cursor: "pointer",
-                fontSize: "14px",
-              }}
-            >
+              style={{width: "100%", padding: "4px 10px", borderRadius: "6px", background: current === lang.code ? "#f1f5f9" : "transparent", 
+              border: "none", textAlign: "left", cursor: "pointer", fontSize: "14px"}}>
               {lang.flag} {lang.label}
             </button>
           ))}
         </div>
       )}
     </div>
-  );
+  ); 
 }
