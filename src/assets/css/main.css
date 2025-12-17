@@ -14,6 +14,63 @@ body , html, p,  h1{
  font-family:Afacad, sans-serif !important; 
 }
 
+body #pills-description,
+body #pills-description p,
+body #pills-description span,
+body #pills-description li,
+body #pills-description h4,
+body #pills-description h5,
+body #pills-description h2,
+body #pills-description h3,
+body #pills-description h1{
+   font-family:Afacad, sans-serif !important; 
+}
+
+#pills-description ul{
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+}
+
+#pills-description ul li{
+  list-style: none !important;
+  display: flex; 
+  text-align: center;
+  align-items: center; 
+  text-align: left;   
+}
+
+#pills-description  ul  span,
+#pills-description  ul p span{  
+  font-size:20px !important;
+}
+
+ 
+
+#pills-description p{
+  margin:0px !important;
+  font-size:20px !important;
+}
+
+#pills-description ul li p{
+  display: flex;
+  align-items: center; 
+  margin:0px !important;
+}
+
+#pills-description ul li  img{
+  margin:0px !important;
+  margin-right:10px !important;
+}
+
+body #pills-description ul li .svg-chip{
+  width:20px !important;
+  height:20px !important;  
+}
+
+ 
+
 
 /*Header Css StaRT*/
 .site-navbar {
@@ -2829,6 +2886,21 @@ body .react-multiple-carousel__arrow {
   body .mobile-menu-trigger{
     margin-left:10px !important;
   }
+
+  body #append-menu-header{
+    position: fixed !important; 
+    height:100vh !important;
+    z-index:1000 !important; 
+    color:#000 !important;
+    box-shadow:0px 3px 10px rgba(0, 0, 0, 0.1);
+  }
+    body #append-menu-header p,
+    body #append-menu-header span, 
+    body #append-menu-header a,
+    body #append-menu-header strong,
+    body #append-menu-header li{
+       color: rgb(40, 40, 40) !important;
+    }
 
 }
 
