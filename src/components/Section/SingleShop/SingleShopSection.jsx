@@ -633,9 +633,30 @@ export default function SingleShopSection() {
   const [error, setError] = useState("");
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
-  const [examples, setExamples] = useState([]); // exemplos da API (ordenados ASC)
+  const [examples, setExamples] = useState([]);  
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
+ 
+
+  function AddChipIcon() {
+  setTimeout(() => {
+    const svg = "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50.png";
+    const items = document.querySelectorAll("#pills-description ul li");
+
+    items.forEach((li) => {
+      if (li.querySelector(".svg-chip")) return; // evita duplicados
+
+      const img = document.createElement("img");
+      img.classList.add("svg-chip");
+      img.src = svg;
+      img.alt = "chip";
+
+      li.prepend(img);  
+    });
+  }, 500);
+}
+
+
 
   useEffect(() => {
     let abort = false;
@@ -666,6 +687,11 @@ export default function SingleShopSection() {
       setExamples([]);
       setActiveImage(0);
 
+
+ 
+
+
+
       try {
         // 1) Produto
         const prodRaw = await fetchJson(
@@ -675,6 +701,8 @@ export default function SingleShopSection() {
         if (!prod) throw new Error("Produto não encontrado.");
         if (abort) return;
         setItem(prod);
+
+    
 
         // 2) Exemplos — ordenar ASC (mais antigos primeiro)
         try {
@@ -732,6 +760,9 @@ export default function SingleShopSection() {
 
         relatedList = relatedList.slice(0, 4);
         if (!abort) setRelated(relatedList);
+
+ 
+
       } catch (e) {
         if (!abort) setError(e?.message || "Erro ao carregar produto.");
       } finally {
@@ -739,11 +770,16 @@ export default function SingleShopSection() {
       }
     }
 
-    run();
+    run(); 
+     AddChipIcon()
     return () => {
       abort = true;
     };
   }, [productId]);
+
+  useEffect(()=>{
+    AddChipIcon();
+  })
 
   const images = useMemo(() => {
     const list = Array.isArray(item?.wl_images) ? item.wl_images : [];
@@ -970,8 +1006,7 @@ export default function SingleShopSection() {
                 tabIndex={0}
               >
                 {item?.wl_description_html ? (
-                  <div
-                    className="mt-3"
+                  <div 
                     dangerouslySetInnerHTML={{
                       __html: item.wl_description_html,
                     }}
@@ -1001,7 +1036,6 @@ export default function SingleShopSection() {
               >
                 {item?.wl_specs_text ? (
                   <div
-                    className="mt-3"
                     dangerouslySetInnerHTML={{ __html: item.wl_specs_text }}
                   />
                 ) : (
