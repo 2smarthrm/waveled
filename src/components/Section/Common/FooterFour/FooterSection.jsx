@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 const isBrowser = typeof window !== "undefined";
 const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE = protocol === "https"  ?  'https://waveledserver1.vercel.app' : "http://localhost:4000";
+const API_BASE = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
  
 const toArray = (raw) =>
   Array.isArray(raw)

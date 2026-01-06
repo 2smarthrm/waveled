@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const isBrowser = typeof window !== "undefined";
 const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE = protocol === "https" ? "https://waveledserver1.vercel.app" : "http://localhost:4000";
+const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${API_BASE}${u.startsWith("/") ? "" : "/"}${u}`) : "");

@@ -14,12 +14,12 @@ export default function ProductMegaMenu() {
 
   const API_BASE =
     protocol === "https"
-      ? "https://waveledserver1.vercel.app"
+      ? "https://waveledserver.vercel.app"
       : "http://localhost:4000";
 
   const IMG_HOST =
     protocol === "https"
-      ? "https://waveledserver1.vercel.app"
+      ? "https://waveledserver.vercel.app"
       : "http://localhost:4000";
 
   function normalizeImg(src) {

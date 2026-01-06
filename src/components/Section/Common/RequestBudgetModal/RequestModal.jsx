@@ -9,7 +9,7 @@ const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const BaseUrl =
   protocol === "https"
-    ? "https://waveledserver1.vercel.app"
+    ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 
 const PHONE_DIGITS_MIN = 9;
