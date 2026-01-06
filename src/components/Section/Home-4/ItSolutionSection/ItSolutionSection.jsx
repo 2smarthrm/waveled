@@ -1,14 +1,13 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const ItSolutionSection = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [index, setIndex] = useState(-1); // se não usares, podes remover
+  const [index, setIndex] = useState(-1);
 
   useEffect(() => {
-    // Garante que só corre no browser
     if (typeof window === "undefined" || typeof document === "undefined") {
       return;
     }
@@ -23,7 +22,6 @@ const ItSolutionSection = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-    // chamar uma vez para atualizar logo no load
     handleScroll();
 
     return () => {
@@ -66,7 +64,7 @@ const ItSolutionSection = () => {
               <div className="tekup-extra-mt">
                 <Link
                   className="tekup-default-btn"
-                  href="/solutions?sl=68ff9b5de52f0a547ad28d86"
+                  href="/single-shop?product=691c61119864e86ab50c879d"
                 >
                   Saiba mais <i className="ri-arrow-right-up-line"></i>
                 </Link>
@@ -92,13 +90,13 @@ const ItSolutionSection = () => {
               <p>
                 <small>
                   Transforme quiosques, receções e pontos de atendimento com
-                  telas LED personalizadas. Ideal para menus digitais, sinalética
-                  interativa, campanhas promocionais e informação em tempo real.
+                  telas LED personalizadas. Ideal para menus digitais,
+                  sinalética interativa, campanhas promocionais e informação em
+                  tempo real.
                 </small>
               </p>
               <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto{" "}
-                <i className="ri-arrow-right-up-line"></i>
+                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
               </Link>
             </div>
           </article>
@@ -116,20 +114,47 @@ const ItSolutionSection = () => {
               <p>
                 <small>
                   Dê um aspeto futurista à sua empresa com telas LED
-                  transparentes para montras, showrooms e escritórios.
-                  Perfeitas para comunicar ofertas, reforçar o branding e criar
+                  transparentes para montras, showrooms e escritórios. Perfeitas
+                  para comunicar ofertas, reforçar o branding e criar
                   experiências visuais inovadoras sem bloquear a visibilidade.
                 </small>
               </p>
               <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto{" "}
-                <i className="ri-arrow-right-up-line"></i>
+                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
               </Link>
             </div>
           </article>
         </div>
       </section>
 
+      <br />
+      <br />
+      <br />
+
+      <section className="section py-2 rack-section pb-0 tekup-section-padding">
+        <div className="container">
+          <div className="rack-rows">
+            <div className="image">
+              <img src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202025-12-29T145640.164.png" alt="" />
+            </div>
+            <div className="text-area">
+              <h2>Prateleiras digitais que Aumentam as Vendas</h2>
+              <p>
+                <small>
+                 Leve a comunicação no ponto de venda a outro nível. As prateleiras digitais com 
+                 Display LED combinam design discreto, alta definição e conteúdos
+                  dinâmicos para destacar preços, promoções e campanhas no exato momento da decisão. 
+                  Mais visibilidade, mais impacto, mais vendas — de forma automática e moderna.
+                </small>
+              </p>
+              <Link className="tekup-default-btn" href="/contact-us">
+                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+      <br />
       <br />
       <br />
     </div>

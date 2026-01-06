@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 const isBrowser = typeof window !== "undefined";
 const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
+const API_BASE = protocol === "https"  ?  'https://waveledserver1.vercel.app' : "http://localhost:4000";
  
 const toArray = (raw) =>
   Array.isArray(raw)
@@ -17,13 +17,13 @@ const toArray = (raw) =>
     ? raw.items
     : [];
 
-async function fetchJson(url) {
+async function fetchJson(url){
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-export default function FooterFore() {
+export default function FooterFore() { 
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -125,11 +125,11 @@ export default function FooterFore() {
                 </div>
               </div>
 
-              {/* --------- Produtos (dinâmico) ---------- */}
+              {/* --------- Soluções (dinâmico) ---------- */}
               <div className="col-xl-3 col-md-4">
                 <div className="tekup-footer-menu light-color extar-margin">
                   <div className="tekup-footer-title light-color">
-                    <h5>Produtos</h5>
+                    <h5>Soluções</h5>
                   </div> 
                   {loading ? (
                     <ul>
@@ -148,7 +148,7 @@ export default function FooterFore() {
                     <ul>
                       {cats.map((c) => (
                         <li key={c.id}>
-                          <Link href={`/shop?category=${(c.slug)}`}>
+                          <Link href={`/shop?category=${(c.id)}`}>
                             {c.name}
                           </Link>
                         </li>

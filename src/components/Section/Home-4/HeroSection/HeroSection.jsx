@@ -12,7 +12,7 @@ const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const API_BASE =
   protocol === "https"
-    ? "https://waveledserver.vercel.app"
+    ? "https://waveledserver1.vercel.app"
     : "http://localhost:4000";
 
 async function fetchJson(url) {
@@ -467,6 +467,7 @@ function HeaderWithSlick() {
           padding: 0 16px;
         }
 
+ 
         .slide-container {
           position: relative;
           border-radius: 24px;
@@ -561,25 +562,7 @@ function HeaderWithSlick() {
           padding: 0;
         }
 
-
-
-        Despesas do mês
-
-        Economias (500.000 Kz): 390,63 € 
-        Curso de piano: 80 € 
-        Aluguel do piano: 45 € 
-        Passe de transporte: 40 € 
-        Aulas de francês: 60 € 
-        Total de despesas: 615,63 €
-
-        Resultado final
-
-        Ordenado: 1700 €
-        Sobra após todas as despesas:
-        1700 − 615,63 = 1.084,37 €
-
-
-
+ 
         .slick-dot-custom {
           width: 11px;
           height: 11px;
@@ -641,7 +624,7 @@ const HeroSection = () => {
       <div className="main-home-hero">
         <div className="video-backgound">
           <video
-            src="https://video-previews.elements.envatousercontent.com/h264-video-previews/d944b792-2c06-4fa6-8c7c-2a51203fba94/58655351.mp4"
+            src="https://ik.imagekit.io/fsobpyaa5i/video_header.mp4"
             poster="https://luxmage.com/data/upload/hnhnhthctmnhnhledchnng2.png"
             muted
             autoPlay
@@ -651,7 +634,7 @@ const HeroSection = () => {
         <div className="main-home-hero-overlay">
           <div className="container-fluid">
             <div className="text-content">
-              <h1>De Brilho e Luz ao Seu Projeto ideal</h1>
+              <h1>Soluções LED que Transformam Espaços</h1>
               <p>
                 Somos especialistas na venda, montagem e Aluguer de ecrãs LED
                 para eventos, publicidade, empresas e projetos especiais.
