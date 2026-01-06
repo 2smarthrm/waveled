@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../../.."
+		},
+		{
+			"path": "../../../../../../../Desktop/eduall/website"
+		},
+		{
+			"path": "../../../../../../unimor-furniture-store-react-native-app-2024-05-05-13-08-09-utc/app"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "website"
+	}
+}

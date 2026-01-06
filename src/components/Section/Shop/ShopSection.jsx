@@ -1,552 +1,576 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState, Suspense, useCallback } from "react";
-import Slider from "react-slick";
 import { useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import CategoryGridGalery from "./CategoryGridGalery";
-import { GoArrowUpRight } from "react-icons/go";
+import Slider from "react-slick/lib/slider";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { IoPlay } from "react-icons/io5";
 
-const isBrowser = typeof window !== "undefined";
-const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const BASE_URL = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
-const isHttpOrHttps = (s) => /^(https?):\/\//i.test(s);
-const baseURL = isHttpOrHttps("") === true ? " " : "http://localhost:4000";
+function FiveSolutionsSlider({ items }) {
+  const Settings = {
+    dots: false,
+    infinite: true,
+    arrows: true,
+    speed: 3500,
+    autoplaySpeed: 3500,
+    autoplay: true,
+    slidesToShow: 2,
+    slidesToScroll: 2,
+    initialSlide: 0,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 3, slidesToScroll: 3, infinite: true, dots: true } },
+      { breakpoint: 600, settings: { slidesToShow: 2, slidesToScroll: 2, initialSlide: 2 } },
+      { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } },
+    ],
+  };
 
- 
-export default function ShopSection() {
   return (
-    <Suspense
-      fallback={
-        <div className="tekup-section-padding">
-          <div className="container">
-            <h1 className="text-dark">A carregar...</h1>
-            <div className="row" style={{ marginTop: 24 }}>
-              {[0, 1, 2].map((i) => (
-                <article key={i} className="featured-article skeleton col-12 col-md-4 mb-4">
-                  <div className="image skeleton-box" style={{ height: 220 }} />
-                  <div className="newbadge skeleton-box" style={{ width: 64, height: 24 }} />
-                  <h3 className="skeleton-box" style={{ width: "60%", height: 24 }}>
-                    &nbsp;
-                  </h3>
-                  <small className="sku-code skeleton-box" style={{ width: "40%", height: 16 }}>
-                    &nbsp;
-                  </small>
-                  <div className="d-flex gap-3 mt-3">
-                    <span className="tekup-default-btn bg-black skeleton-box" style={{ width: 120, height: 40 }} />
-                    <span className="tekup-default-btn skeleton-box" style={{ width: 120, height: 40 }} />
-                  </div>
-                </article>
-              ))}
-            </div>
+    <div className="categorie-five-sliders">
+      <div className="container">
+        <div className="space-div">
+          <div>
+            <h3 className="text-light">Soluções pensadas para atrair clientes</h3>
+          </div>
+          <div>
+            <p>
+              Soluções que transformam espaços, captam atenção e comunicam a sua marca com impacto, inovação e máxima
+              qualidade visual.
+            </p>
           </div>
         </div>
-      }
-    >
-      <ShopSectionInner />
-    </Suspense>
+
+        <Slider {...Settings}>
+          {items.map((item, index) => (
+            <article key={index}>
+              <div className="inner-item">
+                <div className="image">
+                  <img src={item.image} alt={item.title} />
+                </div>
+                <strong className="text-light">{item.title}</strong>
+
+                <Link href={item.link}>
+                  <button className="tekup-default-btn" type="button">
+                    Saiba mais
+                  </button>
+                </Link>
+              </div>
+
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+            </article>
+          ))}
+        </Slider>
+      </div>
+    </div>
   );
 }
 
-function ShopSectionInner() {
-  const searchParams = useSearchParams();
-  const categoryId = searchParams.get("category") || "";
+function MainItemCategoryPage({ item }) {
+  const settings = {
+    dots: true,
+    infinite: true,
+    fade: true,
+    speed: 2500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    autoplay: true,
+    autoplaySpeed: 2500,
+  };
 
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  return (
+    <div className="categorie-main-item">
+      <div className="image-slider">
+        <Slider {...settings}>
+          {(item?.images || []).map((image, index) => (
+            <div className="image" key={index}>
+              <img src={image} alt={item?.title} />
+            </div>
+          ))}
+        </Slider>
+      </div>
 
-  // ---- NOVO: estado do estilo da categoria
-  const [catStyle, setCatStyle] = useState({ color: "#1e293b", subtitle: "" });
-  // ---- NOVO: estado do vídeo da categoria
-  const [catVideo, setCatVideo] = useState({ videoUrl: "", videoText: "" });
+      <div className="text-content">
+        <h2>{item?.title}</h2>
+        <p>{item?.description}</p>
+        <div className="mt-2 mb-2">
+          <hr />
+        </div>
+        <br />
 
-  // Estado para paginação dos "latest"
-  const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 6;
+        <Link href={item?.link}>
+          <button className="tekup-default-btn" type="button">
+            Saiba mais
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+}
 
-  const settings = useMemo(
-    () => ({
-      dots: true,
-      infinite: false,
-      speed: 500,
-      arrows: true,
-      slidesToShow: 3.6,
-      slidesToScroll: 3.6,
-      responsive: [
-        { breakpoint: 1200, settings: { slidesToShow: 3, slidesToScroll: 3 } },
-        { breakpoint: 992, settings: { slidesToShow: 2.4, slidesToScroll: 2.4 } },
-        { breakpoint: 768, settings: { slidesToShow: 2, slidesToScroll: 2 } },
-        { breakpoint: 480, settings: { slidesToShow: 1.1, slidesToScroll: 1.1 } },
-      ],
-    }),
+function HeaderAreaAndTitle({ title, areas, active }) {
+  return (
+    <aside className="catgorie-page-header">
+      <div className="category-page-title">
+        <h3>Soluções que transformam espaços.</h3>
+        <h5 className="text-primary">soluções para - {title}</h5>
+      </div>
+      <hr />
+      <div className="category-page-cats">
+        <ul>
+          {areas.map((item, index) => (
+            <Link href={item?.link} key={index}>
+              <li className={`link-badge ${item?.id === active ? "active" : ""}`}>{item?.title}</li>
+            </Link>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  );
+}
+
+function CardSliderVertical({ item }) {
+  return (
+    <div className="card-slider-vertical">
+      <article className="card-inner">
+        <div className="image">
+          <div className="over-image">
+            <small>{item?.product}</small>
+            <Link href={item?.link}>
+              <h5>{item?.title}</h5>
+            </Link>
+            <Link href={item?.link}>
+              <button className="bg-primary text-light" type="button">
+                Saiba mais
+              </button>
+            </Link>
+          </div>
+          <img src={item?.image} alt={item?.title} />
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function TwoNiceProducts({ items }) {
+  return (
+    <div className="categorie-page-two">
+      {items.map((item, index) => (
+        <article key={index}>
+          <img src={item?.image} alt={item.title} />
+          <Link href={item?.link}>
+            <button className="tekup-default-btn" type="button">
+              Saiba mais
+            </button>
+          </Link>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function VideoSolutionsSlick() {
+  const videos = useMemo(
+    () => [
+      { id: "W0T-1cJf1Dw", title: "Displays LED Transparentes", desc: "Impacto visual sem bloquear a montra.", tag: "Transparent LED" },
+      { id: "6yQmGbdqHl8", title: "Painéis LED Modulares", desc: "Soluções flexíveis e escaláveis.", tag: "Modular" },
+      { id: "DCKDisbzpCI", title: "Experiências Imersivas", desc: "Ambientes digitais envolventes.", tag: "Immersive" },
+      { id: "kKRhtLj0Leg", title: "Eventos & Palcos", desc: "Ecrãs LED para grandes eventos.", tag: "Events" },
+      { id: "prdCz7tP0NQ", title: "LED Indoor & Outdoor", desc: "Alta luminosidade e fiabilidade.", tag: "Indoor / Outdoor" },
+    ],
     []
   );
 
-  // Carrega bundle da categoria (mantido)
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
+
+  const openLightbox = (index) => {
+    setLbIndex(index);
+    setLightboxOpen(true);
+  };
+  const closeLightbox = () => setLightboxOpen(false);
+
+  const ytPoster = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const ytEmbed = (id) => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+
+  const sliderRef = useRef(null);
+
+  const settings = {
+    dots: true,
+    arrows: true,
+    infinite: false,
+    speed: 500,
+    centerMode: true,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    accessibility: false,
+    focusOnSelect: false,
+    afterChange: (i) => setActiveSlide(i),
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 680, settings: { slidesToShow: 1, centerMode: false } },
+    ],
+  };
+
   useEffect(() => {
-    let abort = false;
-    async function load() {
-      if (!categoryId) {
-        setErr("Parâmetro ?category em falta.");
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      setErr("");
-      try {
-        const url = `${BASE_URL}/api/category/${encodeURIComponent(categoryId)}/bundle`;
-        const resp = await fetch(url, {
-          method: "GET",
-          credentials: "include", // importante: a tua API usa sessão
-          headers: { "Content-Type": "application/json" },
-        });
-        const json = await resp.json();
-        if (!resp.ok || !json?.ok) {
-          throw new Error(json?.error || `Request falhou (${resp.status})`);
-        }
-        if (!abort) {
-          setData(json.data);
-          setCurrentPage(1); // reset página quando muda categoria
-        }
-      } catch (e) {
-        if (!abort) setErr(e?.message || "Erro ao carregar dados.");
-      } finally {
-        if (!abort) setLoading(false);
-      }
-    }
-    load();
+    const t = setTimeout(() => {
+      const y = window.scrollY;
+      sliderRef.current?.slickNext?.();
+      if (document.activeElement && typeof document.activeElement.blur === "function") document.activeElement.blur();
+      requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: "auto" }));
+    }, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKey = (e) => e.key === "Escape" && closeLightbox();
+    document.addEventListener("keydown", onKey);
+
     return () => {
-      abort = true;
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
     };
-  }, [categoryId]);
-
-  // ---- NOVO: carregar estilo e vídeo com axios quando existir categoryId
-  const loadStyleAndVideo = useCallback(async () => {
-    if (!categoryId) {
-      setCatStyle({ color: "#1e293b", subtitle: "" });
-      setCatVideo({ videoUrl: "", videoText: "" });
-      return;
-    }
-    try {
-      const [styleResp, videoResp] = await Promise.all([
-        axios.get(`${BASE_URL}/api/categories/${encodeURIComponent(categoryId)}/style`),
-        axios.get(`${BASE_URL}/api/categories/${encodeURIComponent(categoryId)}/video`),
-      ]);
-
-
-      setInterval(() => {
-        console.clear();
-         console.log(styleResp);
-      }, 2000);
-      
-
-
-      const styleData = styleResp?.data?.data || {};
-      const videoData = videoResp?.data?.data || {};
-
-      setCatStyle({
-        color: typeof styleData.color === "string" && styleData.color ? styleData.color : "#1e293b",
-        subtitle: typeof styleData.subtitle === "string" ? styleData.subtitle : "",
-      });
-
-      setCatVideo({
-        videoUrl: typeof videoData.videoUrl === "string" ? videoData.videoUrl : "",
-        videoText: typeof videoData.videoText === "string" ? videoData.videoText : "",
-      });
-    } catch (e) {
-      // Em caso de erro, mantém defaults
-      setCatStyle((s) => s || { color: "#1e293b", subtitle: "" });
-      setCatVideo((v) => v || { videoUrl: "", videoText: "" });
-    }
-  }, [categoryId]);
-
-  useEffect(() => {
-    loadStyleAndVideo();
-  }, [loadStyleAndVideo]);
-
-  // Helpers
-  const firstImage = (p) => (p?.wl_images && p.wl_images.length ? p.wl_images[0] : "");
-  const imgSrc = (p) => (firstImage(p) ?   (firstImage(p).startsWith('http') ? firstImage(p) : BASE_URL + firstImage(p)) : "/placeholder.png");
-  const skuText = (p) => (p?.wl_sku && p.wl_sku.trim()) || "—";
-  const PageTitle = data?.category?.wl_name || "Categoria";
-
-  // Util para remover duplicados por _id preservando ordem
-  const uniqById = (arr) => {
-    const seen = new Set();
-    const out = [];
-    for (const it of arr || []) {
-      if (it && it._id && !seen.has(it._id)) {
-        seen.add(it._id);
-        out.push(it);
-      }
-    }
-    return out;
-  };
-
-  // Fonte de “latest”
-  const latestAll = useMemo(() => {
-    if (!data) return [];
-    const apiLatest = data.latestAll || data.recent || [];
-    if (apiLatest && apiLatest.length) return uniqById(apiLatest);
-
-    const composed = [
-      ...(data.latest3 || []),
-      ...(data.topProduct ? [data.topProduct] : []),
-      ...(data.others || []),
-    ];
-    return uniqById(composed);
-  }, [data]);
-
-  // Paginação (6 por página, já definido em perPage)
-  const totalItems = latestAll.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
-  const startIdx = (currentPage - 1) * perPage;
-  const pageItems = latestAll.slice(startIdx, startIdx + perPage);
-
-  const goToPage = (p) => {
-    const safeP = Math.min(Math.max(1, p), totalPages);
-    setCurrentPage(safeP);
-    // scroll suave até à grid de latest
-    if (typeof window !== "undefined") {
-      const el = document.getElementById("latest-grid-anchor");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  // "Últimos 10" (para a secção final)
-  const last10 = useMemo(() => latestAll.slice(0, 10), [latestAll]);
-
-  // Video text pode vir numa única string; mantém simples:
-  const videoText = catVideo.videoText || "";
+  }, [lightboxOpen]);
 
   return (
-    <div>
-      {/* GLOBAIS para o slick e cartões (mantidos) */}
-      <style jsx global>{`
-        .products-carousel .slick-list {
-          margin: 0 -12px;
-        }
-        .products-carousel .slick-slide {
-          padding: 0 12px;
-        }
-        .products-carousel article .card-content {
-          background: #fff;
-          border: 1px solid #eee;
-          border-radius: 16px;
-          padding: 16px;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .products-carousel article .image {
-          width: 100%;
-          aspect-ratio: 4 / 3;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #f7f7f7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .products-carousel article .image img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          mix-blend-mode: multiply;
-        }
-        .skeleton-box {
-          background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-          background-size: 200% 100%;
-          animation: shimmer 1.2s infinite;
-          border-radius: 8px;
-        }
-        @keyframes shimmer {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
-        }
-        .product-card {
-          background: #fff;
-          border: 1px solid #eee;
-          border-radius: 16px;
-          padding: 12px;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .product-card .img-wrap {
-          width: 100%;
-          aspect-ratio: 4 / 3;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #f7f7f7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .product-card img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          mix-blend-mode: multiply;
-        }
-        .product-card h5 {
-          font-size: 1rem;
-          line-height: 1.25rem;
-          margin: 0;
-        }
-      `}</style>
+    <section className="categorie-videos vs-wrap">
+      <header className="vs-header">
+        <h2>Veja as nossas soluções em ação</h2>
+        <p>Displays LED transparentes, modulares e experiências imersivas</p>
+      </header>
+      <br />
 
-      {/* HEADER (título da categoria) */}
-      <div className="section tekup-section-padding pb-0 mb-0">
-        <aside className="featured-top-products pb-0">
-          <div className="container">
-            <h2 className="text-dark">{loading ? "A carregar..." : err ? "Erro" : PageTitle}</h2>
-            <br />
-            {err ? <p className="text-danger">{err}</p> : null}
+      <Slider ref={sliderRef} {...settings} className="vs-slider">
+        {videos.map((v, i) => (
+          <div key={v.id}>
+            <button className={`vs-card ${activeSlide === i ? "active" : ""}`} onClick={() => openLightbox(i)} type="button">
+              <div className="vs-thumb">
+                <img src={ytPoster(v.id)} alt={v.title} />
+                <div className="vs-over">
+                  <div className="vs-play">
+                    <IoPlay />
+                  </div>
+                </div>
+                <span className="vs-tag">{v.tag}</span>
+              </div>
+
+              <div className="vs-info">
+                <strong>{v.title}</strong>
+                <span>{v.desc}</span>
+              </div>
+            </button>
           </div>
-        </aside>
+        ))}
+      </Slider>
+
+      {lightboxOpen && (
+        <div
+          className="vs-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vídeo"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeLightbox();
+          }}
+        >
+          <button className="vs-close" onClick={closeLightbox} aria-label="Fechar vídeo" title="Fechar" type="button">
+            ✕
+          </button>
+
+          <div className="vs-video" onMouseDown={(e) => e.stopPropagation()}>
+            <iframe
+              key={videos[lbIndex].id}
+              src={ytEmbed(videos[lbIndex].id)}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              title={videos[lbIndex]?.title}
+            />
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .vs-wrap { padding: 80px 20px; background: #f2f3fc; margin: 50px 0px; }
+        .vs-header { text-align: center; margin-bottom: 30px; }
+        .vs-header h2 { margin: 10px 0 4px; }
+        .vs-header p { opacity: 0.7; }
+        .vs-card { border: none; background: transparent; padding: 0 10px; cursor: pointer; transform: scale(0.9); transition: transform 0.3s ease; }
+        .vs-card.active { transform: scale(1); }
+        .vs-thumb { position: relative; border-radius: 18px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .vs-thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        .vs-over { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .vs-play { width: 60px; height: 60px; background: #0019ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .vs-tag { position: absolute; top: 12px; left: 12px; background: white; padding: 6px 10px; border-radius: 999px; }
+        .vs-info { margin-top: 12px; text-align: left; }
+        .vs-info strong { display: block; }
+        .vs-info span { opacity: 0.7; }
+        .vs-modal { position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; padding: 18px; }
+        .vs-close { position: fixed; top: 18px; right: 18px; z-index: 1000000; width: 44px; height: 44px; border-radius: 999px; border: none; cursor: pointer; background: rgba(255,255,255,0.14); color: #fff; font-weight: 900; font-size: 18px; backdrop-filter: blur(6px); }
+        .vs-close:hover { background: rgba(255,255,255,0.22); }
+        .vs-video { width: min(1100px, 100%); aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: transparent; box-shadow: 0 20px 70px rgba(0,0,0,0.35); }
+        .vs-video iframe { width: 100%; height: 100%; border: none; display: block; background: #000; }
+        @media (max-width: 720px) { .vs-close { top: 12px; right: 12px; width: 42px; height: 42px; } }
+      `}</style>
+    </section>
+  );
+}
+
+function MoreProducts({ items }) {
+  return (
+    <div className="categorie-page-products">
+      <h2>Soluções mais utilizadas</h2>
+      <div className="items-wrap">
+        {items?.map((item, index) => (
+          <article key={index}>
+            <div className="image">
+              <img src={item?.image} alt="" />
+              <div className="over-image">
+                <Link href={item?.link}>
+                  <button className="tekup-default-btn" type="button">
+                    Saiba mais
+                  </button>
+                </Link>
+              </div>
+            </div>
+            <Link href={item?.link}>
+              <strong className="text-dark">{item?.title}</strong>
+            </Link>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function ShopSection() {
+  const searchParams = useSearchParams();
+  const areaId = searchParams.get("area");
+
+  const isBrowser = typeof window !== "undefined";
+  const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
+  const API_BASE = protocol === "https" ? "https://waveledserver1.vercel.app" : "http://localhost:4000";
+
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const verticalSliderSettings = {
+    dots: true,
+    infinite: false,
+    arrows: false,
+    speed: 1200,
+    slidesToShow: 3,
+    slidesToScroll: 3,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 768, settings: { slidesToShow: 2 } },
+      { breakpoint: 480, settings: { slidesToShow: 1 } },
+    ],
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setErrorMsg("");
+
+      try {
+        // carrega SEMPRE as areas (tabs)
+        const areasRes = await axios.get(API_BASE + `/api/cms/application-areas`);
+        setAreas(areasRes.data?.data || []);
+
+        // se não houver area na URL, não tenta carregar page
+        if (!areaId) {
+          setPage(null);
+          return;
+        }
+
+        const pageRes = await axios.get(API_BASE + `/api/cms/area-pages/${areaId}`);
+        setPage(pageRes.data?.data || null);
+      } catch (e) {
+        setPage(null);
+        setTimeout(() => {
+          console.clear();
+          console.error("Erro ao carregar área", e);
+          setErrorMsg("Não foi possível carregar esta área. Tenta novamente.");
+        }, 500);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [areaId, API_BASE]);
+
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <p>A carregar…</p>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="container py-5 text-center">
+        <p>{errorMsg}</p>
+      </div>
+    );
+  }
+
+  // sem area selecionada: mostra só tabs e mensagem
+  if (!areaId) {
+    return (
+      <div className="categorie-page">
+        <div className="container">
+          <br /><br /><br /><br /><br /><br />
+
+          <HeaderAreaAndTitle
+            title={"Escolhe uma área de aplicação"}
+            areas={(areas || []).map((a) => ({
+              title: a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área",
+              link: `/shop?area=${a._id}`,
+              id: a._id,
+            }))}
+            active={""}
+          />
+
+          <div className="py-5 text-center">
+            <p>Seleciona uma área para veres as soluções.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!page) {
+    return (
+      <div className="container py-5 text-center">
+        <p>Área não encontrada ou ainda sem conteúdo.</p>
+      </div>
+    );
+  }
+
+  const topVerticalSolutions =
+    page.top_solutions?.map((x) => ({
+      title: x.solution?.wl_title || "",
+      image: x.solution?.wl_image || "",
+      link: x.solution?.wl_product?.wl_link || "#",
+      product: x.solution?.wl_product?.wl_name,
+    })) || [];
+
+  const mainItem = {
+    images: page.featured_product?.images || [],
+    title: page.featured_product?.title || "",
+    description: page.featured_product?.description || "",
+    link: page.featured_product?.product?.wl_link || "#",
+  };
+
+  const sliderSolutions =
+    page.slider_solutions?.map((s) => ({
+      title: s.title || "",
+      image: s.image || "",
+      link: s.product?.wl_link || `/single-shop?product=${s.product?._id}`,
+    })) || [];
+
+  const twoSpecial =
+    page.two_special_products?.map((s) => ({
+      image: s.image || "",
+      link: s.product?.wl_link || "#",
+    })) || [];
+
+  const mostUsed =
+    page.most_used_solutions?.map((x) => ({
+      title: x.solution?.wl_title || "",
+      image: x.solution?.wl_image || "",
+      link: x.solution?.wl_product?.wl_link || `/single-shop?product=${x.solution?.wl_product?._id}`,
+    })) || [];
+
+  const activeAreaTitle =
+    page.wl_area?.wl_solution_title || page.wl_area?.wl_title || page.wl_area?.wl_name || "Área";
+
+  const hasAnyContent =
+    topVerticalSolutions.length > 0 ||
+    mainItem.images.length > 0 ||
+    sliderSolutions.length > 0 ||
+    twoSpecial.length > 0 ||
+    mostUsed.length > 0;
+
+  return (
+    <div className="categorie-page">
+      <div className="container">
+        <br /><br /><br /><br /><br /><br />
+
+        <HeaderAreaAndTitle
+          title={activeAreaTitle}
+          areas={(areas || []).map((a) => ({
+            title: a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área",
+            link: `/shop?area=${a._id}`,
+            id: a._id,
+          }))}
+          active={areaId}
+        />
+
+        {!hasAnyContent && (
+          <div className="py-5 text-center">
+            <p>De momento, esta área ainda não tem conteúdo publicado.</p>
+          </div>
+        )}
+
+        {topVerticalSolutions.length > 0 && (
+          <aside className="card-slides-vertical">
+            <Slider {...verticalSliderSettings}>
+              {topVerticalSolutions.map((item, index) => (
+                <CardSliderVertical key={index} item={item} />
+              ))}
+            </Slider>
+          </aside>
+        )}
+
+        {mainItem.images?.length > 0 && (
+          <aside>
+            <MainItemCategoryPage item={mainItem} />
+          </aside>
+        )}
       </div>
 
-      {/* === LATEST: GRADE + PAGINAÇÃO (6 por página) === */}
-      <section id="latest-grid-anchor" className="section pt-0 pb-0">
+      {sliderSolutions.length > 0 && (
+        <aside>
+          <FiveSolutionsSlider items={sliderSolutions} />
+        </aside>
+      )}
+
+      {twoSpecial.length > 0 && (
         <div className="container">
-          {loading ? (
-            <div className="row">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="col-12 col-sm-6 col-lg-4 mb-4">
-                  <div className="product-card">
-                    <div className="img-wrap skeleton-box" />
-                    <div className="skeleton-box" style={{ width: "70%", height: 20}} />
-                    <div className="skeleton-box" style={{ width: "40%", height: 16}} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : latestAll.length === 0 ? (
-            <p className="text-muted">Sem produtos recentes nesta categoria.</p>
-          ) : (
-            <>
-              <div className="row">
-                {pageItems.map((item) => (
-                  <div key={item._id} className="col-12 col-sm-6 col-lg-4 mb-4">
-                    <article className="featured-article">
-                      <div
-                        className="image d-flex align-items-center justify-content-center"
-                        style={{ backgroundColor: "#f7f7f7" }}
-                      >
-                        <img  
-                          style={{ mixBlendMode: "multiply", objectFit: "contain", maxWidth: "250px", padding: "20px" }}
-                          src={imgSrc(item)}
-                          alt={item.wl_name}
-                        />
-                      
-                        <div className="over-button">
-                           <Link href={`/single-shop?product=${item._id}`}>
-                               <button><GoArrowUpRight /></button>
-                           </Link> 
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <Link href={`/single-shop?product=${item._id}`}>
-                          <h4 className="text-left mb-4">
-                            {item.wl_name.length > 60 ? item.wl_name.substring(0, 60) + "..." : item.wl_name}
-                          </h4>
-                        </Link>
-                      </div>
-                    </article>
-                  </div>
-                ))}
-              </div>
-
-              {/* Paginação Bootstrap centrada */}
-              {totalPages > 1 && (
-                <nav aria-label="Paginação de produtos" className="mb-4">
-                  <ul className="pagination justify-content-center">
-                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                      <button className="page-link" onClick={() => goToPage(currentPage - 1)} aria-label="Anterior">
-                        «
-                      </button>
-                    </li>
-
-                    {Array.from({ length: totalPages }).map((_, idx) => {
-                      const page = idx + 1;
-                      return (
-                        <li key={page} className={`page-item ${currentPage === page ? "active" : ""}`}>
-                          <button className="page-link" onClick={() => goToPage(page)}>
-                            {page}
-                          </button>
-                        </li>
-                      );
-                    })}
-
-                    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                      <button className="page-link" onClick={() => goToPage(currentPage + 1)} aria-label="Seguinte">
-                        »
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
-              )}
-            </>
-          )}
+          <aside>
+            <TwoNiceProducts items={twoSpecial} />
+          </aside>
         </div>
-        <br />
-      </section>
+      )}
 
-      {/* === SECÇÃO DE VÍDEO (agora dinâmica via /api/categories/:id/video) === */}
       <aside>
-        {catVideo.videoUrl ? (
-          <div className="video-shop-large-section">
-            <div className="video-shop-large">
-              <video src={catVideo.videoUrl} autoPlay muted loop />
-              <div className="over-video-large">
-                <div>
-                  <div className="tekup-section-padding">
-                    <div className="container">
-                      {/* videoText (uma linha). Se precisares de 2 linhas, podes separar por \n no backend */}
-                      {videoText ? <h2>{videoText}</h2> : null}
-                      <br />
-                      <Link href={"/contact-us"}>
-                        <button className="tekup-default-btn">Solicitar Orçamento</button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
+        <VideoSolutionsSlick />
       </aside>
 
-      {/* PRODUTO EM DESTAQUE (topProduct) */}
-      <aside className="section tekup-section-padding" style={{display:data?.topProduct ? "block": "none"}} >
+      {mostUsed.length > 0 && (
         <div className="container">
-          {loading ? (
-            <div className="content-centered-block">
-              <strong className="text-dark">Produto em destaque</strong>
-              <div className="image text-center skeleton-box" style={{ height: 280 }} />
-              <br />
-              <span className="tekup-default-btn skeleton-box">&nbsp;</span>
-            </div>
-          ) : data?.topProduct ? (
-            <div className="content-centered-block">
-              <div className="d-block">
-                <div className="image" style={{ maxWidth: 720, margin: "0 auto" }}>
-                  <img
-                    src={imgSrc(data.topProduct)}
-                    alt={data.topProduct.wl_name}
-                    style={{ width: "100%", height: "auto", objectFit: "contain" }}
-                  />
-                </div>
-              </div>
-              <div className="black-box bg-black">
-                <strong className="text-primary">Produto em destaque</strong>
-                <div>
-                  <div style={{ maxWidth: 720 }}>
-                    <h2 className="text-light mb-2 mt-2">{data.topProduct.wl_name}</h2>
-                  </div>
-                </div>
-                <div>
-                  <small className="text-light">{data.topProduct.wl_specs_text}</small>
-                </div>
-                <div className="mt-2">
-                  <Link className="tekup-default-btn" href={`single-shop?product=${data.topProduct._id}`}>
-                    Saiba mais agora
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="content-centered-block" />
-          )}
+          <aside>
+            <MoreProducts items={mostUsed} />
+          </aside>
         </div>
-      </aside>
-
-      {/* GALERIA (mantida) */}
-      <section className="section tekup-section-padding pb-5 pt-0" style={{ paddingLeft: "40px", paddingRight: "40px" }}>
-        <CategoryGridGalery categoryId={data?.category?._id} productCode={null} />
-      </section>
-
-      {/* === SECÇÃO DE STYLE DA CATEGORIA (dinâmica) === */}
-      <section style={{ background: catStyle.color || "#1e293b" }} className="gradient-category-section">
-        <div className="section tekup-section-padding">
-          <div className="container">
-            {/* usa subtitle vindo do endpoint */}
-            {catStyle.subtitle ? (
-              <>
-                <h2 className="text-light">{catStyle.subtitle}</h2>
-                  <p className="text-light">- Qualidade europeia, inovação global</p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-light">
-                  "Os nossos clientes adoram. As nossas soluções em display e LED destacam-se pela inovação, elegância e tecnologia de ponta."
-                </h2>
-               <p className="text-light">- Qualidade europeia, inovação global</p>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* CARROSSEL “OUTROS PRODUTOS” (others) */}
-      <aside>
-        <div className="products-carousel" style={{display:last10.length > 3 ? "block" : "none"}}>
-          <div className="carousel-featured-products">
-            <div className="container">
-              <h2>{data?.category?.wl_name ? `Mais produtos em ${data.category.wl_name}` : "Mais produtos"}</h2>
-              <br />
-              {loading ? (
-                <div className="row">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-                      <article className="card skeleton">
-                        <div className="card-content">
-                          <strong className="sku skeleton-box" style={{ width: "40%", height: 16 }}>
-                            &nbsp;
-                          </strong>
-                          <h5 className="skeleton-box" style={{ width: "70%", height: 20 }}>
-                            &nbsp;
-                          </h5>
-                          <p className="skeleton-box" style={{ height: 48 }} />
-                          <div className="image skeleton-box" style={{ height: 180 }} />
-                        </div>
-                      </article>
-                    </div>
-                  ))}
-                </div>
-              ) : (last10 || []).length > 0 ? (
-                <Slider {...settings}>
-                  {last10.map((item) => (
-                    <article key={item._id}>
-                      <div className="card-content" style={{ minHeight: "530px" }}>
-                        <strong className="sku">SKU-{skuText(item)}</strong>
-                        <Link href={`/single-shop?product=${item._id}`}>
-                          <h5>{item.wl_name.split("").length > 40 ? item.wl_name.substring(0, 40) + "..." : item.wl_name}</h5>
-                        </Link>
-                        <p className="text-muted">{/* sinopse opcional */}</p>
-                        <div className="image" style={{ background: "#ffff" }}>
-                          <img style={{ mixBlendMode: "multiply", objectFit: "contain" }} src={imgSrc(item)} alt={item.wl_name} />
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </Slider>
-              ) : (
-                <p className="text-muted">Sem mais produtos nesta categoria.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </aside>
+      )}
     </div>
   );
 }

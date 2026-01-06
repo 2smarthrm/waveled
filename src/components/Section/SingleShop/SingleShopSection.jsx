@@ -1,12 +1,11 @@
 "use client";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState, useRef } from "react";
-import Carousel from "react-multi-carousel";
-import "react-multi-carousel/lib/styles.css";
 
-// >>> Lightbox
-import Lightbox from "react-awesome-lightbox";
-import "react-awesome-lightbox/build/style.css";
+// Lightbox (yet-another-react-lightbox)
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 // >>> React-Bootstrap (Skeletons / Placeholders)
 import { Placeholder } from "react-bootstrap";
@@ -17,11 +16,11 @@ const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const API_BASE =
   protocol === "https"
-    ? "https://waveledserver.vercel.app"
+    ? "https://waveledserver1.vercel.app"
     : "http://localhost:4000";
 const IMG_HOST =
   protocol === "https"
-    ? "https://waveledserver.vercel.app"
+    ? "https://waveledserver1.vercel.app"
     : "http://localhost:4000";
 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
@@ -50,50 +49,56 @@ async function fetchJson(url) {
   return res.json();
 }
 
-/* =========================================================
-   COMPONENTE: ProductIndustries (usa até 4 exemplos)
-   - Agora com Lightbox próprio (local)
-========================================================= */
+/*
+=========================================================
+   COMPONENTE: ProductIndustries
+=========================================================
+*/
 function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
-  const data = useMemo(
-    () =>
-      (examples || [])
-        .slice(0, 4)
-        .map((e, i) => ({
-          key: e?._id || `${i}-${e?.image || ""}`,
-          title: safeText(e?.title, "—"),
-          description: safeText(e?.description, ""),
-          image: withHost(e?.image),
-        }))
-        .filter((e) => !!e.image),
-    [examples]
-  );
+  // todos os exemplos (para grid + lightbox)
+  const all = useMemo(() => {
+    return (examples || [])
+      .map((e, i) => ({
+        key: e?._id || `${i}-${e?.image || ""}`,
+        title: safeText(e?.title, "—"),
+        description: safeText(e?.description, ""),
+        image: withHost(e?.image),
+      }))
+      .filter((e) => !!e.image);
+  }, [examples]);
 
-  const len = data.length;
-  if (len === 0) return null;
+  if (all.length === 0) return null;
+
+  const [view, setView] = useState("recomendacoes");
+
+  // ====== MODELO (mantém design anterior) ======
+  const modelData = useMemo(() => all.slice(0, 4), [all]);
+  const len = modelData.length;
 
   const [idx, setIdx] = useState(0);
   const wrap = (n) => ((n % len) + len) % len;
 
-  // autoplay
   const timerRef = useRef(null);
-  const start = () => {
-    stop();
-    timerRef.current = setInterval(
-      () => setIdx((i) => wrap(i + 1)),
-      autoPlayMs
-    );
-  };
   const stop = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
   };
+  const start = () => {
+    stop();
+    if (view !== "recomendacoes") return;
+    if (len <= 1) return;
+    timerRef.current = setInterval(() => {
+      setIdx((i) => wrap(i + 1));
+    }, autoPlayMs);
+  };
+
   useEffect(() => {
     start();
     return stop;
-  }, [len, autoPlayMs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [len, autoPlayMs, view]);
 
-  // swipe
+  // swipe horizontal (como estava)
   const touchStartX = useRef(0);
   const touching = useRef(false);
   const onTouchStart = (e) => {
@@ -112,120 +117,254 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
     start();
   };
 
-  // keyboard
-  const onKeyDown = (e) => {
-    if (e.key === "ArrowRight") setIdx((i) => wrap(i + 1));
-    else if (e.key === "ArrowLeft") setIdx((i) => wrap(i - 1));
-  };
-
   const goTo = (i) => {
     stop();
     setIdx(wrap(i));
     start();
   };
 
-  // ---- Lightbox local (para os 4 slides) ----
+  const onKeyDown = (e) => {
+    if (view !== "recomendacoes") return;
+    if (e.key === "ArrowRight") setIdx((i) => wrap(i + 1));
+    else if (e.key === "ArrowLeft") setIdx((i) => wrap(i - 1));
+    else if (e.key === "Escape") setLbOpen(false);
+  };
+
+  // ====== Lightbox local (todos) ======
   const [lbOpen, setLbOpen] = useState(false);
   const [lbIndex, setLbIndex] = useState(0);
-  const lbImages = useMemo(
-    () => data.map((d) => ({ url: d.image, title: d.title })),
-    [data]
+
+  const lbSlides = useMemo(
+    () =>
+      all.map((d) => ({
+        src: d.image,
+        title: d.title,
+        description: d.description,
+      })),
+    [all]
   );
+
   const openLightbox = (startAt = 0) => {
     setLbIndex(startAt);
     setLbOpen(true);
   };
 
+  // ====== GRID: regras novas ======
+  // - só aparece "+X" quando EXISTIR MAIS DE 8 itens (>= 9)
+  // - preview: 7 itens + tile "+X"
+  const PREVIEW_REAL_ITEMS = 7;
+  const SHOW_MORE_THRESHOLD = 8; // só mostra "+X" se all.length > 8
+  const [showAllGrid, setShowAllGrid] = useState(false);
+
+  useEffect(() => {
+    if (view !== "mais") setShowAllGrid(false);
+  }, [view]);
+
+  const hasMoreThanThreshold = all.length > SHOW_MORE_THRESHOLD; // > 8
+  const remaining = Math.max(0, all.length - PREVIEW_REAL_ITEMS);
+  const showMoreTile = !showAllGrid && hasMoreThanThreshold;
+
+  const gridItems = useMemo(() => {
+    if (showAllGrid) return all;
+
+    // se tiver 8 ou menos, mostra tudo (sem "+X")
+    if (!hasMoreThanThreshold) return all;
+
+    // se tiver mais de 8, mostra 7 (e o 8º é o "+X")
+    return all.slice(0, PREVIEW_REAL_ITEMS);
+  }, [all, showAllGrid, hasMoreThanThreshold]);
+
+  // imagem atrás do tile "+X" (usa a 8ª imagem como fundo)
+  const moreBgImage = useMemo(() => {
+    if (!hasMoreThanThreshold) return "";
+    const eighth = all[PREVIEW_REAL_ITEMS]; // index 7 (8º item)
+    return eighth?.image || "";
+  }, [all, hasMoreThanThreshold]);
+
   return (
-    <div className="pi-root" onKeyDown={onKeyDown}>
-      <div
-        className="pi-left"
-        onMouseEnter={stop}
-        onMouseLeave={start}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        role="region"
-        aria-roledescription="carrossel"
-        aria-label="Exemplos de aplicação"
-      >
-        {/* faixa deslizando via translateX */}
-        <div
-          className="pi-track"
-          style={{
-            width: `${len * 100}%`,
-            transform: `translateX(-${(100 / len) * idx}%)`,
-          }}
-        >
-          {data.map((it, i) => (
-            <div key={it.key} className="pi-slide">
-              <img
-                src={
-                  it.image.startsWith("http") ? it.image : API_BASE + it.image
-                }
-                alt={it.title}
-                role="button"
-                style={{ cursor: "zoom-in" }}
-                onClick={() => openLightbox(i)}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* setas */}
+    <div className="pi-wrap" onKeyDown={onKeyDown}>
+      {/* TABS */}
+      <div className="pi-tabs-top" role="tablist" aria-label="Exemplos">
         <button
-          className="pi-arrow pi-prev"
-          onClick={() => goTo(idx - 1)}
-          aria-label="Anterior"
+          type="button"
+          role="tab"
+          aria-selected={view === "recomendacoes"}
+          className={`pi-tab ${view === "recomendacoes" ? "active" : ""}`}
+          onClick={() => setView("recomendacoes")}
         >
-          ‹
+          Recomendações Waveled
         </button>
         <button
-          className="pi-arrow pi-next"
-          onClick={() => goTo(idx + 1)}
-          aria-label="Seguinte"
+          type="button"
+          role="tab"
+          aria-selected={view === "mais"}
+          className={`pi-tab ${view === "mais" ? "active" : ""}`}
+          onClick={() => setView("mais")}
         >
-          ›
+          Ver todos exemplos
         </button>
-
-        {/* dots */}
-        <div
-          className="pi-dots"
-          role="tablist"
-          aria-label="Navegação de slides"
-        >
-          {data.map((_, i) => (
-            <button
-              key={i}
-              className={`pi-dot ${i === idx ? "active" : ""}`}
-              onClick={() => goTo(i)}
-              role="tab"
-              aria-selected={i === idx}
-              aria-label={`Ir para slide ${i + 1}`}
-            />
-          ))}
-        </div>
       </div>
 
-      {/* cartões à direita — sincronizados com o slide */}
-      <div className="pi-right" onMouseEnter={stop} onMouseLeave={start}>
-        {data.map((item, i) => (
-          <article
-            key={item.key}
-            className={`pi-card ${i === idx ? "active" : ""}`}
-            onMouseEnter={() => goTo(i)}
-            onClick={() => openLightbox(i)}
-            role="button"
-            tabIndex={0}
-            title="Ver em ecrã inteiro"
+      {/* ===== VISTA: Recomendações Waveled ===== */}
+      {view === "recomendacoes" && len > 0 && (
+        <div className="pi-root">
+          <div
+            className="pi-left"
+            onMouseEnter={stop}
+            onMouseLeave={start}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+            role="region"
+            aria-roledescription="carrossel"
+            aria-label="Recomendações Waveled"
           >
-            <h5>{item.title}</h5>
-            {item.description && <p>{item.description}</p>}
-          </article>
-        ))}
-      </div>
+            <div
+              className="pi-track"
+              style={{
+                width: `${len * 100}%`,
+                transform: `translateX(-${(100 / len) * idx}%)`,
+              }}
+            >
+              {modelData.map((it, i) => (
+                <div key={it.key} className="pi-slide">
+                  <img
+                    src={it.image.startsWith("http") ? it.image : API_BASE + it.image}
+                    alt={it.title}
+                    role="button"
+                    style={{ cursor: "zoom-in" }}
+                    onClick={() => openLightbox(i)}
+                  />
+                </div>
+              ))}
+            </div>
 
-      {/* estilos mínimos */}
+            {len > 1 && (
+              <>
+                <button
+                  className="pi-arrow pi-prev"
+                  onClick={() => goTo(idx - 1)}
+                  aria-label="Anterior"
+                >
+                  ‹
+                </button>
+                <button
+                  className="pi-arrow pi-next"
+                  onClick={() => goTo(idx + 1)}
+                  aria-label="Seguinte"
+                >
+                  ›
+                </button>
+
+                <div className="pi-dots" aria-label="Navegação de slides">
+                  {modelData.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`pi-dot ${i === idx ? "active" : ""}`}
+                      onClick={() => goTo(i)}
+                      aria-label={`Ir para slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="pi-right" onMouseEnter={stop} onMouseLeave={start}>
+            {modelData.map((item, i) => (
+              <article
+                key={item.key}
+                className={`pi-card ${i === idx ? "active" : ""}`}
+                onMouseEnter={() => goTo(i)}
+                onClick={() => openLightbox(i)}
+                role="button"
+                tabIndex={0}
+                title="Ver em ecrã inteiro"
+              >
+                <h5>{item.title}</h5>
+                {item.description && <p>{item.description}</p>}
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== VISTA: Ver todos exemplos (grid) ===== */}
+      {view === "mais" && (
+        <div className="pi-grid-wrap" aria-label="Grelha de exemplos">
+          <div className="pi-grid">
+            {gridItems.map((it, i) => (
+              <button
+                key={it.key}
+                type="button"
+                className="pi-tile"
+                onClick={() => openLightbox(i)}
+                title={it.title}
+              >
+                <img
+                  src={it.image.startsWith("http") ? it.image : API_BASE + it.image}
+                  alt={it.title}
+                  className="pi-tile-img"
+                />
+              </button>
+            ))}
+
+            {/* Tile +X: só quando existir MAIS DE 8 itens */}
+            {showMoreTile && (
+              <button
+                type="button"
+                className="pi-tile pi-tile-more"
+                onClick={() => setShowAllGrid(true)}
+                aria-label={`Ver mais ${remaining} exemplos`}
+                title={`Ver mais ${remaining} exemplos`}
+              >
+                {moreBgImage ? (
+                  <img
+                    src={moreBgImage.startsWith("http") ? moreBgImage : API_BASE + moreBgImage}
+                    alt="Mais exemplos"
+                    className="pi-tile-img"
+                  />
+                ) : null}
+
+                <div className="pi-more-overlay">
+                  <span className="pi-more-text">+{remaining}</span>
+                </div>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
+        .pi-wrap {
+          position: relative;
+        }
+
+        .pi-tabs-top {
+          display: flex;
+          justify-content: center;
+          gap: 12px;
+          margin: 0 0 30px;
+          flex-wrap: wrap;
+        }
+        .pi-tab {
+          background: #ffffff;
+          color: #111;
+          padding: 10px 16px;
+          border-radius: 12px;
+          font-size: 18px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 160ms, color 160ms, border 160ms, transform 160ms;
+        }
+        .pi-tab:hover {
+          transform: translateY(-1px);
+        }
+        .pi-tab.active {
+          background: #1740ff;
+          border-color: #1740ff;
+          color: #fff;
+        }
+
         .pi-root {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -333,23 +472,79 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
         .pi-card.active p {
           color: #fff;
         }
+
+        .pi-grid-wrap {
+          width: 100%;
+        }
+        .pi-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 18px;
+        }
+        @media (max-width: 992px) {
+          .pi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+          }
+        }
+        @media (max-width: 576px) {
+          .pi-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+        }
+
+        .pi-tile {
+          position: relative;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #f2f2f2;
+          border: 0;
+          padding: 0;
+          cursor: pointer;
+          display: block;
+          height: 230px;
+        }
+        .pi-tile-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .pi-tile-more {
+          padding: 0;
+        }
+        .pi-more-overlay {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          background: rgba(0, 0, 0, 0.25);
+        }
+        .pi-more-text {
+          color: #fff;
+          font-size: 44px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+        }
       `}</style>
 
-      {/* Lightbox local para os 4 slides */}
-      {lbOpen && (
-        <Lightbox
-          images={lbImages}
-          startIndex={lbIndex}
-          onClose={() => setLbOpen(false)}
-        />
-      )}
+      <Lightbox
+        open={lbOpen}
+        close={() => setLbOpen(false)}
+        index={lbIndex}
+        slides={lbSlides}
+        on={{ view: ({ index: i }) => setLbIndex(i) }}
+        carousel={{ finite: false }}
+      />
     </div>
   );
 }
 
 /* =========================================================
    SKELETONS (React-Bootstrap Placeholders)
-   - Mantém a estrutura da página durante o carregamento
 ========================================================= */
 function Line({ xs = 12, style = {} }) {
   return (
@@ -418,11 +613,10 @@ function IndustriesSkeleton() {
 
 function ProductSkeleton() {
   return (
-    <> 
+    <>
       <div className="section">
         <div className="container">
           <div className="row align-items-center">
-            {/* GALERIA */}
             <div className="col-lg-6">
               <div className="tekup-tab-slider">
                 <div className="tekup-tabs-container">
@@ -446,7 +640,6 @@ function ProductSkeleton() {
               </div>
             </div>
 
-            {/* DETALHES */}
             <div className="col-lg-6">
               <div className="tekup-details-content pt-4">
                 <Line xs={7} style={{ height: 34, borderRadius: 8 }} />
@@ -486,114 +679,15 @@ function ProductSkeleton() {
         </div>
       </div>
 
-      {/* bloco dinâmico (simulado) */}
       <IndustriesSkeleton />
-
-      {/* BLOCOS ADICIONAIS (examplesRest) */}
-      <section className="mt-4 bg-black">
-        <div className="section tekup-section-padding">
-          <div className="container">
-            <hr />
-            <br />
-            <div className="col">
-              <div className="d-flex col justify-content-between">
-                <div>
-                  <Line
-                    xs={6}
-                    style={{ height: 28, borderRadius: 8, marginTop: 8 }}
-                  />
-                </div>
-                <div style={{ maxWidth: "550px" }}>
-                  <Line
-                    xs={10}
-                    style={{ height: 14, borderRadius: 6, marginTop: 8 }}
-                  />
-                  <Line
-                    xs={9}
-                    style={{ height: 14, borderRadius: 6, marginTop: 6 }}
-                  />
-                </div>
-              </div>
-              <br />
-              <div className="row single-portofolio-area">
-                {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                  <article key={i} className="col-md-3 mb-3">
-                    <ImgSkeleton height={180} rounded={8} />
-                    <Line
-                      xs={7}
-                      style={{ height: 16, borderRadius: 6, marginTop: 8 }}
-                    />
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TABS */}
-      <div className="section tekup-section-padding">
-        <div className="container">
-          <div className="tekup-product-tab">
-            <ul className="nav nav-pills" id="pills-tab" role="tablist"> 
-              <li className="nav-item" role="presentation">
-                <Placeholder.Button
-                  xs={2}
-                  aria-hidden
-                  style={{ height: 36, borderRadius: 999 }}
-                />
-              </li>
-            </ul>
-            <div
-              className="tab-content"
-              id="pills-tabContent"
-              style={{ marginTop: 16 }}
-            >
-              <Line
-                xs={12}
-                style={{ height: 14, borderRadius: 6, marginTop: 6 }}
-              />
-              <Line
-                xs={11}
-                style={{ height: 14, borderRadius: 6, marginTop: 6 }}
-              />
-              <Line
-                xs={10}
-                style={{ height: 14, borderRadius: 6, marginTop: 6 }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PRODUTOS RELACIONADOS */}
-      <div className="tekup-related-product-section">
-        <div className="container">
-          <div className="tekup-section-title center">
-            <Line xs={4} style={{ height: 28, borderRadius: 8 }} />
-          </div>
-        </div>
-        <div className="container">
-          <div className="row">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="col-xl-3 col-lg-4 col-md-6">
-                <CardSkeleton />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </>
   );
 }
 
 /* =========================================================
-   PÁGINA: SingleShopSection (JSX)
-   - Lightbox na galeria principal (todas as imagens do produto)
-   - Lightbox na grelha de exemplos (examplesRest)
-   - Loader com skeletons (react-bootstrap) ao invés de texto
+   PÁGINA: SingleShopSection
 ========================================================= */
-export default function SingleShopSection() { 
+export default function SingleShopSection() {
   const [productId, setProductId] = useState(null);
 
   useEffect(() => {
@@ -607,7 +701,6 @@ export default function SingleShopSection() {
     };
     readProduct();
 
-    // Guardar originais e repor no cleanup para evitar side-effects
     const _pushState = history.pushState;
     const _replaceState = history.replaceState;
 
@@ -633,30 +726,26 @@ export default function SingleShopSection() {
   const [error, setError] = useState("");
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
-  const [examples, setExamples] = useState([]);  
+  const [examples, setExamples] = useState([]);
   const [activeTab, setActiveTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
- 
 
   function AddChipIcon() {
-  setTimeout(() => {
-    const svg = "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50.png";
-    const items = document.querySelectorAll("#pills-description ul li");
+    setTimeout(() => {
+      const svg = "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50.png";
+      const items = document.querySelectorAll("#pills-description ul li");
 
-    items.forEach((li) => {
-      if (li.querySelector(".svg-chip")) return; // evita duplicados
+      items.forEach((li) => {
+        if (li.querySelector(".svg-chip")) return;
 
-      const img = document.createElement("img");
-      img.classList.add("svg-chip");
-      img.src = svg;
-      img.alt = "chip";
-
-      li.prepend(img);  
-    });
-  }, 500);
-}
-
-
+        const img = document.createElement("img");
+        img.classList.add("svg-chip");
+        img.src = svg;
+        img.alt = "chip";
+        li.prepend(img);
+      });
+    }, 500);
+  }
 
   useEffect(() => {
     let abort = false;
@@ -687,31 +776,20 @@ export default function SingleShopSection() {
       setExamples([]);
       setActiveImage(0);
 
-
- 
-
-
-
       try {
-        // 1) Produto
-        const prodRaw = await fetchJson(
-          `${API_BASE}/api/products/${productId}`
-        );
+        const prodRaw = await fetchJson(`${API_BASE}/api/products/${productId}`);
         const prod = toProduct(prodRaw);
         if (!prod) throw new Error("Produto não encontrado.");
         if (abort) return;
         setItem(prod);
 
-    
-
-        // 2) Exemplos — ordenar ASC (mais antigos primeiro)
         try {
           const qs = new URLSearchParams();
           qs.set("productId", prod._id);
           const examplesRaw = await fetchJson(
             `${API_BASE}/api/examples?${qs.toString()}`
           );
-          
+
           if (!abort) {
             const arr = toArray(examplesRaw);
             const asc = [...arr].sort((a, b) => {
@@ -725,7 +803,11 @@ export default function SingleShopSection() {
           if (!abort) setExamples([]);
         }
 
-        // 3) Relacionados
+        // ==============================
+        // PRODUTOS RELACIONADOS (até 4)
+        // - tenta mesma categoria
+        // - se insuficiente, completa com outros produtos (fallback)
+        // ==============================
         let relatedList = [];
         const catName = prod?.wl_category?.wl_name;
 
@@ -760,9 +842,6 @@ export default function SingleShopSection() {
 
         relatedList = relatedList.slice(0, 4);
         if (!abort) setRelated(relatedList);
-
- 
-
       } catch (e) {
         if (!abort) setError(e?.message || "Erro ao carregar produto.");
       } finally {
@@ -770,16 +849,16 @@ export default function SingleShopSection() {
       }
     }
 
-    run(); 
-     AddChipIcon()
+    run();
+    AddChipIcon();
     return () => {
       abort = true;
     };
   }, [productId]);
 
-  useEffect(()=>{
+  useEffect(() => {
     AddChipIcon();
-  })
+  });
 
   const images = useMemo(() => {
     const list = Array.isArray(item?.wl_images) ? item.wl_images : [];
@@ -790,19 +869,16 @@ export default function SingleShopSection() {
   }, [item]);
 
   const title = safeText(item?.wl_name, "Produto");
-  const sku = safeText(item?.wl_sku, "—");
   const catName = safeText(item?.wl_category?.wl_name, "Sem categoria");
   const shortDescription = safeText(item?.wl_specs_text, "");
 
-  // exemplos processados
-  const examplesTop4 = useMemo(() => (examples || []).slice(0, 4), [examples]);
   const examplesRest = useMemo(() => (examples || []).slice(4), [examples]);
 
-  // -------- Lightbox do produto (galeria principal) --------
+  // -------- Lightbox do produto (YARL) --------
   const [lbOpenProduct, setLbOpenProduct] = useState(false);
   const [lbIndexProduct, setLbIndexProduct] = useState(0);
-  const lbImagesProduct = useMemo(
-    () => images.map((src) => ({ url: src, title })),
+  const lbSlidesProduct = useMemo(
+    () => images.map((src) => ({ src, title })),
     [images, title]
   );
   const openProductLightbox = (i = 0) => {
@@ -810,17 +886,17 @@ export default function SingleShopSection() {
     setLbOpenProduct(true);
   };
 
-  // -------- Lightbox dos exemplos (grelha examplesRest) --------
+  // -------- Lightbox dos exemplos (YARL) — mantém para o bloco de baixo --------
   const [lbOpenExamples, setLbOpenExamples] = useState(false);
   const [lbIndexExamples, setLbIndexExamples] = useState(0);
-  const lbImagesExamples = useMemo(
+  const lbSlidesExamples = useMemo(
     () =>
       (examplesRest || [])
         .map((ex) => ({
-          url: withHost(ex?.image),
+          src: withHost(ex?.image),
           title: safeText(ex?.title, "Exemplo"),
         }))
-        .filter((x) => !!x.url),
+        .filter((x) => !!x.src),
     [examplesRest]
   );
   const openExamplesLightbox = (i = 0) => {
@@ -828,10 +904,7 @@ export default function SingleShopSection() {
     setLbOpenExamples(true);
   };
 
-  // ===== LOADING / ERROR STATES =====
-  if (loading) {
-    return <ProductSkeleton />;
-  }
+  if (loading) return <ProductSkeleton />;
 
   if (error) {
     return (
@@ -841,18 +914,21 @@ export default function SingleShopSection() {
     );
   }
 
-  // ===== CONTEÚDO =====
   return (
     <>
       {/* BLOCO DINÂMICO (só se houver exemplos) */}
-      
+      {(examples || []).length > 0 && (
+        <section className="section bg-grey pt-4">
+          <div className="container pt-4 pb-4">
+            <ProductIndustries examples={examples} />
+          </div>
+        </section>
+      )}
 
       <div className="section">
         <div className="container">
-          <br /><br /><br /><br />
           <div className="row align-items-center">
-       
-               {/* GALERIA */}
+            {/* GALERIA */}
             <div className="col-lg-6">
               <div className="tekup-tab-slider">
                 <div className="tekup-tabs-container">
@@ -912,13 +988,11 @@ export default function SingleShopSection() {
               </div>
             </div>
 
-
-
             {/* DETALHES */}
             <div className="col-lg-6">
               <div className="tekup-details-content pt-4">
                 <h2 className="mt-0">{title}</h2> <br />
-              
+
                 <div className="tekup-product-info mt-4">
                   <h5>Informação rápida</h5>
                   <ul>
@@ -927,9 +1001,7 @@ export default function SingleShopSection() {
                       {catName === "Sem categoria" ? (
                         <span>{catName}</span>
                       ) : (
-                        <Link
-                          href={`/shop?category=${encodeURIComponent(catName)}`}
-                        >
+                        <Link href={`/shop?category=${encodeURIComponent(catName)}`}>
                           {catName}
                         </Link>
                       )}
@@ -945,48 +1017,36 @@ export default function SingleShopSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="tekup-product-wrap mt-4"> 
-                   <RequestModal
-                      item={item}
-                      toggle_button={(open) => (
-                        <a href="#" className="tekup-default-btn col-lg-12 col" onClick={open}>
-                          Solicitar Produto
-                        </a>
-                      )}
-                    />
+
+                <div className="tekup-product-wrap mt-4">
+                  <RequestModal
+                    item={item}
+                    toggle_button={(open) => (
+                      <a
+                        href="#"
+                        className="tekup-default-btn col-lg-12 col"
+                        onClick={open}
+                      >
+                        Solicitar Produto
+                      </a>
+                    )}
+                  />
                 </div>
               </div>
             </div>
-
-    
-
-
-
-
           </div>
         </div>
       </div>
 
-<br /><br /><br />
-
-       {examplesTop4.length > 0 && (
-        <section className="section bg-grey">
-          <div className="container pt-4 pb-4">
-            <ProductIndustries examples={examplesTop4} />
-          </div>
-        </section>
-      )}
-
-        {/* TABS */}
-      <div className="section tekup-section-padding pt-4 pb-2">
+      {/* TABS */}
+      <br />
+      <div className="section tekup-section-padding pt-5 pb-2">
         <div className="container">
           <div className="tekup-product-tab">
             <ul className="nav nav-pills" id="pills-tab" role="tablist">
               <li className="nav-item" role="presentation">
                 <button
-                  className={`nav-link ${
-                    activeTab === "description" ? "active" : ""
-                  }`}
+                  className={`nav-link ${activeTab === "description" ? "active" : ""}`}
                   id="pills-description-tab"
                   onClick={() => setActiveTab("description")}
                 >
@@ -1006,7 +1066,7 @@ export default function SingleShopSection() {
                 tabIndex={0}
               >
                 {item?.wl_description_html ? (
-                  <div 
+                  <div
                     dangerouslySetInnerHTML={{
                       __html: item.wl_description_html,
                     }}
@@ -1014,228 +1074,142 @@ export default function SingleShopSection() {
                 ) : (
                   <>
                     <p className="mt-3">
-                      Desenvolvemos soluções LED com foco em eficiência,
-                      longevidade e qualidade de imagem.
+                      Desenvolvemos soluções LED com foco em eficiência, longevidade
+                      e qualidade de imagem.
                     </p>
-                    <p>
-                      A Waveled acompanha consultoria, projeto, instalação e
-                      suporte.
-                    </p>
+                    <p>A Waveled acompanha consultoria, projeto, instalação e suporte.</p>
                   </>
                 )}
               </div>
-
-              <div
-                className={`tab-pane fade ${
-                  activeTab === "specification" ? "show active" : ""
-                }`}
-                id="pills-specification"
-                role="tabpanel"
-                aria-labelledby="pills-specification-tab"
-                tabIndex={0}
-              >
-                {item?.wl_specs_text ? (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: item.wl_specs_text }}
-                  />
-                ) : (
-                  <div className="row mt-3">
-                    <div className="col-md-6">
-                      <ul>{/* specs esquerdas */}</ul>
-                    </div>
-                    <div className="col-md-6">
-                      <ul>{/* specs direitas */}</ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div
-                className={`tab-pane fade ${
-                  activeTab === "downloads" ? "show active" : ""
-                }`}
-                id="pills-downloads"
-                role="tabpanel"
-                aria-labelledby="pills-downloads-tab"
-                tabIndex={0}
-              >
-                <div className="d-flex flex-wrap gap-3 mt-3">
-                  {Array.isArray(item?.wl_downloads) &&
-                  item.wl_downloads.length > 0 ? (
-                    item.wl_downloads.map((d, i) => (
-                      <a
-                        key={i}
-                        className="tekup-default-btn"
-                        href={
-                          isAbsoluteUrl(d?.url)
-                            ? d.url
-                            : `${IMG_HOST}${d?.url || ""}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {safeText(d?.label, `Download ${i + 1}`)}
-                      </a>
-                    ))
-                  ) : (
-                    <>
-                      <a
-                        className="tekup-default-btn"
-                        href="#"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        Download Datasheet
-                      </a>
-                      <a
-                        className="tekup-default-btn"
-                        href="#"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        Manual de Instalação
-                      </a>
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-
-      {/* BLOCOS ADICIONAIS (restantes exemplos) — só se houver examplesRest */}
+      {/* BLOCOS ADICIONAIS (restantes exemplos) */}
       {examplesRest.length > 0 && (
-        <> 
-          <section className="mt-4 bg-black product-details-slider-solution">
-            <div className="section tekup-section-padding">
-              <div className="container">
-                <hr />
+        <section className="mt-4 bg-black product-details-slider-solution">
+          <div className="section tekup-section-padding">
+            <div className="container">
+              <hr />
+              <br />
+              <div className="col">
+                <div className="d-flex col justify-content-between">
+                  <div>
+                    <h3 className="text-light mt-4">Indústrias e Soluções Aplicáveis</h3>
+                  </div>
+                  <div style={{ maxWidth: "550px" }}> 
+                    <p className="text-silver mt-2">{shortDescription}</p>
+                  </div>
+                </div>
                 <br />
-                <div className="col">
-                  <div className="d-flex col justify-content-between">
-                    <div>
-                      <h3 className="text-light mt-4">
-                        Indústrias e Soluções Aplicáveis
-                      </h3>
-                    </div>
-                    <div style={{ maxWidth: "550px" }}>
-                      <p className="text-silver mt-2">{shortDescription}</p>
-                    </div>
-                  </div>
-                  <br />
-                  <div className="row single-portofolio-area">
-                    {examplesRest.map((ex, index) => {
-                      const img = withHost(ex?.image);
-                      const exTitle = safeText(ex?.title, "Exemplo");
-                      if (!img) return null;
-                      return (
-                        <article key={index} className="col-md-3 mb-3">
-                          <img
-                            src={img.startsWith("http") ? img : API_BASE + img}
-                            alt={exTitle}
-                            style={{
-                              width: "100%",
-                              borderRadius: 8,
-                              objectFit: "cover",
-                              cursor: "zoom-in",
-                            }}
-                            role="button"
-                            title="Ver em ecrã inteiro"
-                            onClick={() => openExamplesLightbox(index)}
-                          />
-                          <strong className="text-silver d-block mt-2">
-                            {exTitle}
-                          </strong>
-                        </article>
-                      );
-                    })}
-                  </div>
+                <div className="row single-portofolio-area">
+                  {examplesRest.map((ex, index) => {
+                    const img = withHost(ex?.image);
+                    const exTitle = safeText(ex?.title, "Exemplo");
+                    if (!img) return null;
+                    return (
+                      <article key={index} className="col-md-3 mb-3">
+                        <img
+                          src={img.startsWith("http") ? img : API_BASE + img}
+                          alt={exTitle}
+                          style={{
+                            width: "100%",
+                            borderRadius: 8,
+                            objectFit: "cover",
+                            cursor: "zoom-in",
+                          }}
+                          role="button"
+                          title="Ver em ecrã inteiro"
+                          onClick={() => openExamplesLightbox(index)}
+                        />
+                        <strong className="text-silver d-block mt-2">{exTitle}</strong>
+                      </article>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
 
- 
-  <br /><br />
-      {/* PRODUTOS RELACIONADOS */}
-      <div className="tekup-related-product-section pb-2">
-        <div className="container">
-          <div className="tekup-section-title center">
-            <h2>Produtos relacionados</h2>
+      {/* ==============================
+          PRODUTOS RELACIONADOS (NO FINAL)
+          ============================== */}
+      {Array.isArray(related) && related.length > 0 && (
+        <div className="tekup-related-product-section pb-2">
+          <br /><br />
+          <div className="container">
+            <div className="tekup-section-title center">
+              <h2>Produtos relacionados</h2>
+            </div>
           </div>
-        </div>
-        <div className="container">
-          <div className="row">
-            {related.map((p) => {
-              const cover =
-                Array.isArray(p?.wl_images) && p.wl_images.length
-                  ? withHost(p.wl_images[0])
-                  : withHost(p?.wl_cover);
-              const pTitle = truncate(safeText(p?.wl_name, "Produto"));
-              const pSku = safeText(p?.wl_sku, "—");
-              const pCat = p?.wl_category?.wl_name;
 
-              return (
-                <div key={p._id} className="col-xl-3 col-lg-4 col-md-6">
-                  <div className="tekup-shop-wrap">
-                    <div className="tekup-shop-thumb">
-                      <Link href={`/single-shop?product=${p._id}`}>
-                        <img
-                          style={{ height: "300px", objectFit: "contain" }}
-                          src={cover}
-                          alt={pTitle}
-                        />
-                      </Link>
-                      <Link
-                        className="tekup-shop-btn"
-                        href={`/single-shop?product=${p._id}`}
-                      >
-                        Saiba Mais
-                      </Link>
-                    </div>
-                    <div className="tekup-shop-data">
-                      <Link href={`/single-shop?product=${p._id}`}>
-                        <h5 title={p?.wl_name || ""}>{pTitle}</h5>
-                      </Link> 
-                      {pCat && (
+          <div className="container">
+            <div className="row">
+              {related.slice(0, 4).map((p) => {
+                const pId = p?._id;
+                const pName = safeText(p?.wl_name, "Produto");
+                const pCat = safeText(p?.wl_category?.wl_name, "Sem categoria");
+                const pCover =
+                  withHost(p?.wl_cover) ||
+                  withHost(Array.isArray(p?.wl_images) ? p.wl_images?.[0] : "") ||
+                  "";
+
+                const href = pId ? `/single-shop?product=${pId}` : "#";
+
+                return (
+                  <div key={pId || pName} className="col-xl-3 col-lg-4 col-md-6">
+                    <div className="tekup-shop-wrap">
+                      <div className="tekup-shop-thumb">
+                        <Link href={href}>
+                          <img
+                            alt={pName}
+                            src={pCover}
+                            style={{ height: 300, objectFit: "contain" }}
+                          />
+                        </Link>
+
+                        <Link className="tekup-shop-btn" href={href}>
+                          Saiba Mais
+                        </Link>
+                      </div>
+
+                      <div className="tekup-shop-data">
+                        <Link href={href}>
+                          <h5 title={pName}>{truncate(pName, 44)}</h5>
+                        </Link>
                         <small className="text-muted">Categoria: {pCat}</small>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-
-            {related.length === 0 && (
-              <div className="col-12">
-                <p className="text-muted">
-                  Sem produtos relacionados para apresentar.
-                </p>
-              </div>
-            )}
+                );
+              })}
+            </div> 
           </div>
         </div>
-      </div>
-
-      {/* Lightbox da galeria principal do produto */}
-      {lbOpenProduct && (
-        <Lightbox
-          images={lbImagesProduct}
-          startIndex={lbIndexProduct}
-          onClose={() => setLbOpenProduct(false)}
-        />
       )}
 
-      {/* Lightbox dos exemplos (grelha) */}
-      {lbOpenExamples && (
-        <Lightbox
-          images={lbImagesExamples}
-          startIndex={lbIndexExamples}
-          onClose={() => setLbOpenExamples(false)}
-        />
-      )}
+      {/* Lightbox da galeria principal (YARL) */}
+      <Lightbox
+        open={lbOpenProduct}
+        close={() => setLbOpenProduct(false)}
+        index={lbIndexProduct}
+        slides={lbSlidesProduct}
+        on={{ view: ({ index: i }) => setLbIndexProduct(i) }}
+        carousel={{ finite: false }}
+      />
+
+      {/* Lightbox dos exemplos (YARL) */}
+      <Lightbox
+        open={lbOpenExamples}
+        close={() => setLbOpenExamples(false)}
+        index={lbIndexExamples}
+        slides={lbSlidesExamples}
+        on={{ view: ({ index: i }) => setLbIndexExamples(i) }}
+        carousel={{ finite: false }}
+      />
     </>
   );
 }

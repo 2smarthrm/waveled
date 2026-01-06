@@ -1,102 +1,172 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 
-const MIN_CARD_WIDTH = 400; // largura mínima de cada card
-const CARD_GAP = 20;        // gap TOTAL entre cards (~20px)
+const MIN_CARD_WIDTH = 400;
+const CARD_GAP = 20;
 
-/**
- * Calcula dinamicamente:
- * - quantos items inteiros cabem (1–3)
- * - se deve mostrar uma parte de outro card (entre 15% e 30%)
- * - quanto "gutter" (px) usar para partialVisible
- */
 function getCarouselConfig(containerWidth) {
   if (!containerWidth || containerWidth <= 0) {
     return { items: 1, partialVisible: false, gutter: 0 };
   }
 
-  // Quantos cards "teóricos" cabem com largura mínima + gap
-  const theoretical =
-    (containerWidth + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP);
-
-  // Número de cards inteiros permitido (1–3)
+  const theoretical = (containerWidth + CARD_GAP) / (MIN_CARD_WIDTH + CARD_GAP);
   const items = Math.max(1, Math.min(Math.floor(theoretical), 3));
 
-  // Largura ocupada pelos cards inteiros
   const usedWidth = items * (MIN_CARD_WIDTH + CARD_GAP) - CARD_GAP;
-  const leftover = containerWidth - usedWidth; // espaço que sobra
+  const leftover = containerWidth - usedWidth;
 
-  // Defaults: sem partial
   let partialVisible = false;
   let gutter = 0;
 
-  // Só faz sentido mostrar parte de outro card se já couberem pelo menos 2
   if (items >= 2 && leftover > 0) {
-    // Percentagem de um novo card que caberia naquele espaço
-    const fraction = leftover / MIN_CARD_WIDTH; // ex: 0.18 = 18%
-
-    // Só ativa partial se der para mostrar pelo menos 15% de outro card
+    const fraction = leftover / MIN_CARD_WIDTH;
     if (fraction >= 0.15) {
       partialVisible = true;
-
-      // Queremos entre 15% e 30% do card extra
       const clampedFraction = Math.min(Math.max(fraction, 0.15), 0.3);
       gutter = MIN_CARD_WIDTH * clampedFraction;
-
-      // Garantir que não passamos do espaço real que sobra
-      if (gutter > leftover) {
-        gutter = leftover;
-      }
+      if (gutter > leftover) gutter = leftover;
     }
   }
 
   return { items, partialVisible, gutter };
 }
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 const TestimonialSection = () => {
   const blurRef = useRef(null);
   const sliderContainerRef = useRef(null);
 
-  // ================== CAROUSEL CONFIG DINÂMICO ==================
   const [carouselConfig, setCarouselConfig] = useState({
     items: 1,
     partialVisible: false,
     gutter: 0,
   });
 
+  // Força o Carousel a recalcular quando:
+  // - config muda (items/gutter/partial)
+  // - dados chegam
+  // Isto resolve o problema de cards sobrepostos até fazer resize.
+  const [carouselKey, setCarouselKey] = useState("init");
+
+  const isBrowser = typeof window !== "undefined";
+  const protocol =
+    isBrowser && window.location.protocol === "https:" ? "https" : "http";
+  const BaseUrl =
+    protocol === "https"
+      ? "https://waveledserver1.vercel.app"
+      : "http://localhost:4000";
+
+  const [loadingData, setLoadingData] = useState([]);
+
+  async function loadData(signal) {
+    try {
+      const response = await axios.get(BaseUrl + "/api/featured", {
+        withCredentials: true,
+        signal,
+      });
+      const data = response?.data?.data ? response.data.data : [];
+      setLoadingData(data);
+    } catch (error) {
+      // ignore abort
+      if (error?.name === "CanceledError" || error?.name === "AbortError") return;
+    }
+  }
+
   useEffect(() => {
-    const updateCarouselConfig = () => {
-      if (typeof window === "undefined") return;
-
-      const containerWidth =
-        sliderContainerRef.current?.offsetWidth || window.innerWidth;
-
-      const cfg = getCarouselConfig(containerWidth);
-      setCarouselConfig(cfg);
-    };
-
-    // calcular logo à entrada
-    updateCarouselConfig();
-
-    // actualizar sempre que a janela é redimensionada
-    window.addEventListener("resize", updateCarouselConfig);
-    return () => window.removeEventListener("resize", updateCarouselConfig);
+    const controller = new AbortController();
+    loadData(controller.signal);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const responsive = {
-    allScreens: {
-      breakpoint: { max: 4000, min: 0 },
-      items: carouselConfig.items,
-      partialVisibilityGutter: carouselConfig.gutter,
-    },
-  };
+  // Atualiza config baseado no tamanho real do container.
+  // Usa ResizeObserver para apanhar mudanças automáticas de layout (fonts, imagens, css, etc)
+  useIsomorphicLayoutEffect(() => {
+    if (!isBrowser) return;
 
-  // ================== EFEITO DE BLUR NO SCROLL ==================
+    let raf1 = 0;
+    let raf2 = 0;
+
+    const update = () => {
+      const el = sliderContainerRef.current;
+      const w = el?.getBoundingClientRect?.().width || window.innerWidth;
+      const cfg = getCarouselConfig(w);
+
+      setCarouselConfig((prev) => {
+        const changed =
+          prev.items !== cfg.items ||
+          prev.gutter !== cfg.gutter ||
+          prev.partialVisible !== cfg.partialVisible;
+
+        if (changed) return cfg;
+        return prev;
+      });
+    };
+
+    // Faz 2 frames para garantir layout estável (evita "só corrige ao resize")
+    const updateStable = () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      raf1 = requestAnimationFrame(() => {
+        update();
+        raf2 = requestAnimationFrame(() => update());
+      });
+    };
+
+    updateStable();
+
+    const onWinResize = () => updateStable();
+    window.addEventListener("resize", onWinResize);
+
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined" && sliderContainerRef.current) {
+      ro = new ResizeObserver(() => updateStable());
+      ro.observe(sliderContainerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", onWinResize);
+      if (ro) ro.disconnect();
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [isBrowser]);
+
+  // Sempre que a config OU os dados mudam, forçamos remount do Carousel
+  // para ele recalcular widths/transform corretamente.
+  useEffect(() => {
+    const k = `${carouselConfig.items}-${Math.round(
+      carouselConfig.gutter
+    )}-${carouselConfig.partialVisible ? 1 : 0}-${loadingData.length}`;
+    setCarouselKey(k);
+
+    // também ajuda em alguns casos do react-multi-carousel
+    if (typeof window !== "undefined") {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new Event("resize"));
+      });
+    }
+  }, [carouselConfig, loadingData.length]);
+
+  const responsive = useMemo(
+    () => ({
+      allScreens: {
+        breakpoint: { max: 4000, min: 0 },
+        items: carouselConfig.items,
+        partialVisibilityGutter: carouselConfig.gutter,
+      },
+    }),
+    [carouselConfig.items, carouselConfig.gutter]
+  );
+
+  // EFEITO DE BLUR NO SCROLL
   useEffect(() => {
     const handleScroll = () => {
       const section = document.querySelector(".blur-slide-screen");
@@ -116,41 +186,11 @@ const TestimonialSection = () => {
       blurElement.style.backdropFilter = `blur(${blurValue}px) brightness(71.42%)`;
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ================== LOAD DATA VIA API ==================
-  const [loadingData, setLoadingData] = useState([]);
-
-  const isBrowser = typeof window !== "undefined";
-  const protocol =
-    isBrowser && window.location.protocol === "https:" ? "https" : "http";
-  const BaseUrl =
-    protocol === "https"
-      ? "https://waveledserver.vercel.app"
-      : "http://localhost:4000";
-
-  async function loadData() {
-    try {
-      const response = await axios.get(BaseUrl + "/api/featured", {
-        withCredentials: true,
-      });
-      const data = response?.data?.data ? response?.data?.data : [];
-      setLoadingData(data);
-      console.clear();
-      console.log(response);
-    } catch (error) {
-      console.clear();
-      console.log(error);
-    }
-  }
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // ================== RENDER ==================
   return (
     <>
       <div
@@ -168,6 +208,7 @@ const TestimonialSection = () => {
           {loadingData.length >= 1 ? (
             <div className="products-slide" ref={sliderContainerRef}>
               <Carousel
+                key={carouselKey}
                 responsive={responsive}
                 infinite={false}
                 arrows={true}
@@ -180,6 +221,7 @@ const TestimonialSection = () => {
                 dotListClass="custom-dot-list-style"
                 partialVisible={carouselConfig.partialVisible}
                 renderDotsOutside={false}
+                shouldResetAutoplay={false}
               >
                 {loadingData.map((item, index) => {
                   const product = item?.wl_product;
@@ -204,24 +246,16 @@ const TestimonialSection = () => {
                     specs.length > 90 ? specs.substring(0, 90) + "..." : specs;
 
                   return (
-                    <article
-                      key={product?._id || index}
-                      className="slider-card"
-                    >
+                    <article key={product?._id || index} className="slider-card">
                       <div className="image-area">
                         {imageUrl && (
-                          <img
-                            src={imageUrl}
-                            alt={truncatedName || "Produto"}
-                          />
+                          <Link href={`single-shop?product=${product?._id || ""}`}><img src={imageUrl} alt={truncatedName || "Produto"} /> </Link>
                         )}
                       </div>
                       <div className="text">
-                        <Link
-                          href={`single-shop?product=${product?._id || ""}`}
-                        >
+                        <Link href={`single-shop?product=${product?._id || ""}`}>
                           <h4>{truncatedName}</h4>
-                        </Link>
+                        </Link> 
                         <p>{truncatedSpecs}</p>
                       </div>
                     </article>
@@ -233,24 +267,33 @@ const TestimonialSection = () => {
         </section>
       </div>
 
-      {/* Estilos específicos do slider e itens */}
       <style jsx global>{`
         .carousel-container-custom {
           width: 100%;
         }
 
-        /* padding horizontal -> 20px totais entre cards */
+        /* Garante que o wrapper do carousel consegue calcular altura/largura sem glitches */
+        .react-multi-carousel-list {
+          width: 100%;
+        }
+
+        /* gap total 20px entre cards */
         .slider-item-custom {
           padding: 0 10px;
           box-sizing: border-box;
         }
 
+        /* Importante:
+           Não usar min-width aqui (causa overflow visual e pode parecer "sobreposto")
+           porque o react-multi-carousel controla a largura do item wrapper.
+           O cálculo de items já assegura ~400px mínimo pela nossa config.
+        */
         .slider-card {
           border-radius: 14px;
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          min-width: ${MIN_CARD_WIDTH}px; /* garante min. ~400px */
+          width: 100%;
           height: 100%;
         }
 

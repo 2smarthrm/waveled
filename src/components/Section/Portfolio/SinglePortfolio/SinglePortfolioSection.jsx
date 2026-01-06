@@ -10,7 +10,7 @@ export default function SinglePortfolioSection({ item }) {
   
   const isBrowser = typeof window !== "undefined";
   const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-  const BASE_API =  protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
+  const BASE_API =  protocol === "https"  ?  'https://waveledserver1.vercel.app' : "http://localhost:4000";
 
   return (
     <div className="section tekup-section-padding">

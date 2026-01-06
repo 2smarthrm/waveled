@@ -1,0 +1,1588 @@
+tenho abaixo o meu code. do megamenu das soluções : "SolutionMegaMenu.jsx" , a minha ideia é onde tenho os slideritems , e tabs , subitutir no sldier pelas banners do megamenu, que vem do endpoint das banners e ond etemso as tabs pellos endpoints das areas de aplicação odne nas tabs teremos o nome das soluç~eos cridas ,e no body do emgamenu no lado direto onde nos temos uma lsiat de subcaterias,, vai ficas araeas de aplciaçãoa direira das araes de aplaicçaão vai ficar todos os produto (soluções crodas paar essa area de aplicação)
+aleter fullcode do frontend : 
+
+
+
+
+
+
+
+
+
+
+"use client";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+export default function SolutionMegaMenu() {
+  // ====== SLIDER (lado esquerdo) ======
+  const sliderItems = useMemo(
+    () => [
+      {
+        title: "Ecrãs LED com impacto real",
+        desc: "Soluções para retalho, publicidade, empresas e eventos.",
+        image:
+          "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765800718/waveled/uploads/dvcmwwu2ztz9jybh0qp5.jpg",
+      },
+      {
+        title: "Montras Digitais Transparentes",
+        desc: "Conteúdo dinâmico sem perder visibilidade do produto.",
+        image: 
+          "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765801082/waveled/uploads/d5fpkyksw11iftkboldz.jpg",
+      },
+      {
+        title: "Experiência em Loja (Retail)",
+        desc: "Promoções, lançamentos e branding com brilho e nitidez.",
+        image:
+          "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765546380/waveled/uploads/smcqd5ii6bokpmyehuw2.jpg",
+      },
+      {
+        title: "Corporate & Apresentações",
+        desc: "Comunicação moderna para auditórios, receções e salas.",
+        image:
+          "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765474610/waveled/uploads/gorvhtvf5xnuzf7dupmt.jpg",
+      },
+      {
+        title: "Instalações Indoor/Outdoor",
+        desc: "Alta luminosidade, robustez e projetos personalizados.",
+        image:
+          "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765279682/waveled/uploads/cgeduuafgxjta3cowo2s.jpg",
+      },
+      {
+        title: "WaveLED — Produtos & Soluções",
+        desc: "Venda, montagem e aluguer com suporte técnico completo.",
+        image: "http://localhost:4000/uploads/1761930429747_tpqlS4NE.png",
+      },
+    ],
+    []
+  );
+
+  // ====== CATEGORIAS (tabs) ====== 
+  const tabs = useMemo(
+    () => [
+      {
+        key: "sinalizacao-digital",
+        label: "Sinalização Digital",
+        heading: "Sinalização Digital — Áreas de Aplicação",
+        hasIndustries: true,
+        industries: [
+          "Ecrã LED Interior",
+          "Ecrã LED Exterior",
+          "Ecrã LED Flexível", 
+          "Ecrã LED para Experiência Imersiva",
+          "Ecrã LED Transparente para Montras Digitais",
+          "Ecrã LED Amovível Modular", 
+        ],
+        featured: [
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765801082/waveled/uploads/d5fpkyksw11iftkboldz.jpg",
+            tag: "Montras Digitais",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765546380/waveled/uploads/smcqd5ii6bokpmyehuw2.jpg",
+            tag: "Retail",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765800718/waveled/uploads/dvcmwwu2ztz9jybh0qp5.jpg",
+            tag: "Campanhas",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765474610/waveled/uploads/gorvhtvf5xnuzf7dupmt.jpg",
+            tag: "Corporate",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765279682/waveled/uploads/cgeduuafgxjta3cowo2s.jpg",
+            tag: "Instalações",
+          },
+          {
+            img: "http://localhost:4000/uploads/1761930429747_tpqlS4NE.png",
+            tag: "Produtos",
+          },
+        ],
+      },
+ 
+      {
+        key: "oled-transparente",
+        label: "Ecrã OLED Transparente",
+        heading: "OLED Transparente",
+        hasIndustries: true,
+        industries: [
+          "Ecrã LED Interior",
+          "Ecrã LED Exterior",
+          "Ecrã LED Flexível",
+          "Centros de saude",
+          "Ecrã LED para Experiência Imersiva",
+          "Hotelaria",
+          "Mobiliarias",
+          "Educação",
+          "Estações de metro", 
+        ],
+        featured: [
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765801082/waveled/uploads/d5fpkyksw11iftkboldz.jpg",
+            tag: "OLED",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765546380/waveled/uploads/smcqd5ii6bokpmyehuw2.jpg",
+            tag: "Retail",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765800718/waveled/uploads/dvcmwwu2ztz9jybh0qp5.jpg",
+            tag: "Experiência",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765474610/waveled/uploads/gorvhtvf5xnuzf7dupmt.jpg",
+            tag: "Corporate",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765279682/waveled/uploads/cgeduuafgxjta3cowo2s.jpg",
+            tag: "Instalações",
+          },
+          {
+            img: "http://localhost:4000/uploads/1761930429747_tpqlS4NE.png",
+            tag: "WaveLED",
+          },
+        ],
+      },
+      {
+        key: "quiosque-digital",
+        label: "Quiosque Digital",
+        heading: "Quiosque Digital",
+        hasIndustries: true,
+         industries: [
+          "Ecrã LED Interior",
+          "Ecrã LED Exterior",
+          "Ecrã LED Flexível",
+          "Centros de saude",
+          "Ecrã LED para Experiência Imersiva",
+          "Hotelaria",
+          "Mobiliarias",
+          "Educação",
+          "Estações de metro",  
+        ],
+        featured: [
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765474610/waveled/uploads/gorvhtvf5xnuzf7dupmt.jpg",
+            tag: "Quiosques",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765546380/waveled/uploads/smcqd5ii6bokpmyehuw2.jpg",
+            tag: "Retail",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765801082/waveled/uploads/d5fpkyksw11iftkboldz.jpg",
+            tag: "Montras",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765800718/waveled/uploads/dvcmwwu2ztz9jybh0qp5.jpg",
+            tag: "Conteúdo",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765279682/waveled/uploads/cgeduuafgxjta3cowo2s.jpg",
+            tag: "Instalações",
+          },
+          {
+            img: "http://localhost:4000/uploads/1761930429747_tpqlS4NE.png",
+            tag: "WaveLED",
+          },
+        ],
+      },
+      {
+        key: "prateleira-digital",
+        label: "Prateleira Digital",
+        heading: "Prateleira Digital",
+        hasIndustries: true,
+         industries: [
+          "Ecrã LED Interior",
+          "Ecrã LED Exterior",
+          "Ecrã LED Flexível",
+          "Centros de saude",
+          "Ecrã LED para Experiência Imersiva",
+          "Hotelaria",
+          "Mobiliarias", 
+        ],
+        featured: [
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765546380/waveled/uploads/smcqd5ii6bokpmyehuw2.jpg",
+            tag: "Prateleiras",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765801082/waveled/uploads/d5fpkyksw11iftkboldz.jpg",
+            tag: "Preço/Info",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765279682/waveled/uploads/cgeduuafgxjta3cowo2s.jpg",
+            tag: "Retail",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765800718/waveled/uploads/dvcmwwu2ztz9jybh0qp5.jpg",
+            tag: "Campanhas",
+          },
+          {
+            img: "https://res.cloudinary.com/dcl5uszfj/image/upload/v1765474610/waveled/uploads/gorvhtvf5xnuzf7dupmt.jpg",
+            tag: "Corporate",
+          },
+          {
+            img: "http://localhost:4000/uploads/1761930429747_tpqlS4NE.png",
+            tag: "WaveLED",
+          },
+        ],
+      }, 
+    ],
+    []
+  );
+
+  // ====== ESTADO MENU ======
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+  const closeTimerRef = useRef(null);
+
+  // ====== SLIDER ======
+  const [idx, setIdx] = useState(0);
+  const [pause, setPause] = useState(false);
+
+  // ====== TAB / ACTIVE ======
+  const [activeTab, setActiveTab] = useState(tabs[0]?.key || "sinalizacao-digital");
+  const active = useMemo(
+    () => tabs.find((t) => t.key === activeTab) || tabs[0],
+    [tabs, activeTab]
+  );
+
+  // ====== INDUSTRY (só para sinalização digital) ======
+  const [activeIndustry, setActiveIndustry] = useState("");
+  useEffect(() => {
+    if (active?.hasIndustries) {
+      setActiveIndustry(active?.industries?.[0] || "");
+    } else {
+      setActiveIndustry("");
+    }
+  }, [activeTab, active?.hasIndustries, active?.industries]);
+
+  // ====== RESPONSIVO GRID (<=1300 => 6; >1300 => 9) ======
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  useEffect(() => {
+    function checkSize() {
+      setIsLargeScreen(window.innerWidth > 1300);
+    }
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
+
+  // ====== GERA CARDS (9 ou 6) ======
+  function hashString(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return h;
+  }
+
+  function getCards(tab, industry) {
+    const base = Array.isArray(tab?.featured) ? tab.featured : [];
+    if (!base.length) return [];
+
+    // para sinalização digital, varia por indústria (fica “vivo”)
+    const seed = tab?.hasIndustries ? hashString(`${tab.key}::${industry}`) : 0;
+
+    const rotated = base
+      .map((x, i) => ({ ...x, __i: i }))
+      .sort((a, b) => ((a.__i + seed) % 97) - ((b.__i + seed) % 97));
+
+    const wanted = isLargeScreen ? 9 : 6;
+    const out = [];
+    for (let i = 0; i < wanted; i++) out.push(rotated[i % rotated.length]);
+    return out.map(({ __i, ...rest }) => rest);
+  }
+
+  const cards = useMemo(
+    () => getCards(active, activeIndustry),
+    [active, activeIndustry, isLargeScreen]
+  );
+
+  // ====== LINKS /SHOP ======
+  function slugify(str) {
+    return (str || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+
+  function getShopHref(tabKey) {
+    //  pedido explícito
+    if (tabKey === "sinalizacao-digital") {
+      return "/shop?category=solucoes-de-quiosque-de-sinalizacao-digital";
+    }
+    // restantes: slug automático pelo key (mantém previsível)
+    return `/shop?category=${slugify(tabKey)}`;
+  }
+
+  // ====== POSICIONAMENTO CORRETO (resolve “renderizar no final da página”) ======
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 0 });
+
+  function updateMenuPosition() {
+    const el = triggerRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const gap = 12;
+    const top = Math.round(rect.bottom + gap);
+    const left = 0; // full width
+    const width = window.innerWidth;
+
+    setMenuPos({ top, left, width });
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    updateMenuPosition();
+
+    const onScroll = () => updateMenuPosition();
+    const onResize = () => updateMenuPosition();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [open]);
+
+  // ====== AUTO-PLAY SLIDER ======
+  useEffect(() => {
+    if (!open) return;
+    if (pause) return;
+
+    const t = setInterval(() => {
+      setIdx((p) => (p + 1) % sliderItems.length);
+    }, 4500);
+
+    return () => clearInterval(t);
+  }, [open, pause, sliderItems.length]);
+
+  useEffect(() => {
+    if (open) setIdx(0);
+  }, [open]);
+
+  // ====== FECHAR AO CLICAR FORA ======
+  useEffect(() => {
+    function onDown(e) {
+      if (!open) return;
+      const t = e.target;
+      const trig = triggerRef.current;
+      const menu = menuRef.current;
+
+      const insideTrigger = trig && trig.contains(t);
+      const insideMenu = menu && menu.contains(t);
+
+      if (!insideTrigger && !insideMenu) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  // ESC
+  useEffect(() => {
+    function onKey(e) {
+      if (!open) return;
+      if (e.key === "Escape") setOpen(false);
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  function next() {
+    setIdx((p) => (p + 1) % sliderItems.length);
+  }
+  function prev() {
+    setIdx((p) => (p - 1 + sliderItems.length) % sliderItems.length);
+  }
+
+  function clearCloseTimer() {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }
+  function scheduleClose() {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => setOpen(false), 160);
+  }
+
+  const current = sliderItems[idx];
+  const ctaHref = "/shop?category=solucoes-de-quiosque-de-sinalizacao-digital";
+
+  return (
+    <div className="wl-mega-root">
+      {/* Trigger */}
+      <div
+        className="product-menu"
+        ref={triggerRef}
+        onMouseEnter={() => {
+          clearCloseTimer();
+          setOpen(true);
+          // garante posição correta no mesmo frame
+          requestAnimationFrame(updateMenuPosition);
+        }}
+        onMouseLeave={scheduleClose}
+      >
+        <a
+          href="/products"
+          className={`wl-navlink ${open ? "is-open" : ""}`}
+          onClick={(e) => {
+            // mobile fallback
+            e.preventDefault();
+            setOpen((s) => !s);
+            requestAnimationFrame(updateMenuPosition);
+          }}
+          aria-haspopup="true"
+          aria-expanded={open}
+        >
+          Soluções
+          <span className={`wl-caret ${open ? "up" : ""}`} />
+        </a>
+      </div>
+
+      {/* Mega menu (FIXED com top calculado => não vai para o final da página) */}
+      <div
+        ref={menuRef}
+        className={`wl-mega ${open ? "show" : ""}`}
+        role="menu"
+        style={{
+          top: menuPos.top,
+          left: menuPos.left,
+          width: menuPos.width,
+        }}
+        onMouseEnter={() => {
+          clearCloseTimer();
+          setOpen(true);
+        }}
+        onMouseLeave={scheduleClose}
+      >
+        <div className="wl-mega-inner">
+          <div className="content-box">
+            {/* ESQUERDA: SLIDER */}
+            <div className="content-slide">
+              <div
+                className="wl-slider"
+                onMouseEnter={() => setPause(true)}
+                onMouseLeave={() => setPause(false)}
+              >
+                <div className="wl-slide-bg">
+                  <img
+                    src={current.image}
+                    alt={current.title}
+                    className="wl-slide-img"
+                    loading="eager"
+                  />
+                  <div className="wl-slide-overlay" />
+
+                  <div className="wl-slide-content">
+                    <div className="text-content">
+                      <h3 className="wl-slide-title">{current.title}</h3>
+                      <p className="wl-slide-desc">{current.desc}</p>
+                    </div>
+
+                    <div className="space-div">
+                      <a href={""} className="wl-slide-cta text-dark">
+                        <span>Explorar soluções</span>
+                      </a>
+
+                      <div className="wl-dots" aria-label="Paginação">
+                        {sliderItems.map((_, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            className={`wl-dot ${i === idx ? "active" : ""}`}
+                            onClick={() => setIdx(i)}
+                            aria-label={`Ir para slide ${i + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* DIREITA */}
+            <div className="wl-right">
+              <div className="space-div">
+                <div>
+                  <h5 className="wl-heading">{active.heading}</h5>
+                </div>
+
+                <button
+                  type="button"
+                  className="close-icon"
+                  onClick={() => setOpen(false)}
+                  aria-label="Fechar menu"
+                  title="Fechar"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="wl-tabs" role="tablist" aria-label="Categorias">
+                {tabs.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className={`wl-tab ${activeTab === t.key ? "active" : ""}`}
+                    onClick={() => setActiveTab(t.key)}
+                    role="tab"
+                    aria-selected={activeTab === t.key}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+             <div style={{margin:"15px 0px"}}>
+               <hr /> 
+             </div>
+
+              <div className="wl-body">
+                {/* Se tiver “áreas de aplicação”, mostra lista + grid */}
+                {active.hasIndustries ? (
+                  <div className="wl-two">
+                    <div className="wl-list" role="listbox" aria-label="Áreas de aplicação">
+                      {active.industries.map((it, i) => {
+                        const isActive = it === activeIndustry;
+                        return (
+                          <button
+                            key={`${active.key}-${i}`}
+                            type="button"
+                            className={`wl-list-item ${isActive ? "is-active" : ""}`}
+                            onClick={() => setActiveIndustry(it)}
+                            role="option"
+                            aria-selected={isActive}
+                          >
+                            <span>{it}</span>
+                            {isActive ? <span className="wl-arrow">→</span> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div>
+                      <div className="wl-grid">
+                        {/** id do produto no link tag  */}
+                        {cards.map((f, i) => (
+                          <a
+                            key={`${active.key}-${activeIndustry}-img-${i}`}
+                            href={`single-shop?product=${f?._id}`} 
+                            className="wl-card"
+                            title={`${f.tag}${activeIndustry ? ` — ${activeIndustry}` : ""}`}
+                          >
+                            <img
+                              src={f.img}
+                              alt={f.tag}
+                              className="wl-card-img"
+                              loading="lazy"
+                            />
+                            <div className="wl-card-shade" />
+                          </a>
+                        ))}
+                      </div>
+
+                      {/*  pedido: ao clicar redirecionar para o category específico */}
+                      <a href={ctaHref} className="wl-all">
+                        Ver soluções para {activeIndustry || "esta área"}
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  // Sem subcategorias: só grid + CTA direto
+                  <div>
+                    <div className="wl-grid">
+                      {cards.map((f, i) => (
+                        <a
+                          key={`${active.key}-img-${i}`}
+                          href={ctaHref}
+                          className="wl-card"
+                          title={f.tag}
+                        >
+                          <img
+                            src={f.img}
+                            alt={f.tag}
+                            className="wl-card-img"
+                            loading="lazy"
+                          />
+                          <div className="wl-card-shade" />
+                        </a>
+                      ))}
+                    </div>
+
+                    <a href={ctaHref} className="wl-all">
+                      Ver soluções de {active.label}
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* rodapé mobile */}
+              <button
+                type="button"
+                className="wl-close d-lg-none"
+                onClick={() => setOpen(false)}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/*  GLOBAL CSS (evita bugs de styled-jsx quando o menu é fixed) */}
+      <style jsx global>{`
+        .wl-mega-root {
+          position: relative;
+          display: inline-block;
+        }
+
+        .wl-navlink {
+          gap: 8px;
+          font-weight: 600;
+          color: #111;
+          text-decoration: none;
+          transition: background 0.15s ease, color 0.15s ease;
+          display: inline-flex;
+          align-items: center;
+        }
+        .wl-navlink.is-open {
+          color: #0019ff;
+        }
+
+        .wl-caret {
+          width: 8px;
+          height: 8px;
+          border-right: 2px solid currentColor;
+          border-bottom: 2px solid currentColor;
+          transform: rotate(45deg);
+          margin-top: -2px;
+          transition: transform 0.15s ease;
+          opacity: 0.8;
+        }
+        .wl-caret.up {
+          transform: rotate(-135deg);
+          margin-top: 2px;
+        }
+
+        /*  FIXED + top calculado => não vai “para o fim da página” */
+        .wl-mega {
+          position: fixed;
+          opacity: 0;
+          transform: translateY(8px);
+          pointer-events: none;
+          transition: opacity 0.18s ease, transform 0.18s ease;
+          z-index: 999999; /* acima de navbar fixed */
+          padding: 0px 60px;
+        }
+        .wl-mega.show {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .wl-mega-inner {
+          background: #fff;
+          border-radius: 18px;
+          box-shadow: 0 16px 50px rgba(0, 0, 0, 0.12);
+          overflow: hidden;
+        }
+
+        .content-box {
+          display: flex;
+          width: 100%;
+        }
+
+        /* SLIDER */
+        .content-slide {
+          flex: 0 0 auto;
+        }
+        .wl-slider {
+          height: 100%;
+          min-height: 570px;
+          min-width: 500px;
+          max-width: 500px; 
+        }
+        .wl-slide-bg {
+          position: relative;
+          height: 100%;
+          min-height: 440px;
+          background: #0b0f18;
+          overflow: hidden;
+        }
+        .wl-slide-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transform: scale(1.02);
+          filter: saturate(1.05);
+        }
+        .wl-slide-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, transparent 40%, #000);
+        }
+        .wl-slide-content {
+          position: relative;
+          z-index: 2;
+          height: 100%;
+          padding: 26px 22px 18px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+
+        .space-div {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .wl-slide-title {
+          color: #fff;
+          font-size: 28px;
+          line-height: 1.1;
+          margin: 0 0 8px;
+          font-weight: 800;
+          text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+        .wl-slide-desc {
+          color: rgba(255, 255, 255, 0.82);
+          margin: 0 0 14px;
+          max-width: 44ch;
+          font-size: 18px;
+        }
+        .wl-slide-cta {
+          width: fit-content;
+          background: #fff;
+          color: #0b0f18 !important;
+          text-decoration: none;
+          font-weight: 700;
+          padding: 10px 14px;
+          border-radius: 12px;
+          transition: transform 0.15s ease;
+          white-space: nowrap;
+        }
+        .wl-slide-cta:hover {
+          transform: translateY(-1px);
+        }
+
+        .wl-dots {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          margin-top: 14px;
+        }
+        .wl-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          border: 0;
+          background: #fff;
+          cursor: pointer;
+          transition: transform 0.15s ease, background 0.15s ease, width 0.15s ease;
+        }
+        .wl-dot.active {
+          background: #0019ff;
+          width: 26px;
+        }
+
+        /* DIREITA */
+        .wl-right {
+          padding: 22px 22px 18px;
+          min-width: 0;
+          flex: 1 1 auto;
+        }
+        .wl-heading {
+          font-size: 22px;
+          font-weight: 900;
+          color: #111827;
+          margin: 0;
+        }
+
+        .wl-tabs {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          padding: 10px;
+          border-radius: 999px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          margin-top: 10px;
+        }
+        .wl-tab {
+          border: 0;
+          background: #f5f7fb;
+          padding: 6px 16px;
+          border-radius: 999px;
+          font-weight: 800;
+          font-size: 16px;
+          white-space: nowrap;
+          color: #111827;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .wl-tab:hover {
+          background: rgba(0, 0, 0, 0.04);
+        }
+        .wl-tab.active {
+          background: #0019ff;
+          color: #fff;
+        }
+
+        .wl-body {
+          margin-top: 6px;
+        }
+
+        .wl-two {
+          display: grid;
+          grid-template-columns: 1fr 1.35fr;
+          gap: 16px;
+          align-items: start;
+        }
+
+        .wl-list {
+          display: grid;
+          gap: 10px;
+          padding-right: 6px;
+          max-height: 500px;
+          overflow: auto;
+        }
+        .wl-list-item {
+          border: 0;
+          background: transparent;
+          width: 100%;
+          text-align: left;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: #6b7280;
+          font-weight: 900;
+          padding: 2px 10px;
+          font-size: 16px;
+          cursor: pointer;
+          border-radius: 10px;
+          transition: background 0.12s ease, color 0.12s ease;
+        }
+        .wl-list-item:hover {
+          background: rgba(13, 110, 253, 0.06);
+          color: #0019ff;
+        }
+        .wl-list-item.is-active {
+          color: #0019ff;
+        }
+        .wl-arrow {
+          color: #0019ff;
+          font-weight: 900;
+        }
+
+        /*  GRID: <=1300 => 2 colunas; >1300 => 3 colunas */
+        .wl-grid {
+          display: grid;
+          gap: 12px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        @media (min-width: 1301px) {
+          .wl-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        .wl-card {
+          position: relative;
+          border-radius: 12px;
+          overflow: hidden;
+          height: 120px;
+          text-decoration: none;
+          background: #0b0f18;
+        } 
+        .wl-card-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transform: scale(1.02);
+        }
+        .wl-card-shade {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.05) 0%,
+            rgba(0, 0, 0, 0.45) 100%
+          );
+        }
+
+        .wl-all {
+          display: inline-block;
+          margin-top: 10px;
+          font-weight: 900;
+          color: #0019ff;
+          text-decoration: none;
+        }
+
+        .wl-close {
+          width: 100%;
+          border: 0;
+          margin-top: 14px;
+          background: #0019ff;
+          color: #fff;
+          font-weight: 900;
+          padding: 12px 14px;
+          border-radius: 12px;
+        }
+
+        .close-icon {
+          border: 0;
+          background: #f5f7fb;
+          color: #111827;
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-weight: 900;
+          transition: transform 0.12s ease, background 0.12s ease;
+          flex: 0 0 auto;
+          margin-top: 2px;
+        }
+        .close-icon:hover {
+          transform: scale(1.04);
+          background: rgba(0, 0, 0, 0.06);
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 991.98px) {
+          .wl-mega {
+            padding: 0 12px;
+          }
+          .content-box {
+            display: block;
+          }
+          .wl-slider {
+            min-height: 300px;
+            min-width: unset;
+            max-width: unset;
+          }
+          .wl-slide-bg {
+            min-height: 300px;
+          }
+          .wl-right {
+            padding: 16px 14px 14px;
+          }
+          .wl-two {
+            grid-template-columns: 1fr;
+          }
+          .wl-list {
+            max-height: 220px;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .wl-slide-title {
+            font-size: 22px;
+          }
+          .wl-grid {
+            grid-template-columns: 1fr;
+          }
+          .wl-card {
+            min-height: 110px;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+
+
+
+
+code do backend para ajudar a relaizar as aç~eos :
+
+
+import express from "express";
+import multer from "multer";
+import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
+
+import {
+  WaveledVerticalSolution,
+  WaveledMegaMenuBanner,
+  WaveledHomeSpecial,
+  WaveledCategoryPage,
+  WaveledApplicationAreas,
+} from "../models/waveledCmsModels.js";
+
+/**
+ * Usa env vars (recomendado):
+ * CLOUDINARY_CLOUD_NAME
+ * CLOUDINARY_API_KEY
+ * CLOUDINARY_API_SECRET
+ */
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "", 
+  api_key: process.env.CLOUDINARY_API_KEY || "",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "",
+});
+
+const router = express.Router();
+
+// Multer memory
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 4 * 1024 * 1024, files: 12 },
+  fileFilter: (_req, file, cb) => {
+    if (/image\/(png|jpe?g|webp|gif|svg\+xml)/.test(file.mimetype)) cb(null, true);
+    else cb(new Error("Tipo de ficheiro inválido"));
+  },
+});
+
+const ok = (res, data, code = 200) => res.status(code).json({ ok: true, data });
+const errJson = (res, message = "Erro", code = 400, issues = null) =>
+  res.status(code).json({ ok: false, error: message, issues });
+
+// ⚠️ Ajusta aqui se no teu projeto a sessão não estiver em req.session.user
+export const requireAuth =
+  (roles = []) =>
+  (req, res, next) => {
+    // console.log("DADOS DE SESSÕES = ", req.session);
+    if (!req.session?.user) return errJson(res, "Não autenticado", 401);
+    if (roles.length && !roles.includes(req.session.user.role))
+      return errJson(res, "Sem permissões", 403);
+    next();
+  };
+
+// Helpers
+const isObjId = (id) => mongoose.isValidObjectId(String(id || ""));
+
+async function uploadFilesToCloudinary(files, folder = "waveled/cms") {
+  if (!files?.length) return [];
+  const toUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder, resource_type: "image", transformation: [{ quality: "auto", fetch_format: "auto" }] },
+        (err, result) => (err ? reject(err) : resolve(result.secure_url))
+      );
+      stream.end(file.buffer);
+    });
+  return Promise.all(files.map(toUrl));
+}
+
+function normalizeOrder(list = []) {
+  return (Array.isArray(list) ? list : [])
+    .map((x, i) => ({ ...x, order: typeof x.order === "number" ? x.order : i }))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+function parseYouTubeId(input = "") {
+  const s = String(input || "").trim();
+  if (!s) return "";
+  if (/^[a-zA-Z0-9_-]{6,}$/.test(s) && !s.includes("http")) return s;
+
+  try {
+    const u = new URL(s);
+    if (u.hostname.includes("youtu.be")) return u.pathname.replace("/", "");
+    if (u.searchParams.get("v")) return u.searchParams.get("v");
+    const m = u.pathname.match(/\/embed\/([^/]+)/);
+    if (m?.[1]) return m[1];
+  } catch {}
+  return s;
+}
+
+/* ============================================================
+ * TAB 1 — Vertical Solutions CRUD + reorder + favorites
+ * ============================================================ */
+
+// LIST
+router.get("/vertical-solutions", requireAuth(["admin", "editor"]), async (req, res) => {
+  const onlyFeatured = String(req.query.featured || "") === "1";
+  const find = onlyFeatured ? { wl_featured_megamenu: true } : {};
+
+  const rows = await WaveledVerticalSolution.find(find)
+    .populate({ path: "wl_product", select: "_id wl_name wl_link wl_images wl_category wl_categories" })
+    .sort({ wl_featured_megamenu: -1, wl_order: 1, wl_updated_at: -1 })
+    .lean();
+
+  return res.json({ ok: true, data: rows });
+});
+
+//  REORDER — TEM DE VIR ANTES DO /:id
+router.put("/vertical-solutions/reorder", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { orderedIds = [] } = req.body;
+
+  if (!Array.isArray(orderedIds) || !orderedIds.length) {
+    return res.status(422).json({ ok: false, error: "orderedIds inválido." });
+  }
+
+  for (const id of orderedIds) {
+    if (!isObjId(id)) {
+      return res.status(422).json({ ok: false, error: `ID inválido: ${id}` });
+    }
+  }
+
+  const ops = orderedIds.map((id, idx) => ({
+    updateOne: { filter: { _id: id }, update: { $set: { wl_order: idx } } },
+  }));
+
+  await WaveledVerticalSolution.bulkWrite(ops);
+
+  return res.json({ ok: true, data: { saved: true } });
+});
+
+// CREATE
+router.post(
+  "/vertical-solutions",
+  requireAuth(["admin", "editor"]),
+  upload.single("image"),
+  async (req, res) => {
+    const { title, description = "", productId = "", featured = "false" } = req.body;
+
+    if (!title?.trim()) return res.status(422).json({ ok: false, error: "Título obrigatório." });
+    if (!req.file) return res.status(422).json({ ok: false, error: "Imagem obrigatória." });
+
+    const [url] = await uploadFilesToCloudinary([req.file], "waveled/vertical-solutions");
+
+    const doc = await WaveledVerticalSolution.create({
+      wl_title: title.trim(),
+      wl_description: String(description || ""),
+      wl_image: url,
+      wl_product: isObjId(productId) ? productId : null,
+      wl_featured_megamenu: String(featured) === "true",
+      wl_order: 0,
+    });
+
+    return res.status(201).json({ ok: true, data: doc });
+  }
+);
+
+// UPDATE — valida ObjectId
+router.put(
+  "/vertical-solutions/:id",
+  requireAuth(["admin", "editor"]),
+  upload.single("image"),
+  async (req, res) => {
+    const { id } = req.params;
+    if (!isObjId(id)) return res.status(422).json({ ok: false, error: "ID inválido." });
+
+    const doc = await WaveledVerticalSolution.findById(id);
+    if (!doc) return res.status(404).json({ ok: false, error: "Não encontrado." });
+
+    const { title, description, productId, featured } = req.body;
+
+    if (title !== undefined) doc.wl_title = String(title).trim();
+    if (description !== undefined) doc.wl_description = String(description || "");
+    if (productId !== undefined) doc.wl_product = isObjId(productId) ? productId : null;
+    if (featured !== undefined) doc.wl_featured_megamenu = String(featured) === "true";
+
+    if (req.file) {
+      const [url] = await uploadFilesToCloudinary([req.file], "waveled/vertical-solutions");
+      doc.wl_image = url;
+    }
+
+    await doc.save();
+    return res.json({ ok: true, data: doc });
+  }
+);
+
+// DELETE — valida ObjectId
+router.delete("/vertical-solutions/:id", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { id } = req.params;
+  if (!isObjId(id)) return res.status(422).json({ ok: false, error: "ID inválido." });
+
+  await WaveledVerticalSolution.deleteOne({ _id: id });
+  return res.json({ ok: true, data: { deleted: true } });
+});
+
+/* ============================================================
+ * TAB 2 — Megamenu Banners CRUD + reorder
+ * ============================================================ */
+
+router.get("/megamenu-banners", requireAuth(["admin", "editor"]), async (_req, res) => {
+  const rows = await WaveledMegaMenuBanner.find({})
+    .populate({ path: "wl_product", select: "_id wl_name wl_link wl_images" })
+    .sort({ wl_order: 1, wl_updated_at: -1 })
+    .lean();
+  return ok(res, rows);
+});
+
+//  REORDER — TEM DE VIR ANTES DO /:id (ISTO RESOLVE O TEU ERRO)
+router.put("/megamenu-banners/reorder", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { orderedIds = [] } = req.body;
+  if (!Array.isArray(orderedIds) || !orderedIds.length) return errJson(res, "orderedIds inválido.", 422);
+
+  for (const id of orderedIds) {
+    if (!isObjId(id)) return errJson(res, `ID inválido: ${id}`, 422);
+  }
+
+  const ops = orderedIds.map((id, idx) => ({
+    updateOne: { filter: { _id: id }, update: { $set: { wl_order: idx } } },
+  }));
+  await WaveledMegaMenuBanner.bulkWrite(ops);
+
+  return ok(res, { saved: true });
+});
+
+router.post(
+  "/megamenu-banners",
+  requireAuth(["admin", "editor"]),
+  upload.single("image"),
+  async (req, res) => {
+    const { title = "", description = "", productId = "" } = req.body;
+    if (!req.file) return errJson(res, "Imagem obrigatória.", 422);
+
+    const [url] = await uploadFilesToCloudinary([req.file], "waveled/megamenu-banners");
+
+    const doc = await WaveledMegaMenuBanner.create({
+      wl_title: String(title || "").trim(),
+      wl_description: String(description || ""),
+      wl_image: url,
+      wl_product: isObjId(productId) ? productId : null,
+      wl_order: 0,
+    });
+
+    return ok(res, doc, 201);
+  }
+);
+
+router.put(
+  "/megamenu-banners/:id",
+  requireAuth(["admin", "editor"]),
+  upload.single("image"),
+  async (req, res) => {
+    const { id } = req.params;
+    if (!isObjId(id)) return errJson(res, "ID inválido.", 422);
+
+    const doc = await WaveledMegaMenuBanner.findById(id);
+    if (!doc) return errJson(res, "Não encontrado.", 404);
+
+    const { title, description, productId } = req.body;
+    if (title !== undefined) doc.wl_title = String(title || "").trim();
+    if (description !== undefined) doc.wl_description = String(description || "");
+    if (productId !== undefined) doc.wl_product = isObjId(productId) ? productId : null;
+
+    if (req.file) {
+      const [url] = await uploadFilesToCloudinary([req.file], "waveled/megamenu-banners");
+      doc.wl_image = url;
+    }
+
+    await doc.save();
+    return ok(res, doc);
+  }
+);
+
+router.delete("/megamenu-banners/:id", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { id } = req.params;
+  if (!isObjId(id)) return errJson(res, "ID inválido.", 422);
+
+  await WaveledMegaMenuBanner.deleteOne({ _id: id });
+  return ok(res, { deleted: true });
+});
+
+/* ============================================================
+ * TAB 3 — Home Specials (4 slots) UPSERT por slot
+ * ============================================================ */
+
+router.get("/home-specials", requireAuth(["admin", "editor"]), async (_req, res) => {
+  const rows = await WaveledHomeSpecial.find({})
+    .populate({ path: "wl_product", select: "_id wl_name wl_link wl_images" })
+    .sort({ wl_slot: 1 })
+    .lean();
+  return ok(res, rows);
+});
+
+router.put(
+  "/home-specials/:slot",
+  requireAuth(["admin", "editor"]),
+  upload.single("image"),
+  async (req, res) => {
+    const slot = Number(req.params.slot);
+    if (![1, 2, 3, 4].includes(slot)) return errJson(res, "Slot inválido (1..4).", 422);
+
+    const { title = "", description = "", productId = "" } = req.body;
+
+    let imageUrl = "";
+    if (req.file) {
+      const [url] = await uploadFilesToCloudinary([req.file], "waveled/home-specials");
+      imageUrl = url;
+    }
+
+    const update = {
+      wl_title: String(title || "").trim(),
+      wl_description: String(description || ""),
+      wl_product: isObjId(productId) ? productId : null,
+      wl_updated_at: new Date(),
+    };
+
+    if (imageUrl) update.wl_image = imageUrl;
+
+    const doc = await WaveledHomeSpecial.findOneAndUpdate(
+      { wl_slot: slot },
+      {
+        $set: update,
+        $setOnInsert: {
+          wl_slot: slot,
+          wl_image: imageUrl || "https://via.placeholder.com/800x800?text=Upload",
+        },
+      },
+      { new: true, upsert: true }
+    );
+
+    return ok(res, doc);
+  }
+);
+
+/* ============================================================
+ * TAB 4 — Category Page Builder (GET/PUT por categoryId)
+ * ============================================================ */
+
+router.get("/category-pages/:categoryId", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { categoryId } = req.params;
+  if (!isObjId(categoryId)) return errJson(res, "categoryId inválido.", 422);
+
+  const doc = await WaveledCategoryPage.findOne({ wl_category: categoryId })
+    .populate({ path: "wl_category", select: "_id wl_name wl_slug" })
+    .populate({
+      path: "top_solutions.solution",
+      select: "_id wl_title wl_image wl_featured_megamenu wl_order wl_product",
+      populate: { path: "wl_product", select: "_id wl_name wl_link wl_images" },
+    })
+    .populate({
+      path: "most_used_solutions.solution",
+      select: "_id wl_title wl_image wl_order wl_product",
+      populate: { path: "wl_product", select: "_id wl_name wl_link wl_images" },
+    })
+    .populate({ path: "featured_product.product", select: "_id wl_name wl_link wl_images" })
+    .populate({ path: "slider_solutions.product", select: "_id wl_name wl_link wl_images" })
+    .populate({ path: "two_special_products.product", select: "_id wl_name wl_link wl_images" })
+    .lean();
+
+  if (!doc) {
+    return ok(res, {
+      wl_category: categoryId,
+      top_solutions: [],
+      featured_product: { product: null, images: [], title: "", description: "" },
+      slider_solutions: [],
+      two_special_products: [],
+      videos: [],
+      most_used_solutions: [],
+    });
+  }
+
+  return ok(res, doc);
+});
+
+router.put(
+  "/category-pages/:categoryId",
+  requireAuth(["admin", "editor"]),
+  upload.fields([
+    { name: "featured_images", maxCount: 10 },
+    { name: "slider_images", maxCount: 20 },
+    { name: "two_special_images", maxCount: 2 },
+  ]),
+  async (req, res) => {
+    const { categoryId } = req.params;
+    if (!isObjId(categoryId)) return errJson(res, "categoryId inválido.", 422);
+
+    let payload;
+    try {
+      payload = JSON.parse(req.body.json || "{}");
+    } catch {
+      return errJson(res, "json inválido.", 422);
+    }
+
+    const featuredFiles = req.files?.featured_images || [];
+    const sliderFiles = req.files?.slider_images || [];
+    const twoSpecialFiles = req.files?.two_special_images || [];
+
+    const featuredUrls = featuredFiles.length
+      ? await uploadFilesToCloudinary(featuredFiles, "waveled/category-pages/featured")
+      : [];
+    const sliderUrls = sliderFiles.length
+      ? await uploadFilesToCloudinary(sliderFiles, "waveled/category-pages/slider")
+      : [];
+    const twoSpecialUrls = twoSpecialFiles.length
+      ? await uploadFilesToCloudinary(twoSpecialFiles, "waveled/category-pages/two-special")
+      : [];
+
+    const clean = {
+      wl_category: categoryId,
+      top_solutions: normalizeOrder(payload.top_solutions || []).map((x, idx) => ({
+        solution: x.solution,
+        order: typeof x.order === "number" ? x.order : idx,
+      })),
+
+      featured_product: {
+        product: payload?.featured_product?.product || null,
+        title: String(payload?.featured_product?.title || ""),
+        description: String(payload?.featured_product?.description || ""),
+        images: Array.isArray(payload?.featured_product?.images) ? payload.featured_product.images : [],
+      },
+
+      slider_solutions: normalizeOrder(payload.slider_solutions || []).map((x, idx) => ({
+        title: String(x.title || ""),
+        image: String(x.image || ""),
+        product: x.product || null,
+        order: typeof x.order === "number" ? x.order : idx,
+      })),
+
+      two_special_products: normalizeOrder(payload.two_special_products || []).map((x, idx) => ({
+        title: String(x.title || ""),
+        image: String(x.image || ""),
+        product: x.product || null,
+        order: typeof x.order === "number" ? x.order : idx,
+      })),
+
+      videos: normalizeOrder(payload.videos || []).map((v, idx) => ({
+        youtubeId: parseYouTubeId(v.youtubeId || ""),
+        title: String(v.title || ""),
+        order: typeof v.order === "number" ? v.order : idx,
+      })),
+
+      most_used_solutions: normalizeOrder(payload.most_used_solutions || []).map((x, idx) => ({
+        solution: x.solution,
+        order: typeof x.order === "number" ? x.order : idx,
+      })),
+
+      wl_updated_at: new Date(),
+    };
+
+    if (featuredUrls.length) {
+      const prev = clean.featured_product.images || [];
+      clean.featured_product.images = [...prev, ...featuredUrls].slice(0, 10);
+    }
+
+    if (sliderUrls.length) {
+      const base = Array.isArray(clean.slider_solutions) ? clean.slider_solutions : [];
+      const extraSlides = sliderUrls.map((u) => ({
+        title: "",
+        image: u,
+        product: null,
+        order: base.length + 999,
+      }));
+      clean.slider_solutions = normalizeOrder([...base, ...extraSlides]);
+    }
+
+    if (twoSpecialUrls.length) {
+      const base = Array.isArray(clean.two_special_products) ? clean.two_special_products : [];
+      while (base.length < 2) base.push({ title: "", image: "", product: null, order: base.length });
+      twoSpecialUrls.forEach((u, i) => {
+        if (base[i]) base[i].image = u;
+      });
+      clean.two_special_products = normalizeOrder(base);
+    }
+
+    const doc = await WaveledCategoryPage.findOneAndUpdate(
+      { wl_category: categoryId },
+      { $set: clean, $setOnInsert: { wl_category: categoryId } },
+      { new: true, upsert: true }
+    );
+
+    return ok(res, doc);
+  }
+);
+
+/* ============================================================
+ * TAB 5 — Application Areas CRUD
+ * ============================================================ */
+
+router.get("/application-areas", requireAuth(["admin", "editor"]), async (_req, res) => {
+  const rows = await WaveledApplicationAreas.find({})
+    .populate({ path: "areas.solutions.product", select: "_id wl_name wl_link wl_images" })
+    .sort({ wl_updated_at: -1 })
+    .lean();
+  return ok(res, rows);
+});
+
+router.post("/application-areas", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { solution_title } = req.body;
+  if (!solution_title?.trim()) return errJson(res, "solution_title obrigatório.", 422);
+
+  const doc = await WaveledApplicationAreas.create({
+    wl_solution_title: solution_title.trim(),
+    areas: [],
+  });
+
+  return ok(res, doc, 201);
+});
+
+router.put(
+  "/application-areas/:id",
+  requireAuth(["admin", "editor"]),
+  upload.any(),
+  async (req, res) => {
+    const { id } = req.params;
+    if (!isObjId(id)) return errJson(res, "ID inválido.", 422);
+
+    const doc = await WaveledApplicationAreas.findById(id);
+    if (!doc) return errJson(res, "Não encontrado.", 404);
+
+    let payload;
+    try {
+      payload = JSON.parse(req.body.json || "{}");
+    } catch {
+      return errJson(res, "json inválido.", 422);
+    }
+
+    const files = req.files || [];
+    const uploadedMap = new Map();
+
+    if (files.length) {
+      const urls = await uploadFilesToCloudinary(files, "waveled/application-areas");
+      files.forEach((f, idx) => uploadedMap.set(f.fieldname, urls[idx]));
+    }
+
+    if (payload.wl_solution_title !== undefined) {
+      doc.wl_solution_title = String(payload.wl_solution_title || "").trim();
+    }
+
+    const nextAreas = Array.isArray(payload.areas) ? payload.areas : [];
+    doc.areas = nextAreas.map((a, aIdx) => {
+      const sols = Array.isArray(a.solutions) ? a.solutions : [];
+      return {
+        title: String(a.title || "").trim(),
+        order: typeof a.order === "number" ? a.order : aIdx,
+        solutions: sols.map((s, sIdx) => {
+          const key = `img__${aIdx}__${sIdx}`;
+          const uploaded = uploadedMap.get(key);
+          return {
+            title: String(s.title || "").trim(),
+            product: isObjId(s.product) ? s.product : null,
+            order: typeof s.order === "number" ? s.order : sIdx,
+            image: uploaded || String(s.image || ""),
+          };
+        }),
+      };
+    });
+
+    await doc.save();
+    return ok(res, doc);
+  }
+);
+
+router.delete("/application-areas/:id", requireAuth(["admin", "editor"]), async (req, res) => {
+  const { id } = req.params;
+  if (!isObjId(id)) return errJson(res, "ID inválido.", 422);
+
+  await WaveledApplicationAreas.deleteOne({ _id: id });
+  return ok(res, { deleted: true });
+});
+
+export default router;
+
+
+app.use("/api/cms", cmsRoutes);
