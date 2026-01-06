@@ -360,7 +360,7 @@ export default function ShopSection() {
 
   const isBrowser = typeof window !== "undefined";
   const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-  const API_BASE = protocol === "https" ? "https://waveledserver1.vercel.app" : "http://localhost:4000";
+  const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
 
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(null);
