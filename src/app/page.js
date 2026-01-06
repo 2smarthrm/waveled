@@ -1,15 +1,7 @@
-/*
-
-/*
-usar um skeleton na zona Explorar todas as soluções
-para ficar masi bonito oa inves d epor um test diznedo carregar soluções, fazer isso e devolver fullcode:
-*/
-
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 
 import AccordionSection from "~/components/Section/Home-4/AccordionSection";
@@ -22,38 +14,41 @@ import HeaderFour from "~/components/Section/Common/Header/HeaderFour";
 import FooterFour from "~/components/Section/Common/FooterFour";
 import CtaThreeSection from "~/components/Section/Common/CtaThree/CtaThreeSection";
 
-const Carousel = dynamic(() => import("react-multi-carousel"), { ssr: false });
-import "react-multi-carousel/lib/styles.css";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 // --------- ENV ---------
 const isBrowser = typeof window !== "undefined";
-const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
-const IMG_HOST = protocol === "https"  ?  'https://waveledserver.vercel.app' : "http://localhost:4000";
+const protocol =
+  isBrowser && window.location.protocol === "https:" ? "https" : "http";
+const API_BASE =
+  protocol === "https"
+    ? "https://waveledserver1.vercel.app"
+    : "http://localhost:4000";
+const IMG_HOST =
+  protocol === "https"
+    ? "https://waveledserver1.vercel.app"
+    : "http://localhost:4000";
 
 // --------- Helpers ---------
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const safeText = (s, fb = "") => (typeof s === "string" && s.trim() ? s : fb);
 const pickImage = (it) =>
-  it?.image || it?.cover || it?.coverUrl || it?.img || it?.thumbnail || it?.thumbUrl || it?.photo;
+  it?.image ||
+  it?.cover ||
+  it?.coverUrl ||
+  it?.img ||
+  it?.thumbnail ||
+  it?.thumbUrl ||
+  it?.photo;
 
 const isMobileUA = () => {
   if (typeof navigator === "undefined") return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-const responsive = {
-  ultraDesktop: { breakpoint: { max: 4000, min: 2560 }, items: 6 },
-  xlDesktop:    { breakpoint: { max: 2560, min: 1920 }, items: 6 },
-  lgDesktop:    { breakpoint: { max: 1920, min: 1536 }, items: 6 },
-  desktop:      { breakpoint: { max: 1536, min: 1280 }, items: 6 },
-  smDesktop:    { breakpoint: { max: 1280, min: 1024 }, items: 4 },
-  lgTablet:     { breakpoint: { max: 1024, min: 834 }, items: 4 },
-  tablet:       { breakpoint: { max: 834,  min: 768 }, items: 3 },
-  phablet:      { breakpoint: { max: 768,  min: 576 }, items: 2 },
-  mobile:       { breakpoint: { max: 576,  min: 375 }, items: 2 },
-  miniMobile:   { breakpoint: { max: 375,  min: 0 },   items: 1 },
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 };
 
 // Ordena: primeiro por mais antigas (ASC), depois acrescenta as mais recentes (DESC) sem duplicar
@@ -78,31 +73,215 @@ const orderFirstOldestThenNewest = (arr) => {
   return merged;
 };
 
+// Repete itens quando há poucos, para o loop ficar “bonito” e sem espaços vazios
+function repeatToMin(items, minCount) {
+  const src = Array.isArray(items) ? items : [];
+  if (src.length === 0) return [];
+  if (src.length >= minCount) return src;
+
+  const out = [];
+  while (out.length < minCount) out.push(...src);
+  return out.slice(0, minCount);
+}
+
 // --------- Axios client ---------
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 15000,
-  // withCredentials: true,
 });
 
 // --------- Skeleton Card (shimmer) ---------
 const SkeletonCard = () => (
-  <article className="featured-card skeleton-card" aria-hidden="true">
-    <div className="image skeleton-box" />
-    <div className="skeleton-title skeleton-box" />
-  </article>
+  <div className="card-slider-vertical" aria-hidden="true">
+    <article className="card-inner skeleton-card-vertical">
+      <div className="image">
+        <div className="skeleton-box skeleton-media" />
+      </div>
+    </article>
+  </div>
 );
 
-const SKELETON_ITEMS = Array.from({ length: 10 }).map((_, i) => i);
+const SKELETON_ITEMS = Array.from({ length: 8 }).map((_, i) => i);
+
+function CardSliderVertical({ item }) {
+  const title = safeText(item?.title, "Solução");
+  const image = item?.image;
+  const productId = item?._id;
+
+  return (
+    <div className="card-slider-vertical">
+      <article className="card-inner">
+        <div className="image">
+          <div className="over-image">
+            <small>
+              {item?.category?.length > 24
+                ? item?.category?.substring(0, 24) + " ..."
+                : item?.category}
+            </small>
+
+            {productId ? (
+              <Link href={`single-shop?product=${productId}`}>
+                <h5>{item?.title}</h5>
+              </Link>
+            ) : (
+              <h5 style={{ cursor: "default" }}>{title}</h5>
+            )}
+
+            {productId ? (
+              <Link href={`single-shop?product=${productId}`}>
+                <button className="bg-primary text-light">Saiba mais</button>
+              </Link>
+            ) : (
+              <button
+                className="bg-primary text-light"
+                disabled
+                style={{ opacity: 0.6 }}
+              >
+                Saiba mais
+              </button>
+            )}
+          </div>
+
+          {image ? (
+            <img src={image} alt={title} />
+          ) : (
+            <div className="skeleton-box skeleton-media" />
+          )}
+        </div>
+      </article>
+    </div>
+  );
+}
 
 const HomeFour = ({ deviceType: deviceTypeProp }) => {
   const deviceType = deviceTypeProp || (isMobileUA() ? "mobile" : "desktop");
-  const autoPlay = deviceType !== "mobile"; 
 
+  // --------------------------
+  // "Explorar todas as soluções"
+  // --------------------------
   const [solutions, setSolutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
+  // --------------------------
+  // Vertical Solutions (FAVORITOS)
+  // --------------------------
+  const [VerticalSolutionsItems, SetVerticalSolutionsItems] = useState([]);
+  const [verticalLoading, setVerticalLoading] = useState(true);
+  const [verticalErr, setVerticalErr] = useState(null);
+
+  // ==========================
+  // FIX: Pause imediato no hover
+  // - Congela a track no transform atual (sem esperar acabar a transição)
+  // ==========================
+  const verticalSliderRef = useRef(null);
+  const trackTransitionRef = useRef("");
+  const isFrozenRef = useRef(false);
+
+  const freezeSlickTrackNow = () => {
+    if (!isBrowser) return;
+    const slider = verticalSliderRef.current;
+    const inner = slider?.innerSlider;
+    const listEl = inner?.list;
+    if (!listEl) return;
+
+    const track = listEl.querySelector(".slick-track");
+    if (!track) return;
+
+    // Guarda transition atual só uma vez
+    if (!isFrozenRef.current) {
+      trackTransitionRef.current = track.style.transition || "";
+    }
+
+    // Pausa autoplay/timer
+    slider?.slickPause?.();
+
+    // Congela no transform atual (frame exato)
+    const computedTransform = window.getComputedStyle(track).transform;
+    track.style.transition = "none";
+    if (computedTransform && computedTransform !== "none") {
+      track.style.transform = computedTransform;
+    }
+
+    isFrozenRef.current = true;
+  };
+
+  const unfreezeSlickTrackAndPlay = () => {
+    const slider = verticalSliderRef.current;
+    const inner = slider?.innerSlider;
+    const listEl = inner?.list;
+    const track = listEl?.querySelector?.(".slick-track");
+
+    if (track && isFrozenRef.current) {
+      // Restaura a transition original (react-slick volta a controlar)
+      const prev = trackTransitionRef.current || "";
+      // 2 frames ajudam a evitar "pulo" quando volta a animar
+      requestAnimationFrame(() => {
+        track.style.transition = prev;
+        requestAnimationFrame(() => {
+          slider?.slickPlay?.();
+        });
+      });
+    } else {
+      slider?.slickPlay?.();
+    }
+
+    isFrozenRef.current = false;
+  };
+
+  // ==========================
+  // FETCH: Favoritos do CMS
+  // ==========================
+  useEffect(() => {
+    const ac = new AbortController();
+
+    (async () => {
+      try {
+        setVerticalLoading(true);
+        setVerticalErr(null);
+
+        const { data } = await api.get("/api/cms/vertical-solutions", {
+          signal: ac.signal,
+          headers: { Accept: "application/json" },
+        });
+
+        const list = Array.isArray(data?.data) ? data.data : [];
+
+        const featured = list
+          .filter((it) => !!it?.wl_featured_megamenu)
+          .map((it) => {
+            const productId = it?.wl_product?._id || it?.wl_product || "";
+            return {
+              solution: "Favoritos",
+              category: safeText(it?.wl_product?.wl_name, "#"),
+              title: safeText(it?.wl_title, "Solução"),
+              image: withHost(it?.wl_image),
+              _id: productId,
+            };
+          });
+
+        SetVerticalSolutionsItems(featured);
+      } catch (e) {
+        if (axios.isCancel(e)) return;
+        const status = e?.response?.status;
+        const statusText = e?.response?.statusText;
+        const msg = status
+          ? `HTTP ${status}${statusText ? ` — ${statusText}` : ""}`
+          : e?.message || "Erro ao carregar favoritos";
+        console.error("Erro a obter /api/cms/vertical-solutions:", e);
+        setVerticalErr(msg);
+        SetVerticalSolutionsItems([]);
+      } finally {
+        setVerticalLoading(false);
+      }
+    })();
+
+    return () => ac.abort();
+  }, []);
+
+  // ==========================
+  // FETCH: /api/solutions
+  // ==========================
   useEffect(() => {
     const ac = new AbortController();
 
@@ -125,7 +304,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
         const statusText = e?.response?.statusText;
         const msg = status
           ? `HTTP ${status}${statusText ? ` — ${statusText}` : ""}`
-          : (e?.message || "Erro ao carregar soluções");
+          : e?.message || "Erro ao carregar soluções";
         console.error("Erro a obter /api/solutions:", e);
         setErr(msg);
       } finally {
@@ -136,7 +315,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
     return () => ac.abort();
   }, []);
 
-  // memo para render rápido
+  // memo para render rápido (mantido)
   const cards = useMemo(() => {
     return (solutions || []).map((item) => {
       const id = String(item?._id || "");
@@ -147,112 +326,182 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
     });
   }, [solutions]);
 
+  // ==========================
+  // Autoplay smooth + infinite sem “buracos”
+  // ==========================
+  const verticalBaseCount = VerticalSolutionsItems.length;
+
+  const verticalForLoop = useMemo(() => {
+    const min = 12;
+    return repeatToMin(VerticalSolutionsItems, min);
+  }, [VerticalSolutionsItems]);
+
+  const shouldInfinite = verticalBaseCount > 4;
+  const shouldAutoplay =
+    deviceType !== "mobile" && shouldInfinite && verticalBaseCount > 4;
+
+  // IMPORTANTE:
+  // - pauseOnHover fica FALSE e fazemos pause "hard" com freeze/restore
+  const VerticalSliderSettings = useMemo(
+    () => ({
+      dots: true,
+      arrows: false,
+      infinite: shouldInfinite,
+      autoplay: shouldAutoplay,
+      autoplaySpeed: 0,
+      speed: 9000,
+      cssEase: "linear",
+
+      pauseOnHover: false, // <<< FIX
+      pauseOnFocus: false, // <<< FIX
+
+      swipeToSlide: true,
+      touchMove: true,
+
+      slidesToShow: 4.5,
+      slidesToScroll: 1,
+
+      responsive: [
+        {
+          breakpoint: 1584,
+          settings: {
+            slidesToShow: 4,
+            slidesToScroll: 1,
+            infinite: verticalBaseCount > 4,
+            autoplay:
+              deviceType !== "mobile" && verticalBaseCount > 4 ? true : false,
+            autoplaySpeed: 0,
+            speed: 9000,
+            cssEase: "linear",
+            dots: true,
+            arrows: false,
+            pauseOnHover: false,
+            pauseOnFocus: false,
+          },
+        },
+        {
+          breakpoint: 1024,
+          settings: {
+            slidesToShow: 3,
+            slidesToScroll: 1,
+            infinite: verticalBaseCount > 3,
+            autoplay:
+              deviceType !== "mobile" && verticalBaseCount > 3 ? true : false,
+            autoplaySpeed: 0,
+            speed: 8000,
+            cssEase: "linear",
+            dots: true,
+            arrows: false,
+            pauseOnHover: false,
+            pauseOnFocus: false,
+          },
+        },
+        {
+          breakpoint: 600,
+          settings: {
+            slidesToShow: 2,
+            slidesToScroll: 1,
+            infinite: verticalBaseCount > 2,
+            autoplay:
+              deviceType !== "mobile" && verticalBaseCount > 2 ? true : false,
+            autoplaySpeed: 0,
+            speed: 7000,
+            cssEase: "linear",
+            dots: true,
+            arrows: false,
+            pauseOnHover: false,
+            pauseOnFocus: false,
+          },
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            infinite: verticalBaseCount > 1,
+            autoplay:
+              deviceType !== "mobile" && verticalBaseCount > 1 ? true : false,
+            autoplaySpeed: 0,
+            speed: 6500,
+            cssEase: "linear",
+            dots: true,
+            arrows: false,
+            pauseOnHover: false,
+            pauseOnFocus: false,
+          },
+        },
+      ],
+    }),
+    [shouldInfinite, shouldAutoplay, verticalBaseCount, deviceType]
+  );
+
   return (
     <div>
       <HeaderFour />
-      <HeroSection /> 
+      <HeroSection />
+
       <section>
         <div className="section home-featured-items tekup-section-padding2 pt-5 pb-3">
           <div className="container-fluid">
             <div className="tekup-section-title text-center">
-              <h3 className="text-dark">Explorar todas as soluções</h3>
-              <p className="text-muted">Projetos e aplicações reais dos nossos produtos.</p>
+              <h2 className="text-dark">
+                Conheça soluções pensadas para vender mais
+              </h2>
+              <p className="text-muted">
+                Projetos e aplicações reais dos nossos produtos.
+              </p>
             </div>
 
             <div
               className="row-featured"
               aria-live="polite"
-              aria-busy={loading ? "true" : "false"}
+              aria-busy={verticalLoading ? "true" : "false"}
             >
-              {/* SKELETON STATE */}
-              {loading && (
-                <Carousel
-                  swipeable
-                  draggable={false}
-                  showDots
-                  responsive={responsive}
-                  infinite
-                  autoPlay={false}
-                  keyBoardControl={false}
-                  customTransition="all .4s ease"
-                  transitionDuration={400}
-                  containerClass="carousel-container"
-                  removeArrowOnDeviceType={["tablet", "mobile"]}
-                  deviceType={deviceType}
-                  dotListClass="custom-dot-list-style"
-                  itemClass="carousel-item-padding-40-px"
-                  renderDotsOutside
-                  aria-label="Carrossel de soluções (a carregar)"
+              <aside className="card-slides-vertical">
+                {/* Wrapper para pause imediato */}
+                <div
+                  className="slick-pause-hard"
+                  onMouseEnter={freezeSlickTrackNow}
+                  onMouseLeave={unfreezeSlickTrackAndPlay}
+                  onFocusCapture={freezeSlickTrackNow}
+                  onBlurCapture={unfreezeSlickTrackAndPlay}
                 >
-                  {SKELETON_ITEMS.map((k) => (
-                    <SkeletonCard key={`sk-${k}`} />
-                  ))}
-                </Carousel>
-              )}
-
-              {/* ERROR STATE */}
-              {!loading && err && (
-                <div className="text-center py-4 text-danger">
-                  Erro: {err}
-                </div>
-              )}
-
-              {/* EMPTY STATE */}
-              {!loading && !err && cards.length === 0 && (
-                <div className="text-center py-4">Sem soluções registadas ainda.</div>
-              )}
-
-              {/* DATA STATE */}
-              {!loading && !err && cards.length > 0 && (
-                <Carousel
-                  swipeable
-                  draggable
-                  showDots
-                  responsive={responsive}
-                  infinite
-                  autoPlay={autoPlay}
-                  autoPlaySpeed={2500}
-                  pauseOnHover
-                  keyBoardControl
-                  customTransition="all .5s ease"
-                  transitionDuration={500}
-                  containerClass="carousel-container"
-                  removeArrowOnDeviceType={["tablet", "mobile"]}
-                  deviceType={deviceType}
-                  dotListClass="custom-dot-list-style"
-                  itemClass="carousel-item-padding-40-px"
-                  renderDotsOutside
-                  aria-label="Carrossel de soluções"
-                >
-                  {cards.map(({ id, title, img, href }) => (
-                    <article key={id} className="featured-card">
-                      <Link href={href} aria-label={title}>
-                        <div className="image">
-                          {img ? (
-                            
-                            <img src={img} alt={title} loading="lazy" decoding="async" />
-                          ) : (
-                            <div
-                              style={{
-                                aspectRatio: "16/9",
-                                width: "100%",
-                                display: "grid",
-                                placeItems: "center",
-                                background: "#f3f3f3",
-                                borderRadius: "8px",
-                              }}
-                              aria-label="Sem imagem disponível"
-                            >
-                              <span style={{ fontSize: 12, color: "#666" }}>Sem imagem</span>
-                            </div>
-                          )}
+                  {verticalLoading ? (
+                    <Slider ref={verticalSliderRef} {...VerticalSliderSettings}>
+                      {SKELETON_ITEMS.map((i) => (
+                        <SkeletonCard key={i} />
+                      ))}
+                    </Slider>
+                  ) : VerticalSolutionsItems.length ? (
+                    <Slider ref={verticalSliderRef} {...VerticalSliderSettings}>
+                      {verticalForLoop.map((item, index) => (
+                        <CardSliderVertical
+                          item={item}
+                          key={`${item?._id || "it"}-${index}`}
+                        />
+                      ))}
+                    </Slider>
+                  ) : (
+                    <div className="wl-empty-vertical text-center">
+                      <strong className="text-dark">
+                        Sem favoritos no Megamenu
+                      </strong>
+                      <div className="text-muted small">
+                        Marca soluções verticais como <b>Favorito</b> para
+                        aparecerem aqui.
+                      </div>
+                      {verticalErr ? (
+                        <div
+                          className="text-danger small"
+                          style={{ marginTop: 6 }}
+                        >
+                          {verticalErr}
                         </div>
-                        <strong>{title}</strong>
-                      </Link>
-                    </article>
-                  ))}
-                </Carousel>
-              )}
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              </aside>
             </div>
           </div>
         </div>
@@ -266,32 +515,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
       <CtaThreeSection />
       <FooterFour />
 
-      {/* Skeleton styles */}
       <style jsx>{`
-        .featured-card {
-          padding: 8px 15px;
-        }
-        .featured-card .image {
-          aspect-ratio: 16/9;
-          width: 100%;
-          overflow: hidden;
-          border-radius: 12px;
-          background: #f3f3f3;
-          margin-bottom: 10px;
-        }
-
-       .featured-card .image img{
-           width:100%;
-           object-fit:cover;
-        }
-
-        .featured-card strong {
-          display: block;
-          font-size: 17px;
-          line-height: 1.35;
-          color: #111;
-        }
-
         /* Skeleton base */
         .skeleton-box {
           position: relative;
@@ -305,38 +529,56 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
           transform: translateX(-100%);
           background: linear-gradient(
             90deg,
-            rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0.6) 50%,
-            rgba(255,255,255,0) 100%
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.6) 50%,
+            rgba(255, 255, 255, 0) 100%
           );
           animation: shimmer 1.2s infinite;
         }
         @keyframes shimmer {
-          100% { transform: translateX(100%); }
+          100% {
+            transform: translateX(100%);
+          }
         }
 
-        .skeleton-card .image {
-          background: #e9ecef;
-          border-radius: 12px;
+        /* Skeleton vertical */
+        .skeleton-card-vertical .image {
+          border-radius: 14px;
+          overflow: hidden;
         }
-        .skeleton-title {
-          height: 14px;
-          width: 80%;
-          border-radius: 8px;
-        }
-
-        /* Fine-tuning spacing for skeleton cards */
-        .skeleton-card {
-          padding: 8px;
-        }
-        .skeleton-card .image {
-          aspect-ratio: 16/9;
-          margin-bottom: 10px;
+        .skeleton-media {
+          width: 100%;
+          height: 260px;
+          border-radius: 14px;
         }
 
-        /* Ensure dots don't jump during skeleton */
-        :global(.react-multi-carousel-dot-list) {
-          margin-top: 8px;
+        .wl-empty-vertical {
+          padding: 22px 10px;
+          border-radius: 14px;
+          background: #f8f9fb;
+        }
+
+        /* Dá um alvo de hover/focus consistente */
+        .slick-pause-hard {
+          outline: none;
+        }
+      `}</style>
+
+      {/* Ajustes globais para o react-slick ficar realmente “smooth” */}
+      <style jsx global>{`
+        .card-slides-vertical .slick-track {
+          display: flex !important;
+          align-items: stretch;
+          will-change: transform;
+        }
+        .card-slides-vertical .slick-slide > div {
+          height: 100%;
+        }
+        .card-slides-vertical .slick-list {
+          overflow: hidden;
+        }
+        .card-slides-vertical .slick-dots {
+          bottom: -28px;
         }
       `}</style>
     </div>

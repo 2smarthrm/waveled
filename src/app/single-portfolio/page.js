@@ -16,7 +16,7 @@ function getApiBaseUrl() {
     return "http://localhost:4000";
   }
 
-  return "https://waveledserver.vercel.app";
+  return "https://waveledserver1.vercel.app";
 }
 
 async function getCase(id) {
