@@ -482,7 +482,7 @@ export default function ShopSection() {
     page.slider_solutions?.map((s) => ({
       title: s.title || "",
       image: s.image || "",
-      link: s.product?.wl_link || `/single-shop?product=${s.product?._id}`,
+      link:   `/single-shop?product=${s.product?._id}`,
     })) || [];
 
   const twoSpecial =
