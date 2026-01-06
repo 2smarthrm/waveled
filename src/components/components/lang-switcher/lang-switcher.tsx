@@ -5,10 +5,10 @@ import { parseCookies, setCookie } from "nookies";
 import { FaGlobeEurope } from "react-icons/fa";
 
 const LANGUAGES = [
-  { code: "pt", label: "Português", flag: "🇵🇹"},
-  { code: "en", label: "Englês", flag: "🇬🇧"},
-  { code: "es", label: "Espanhol", flag: "🇪🇸"},
-  { code: "fr", label: "Francês", flag: "🇫🇷"},
+  { code: "pt", label: "Português", flag: "https://www.countryflags.com/wp-content/uploads/portugal-flag-400.png"},
+  { code: "en", label: "Englês", flag: "https://www.countryflags.com/wp-content/uploads/united-states-of-america-flag-png-large.png"},
+  { code: "es", label: "Espanhol", flag: "https://www.countryflags.com/wp-content/uploads/spain-flag-png-large.png"},
+  { code: "fr", label: "Francês", flag: "https://www.countryflags.com/wp-content/uploads/france-flag-png-large.png"},
 ];
 
 export default function LanguageSwitcher() {
@@ -51,7 +51,7 @@ export default function LanguageSwitcher() {
     setCookie(null, "googtrans", `/pt/${lang}`, {
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
-    });
+    }); 
 
     setCurrent(lang);
     setOpen(false);
@@ -66,7 +66,7 @@ export default function LanguageSwitcher() {
 
       <button onClick={() => setOpen((v) => !v)} className="dropdown-lang">
         <FaGlobeEurope />
-        <span>{activeLang?.flag}</span>
+        <span><img  style={{width:"20px",height:"20px",objectFit:"contain"}} src={activeLang?.flag} alt="" /></span>
       </button>
 
       {open && (
@@ -79,7 +79,8 @@ export default function LanguageSwitcher() {
               onClick={() => changeLanguage(lang.code)}
               style={{width: "100%", padding: "4px 10px", borderRadius: "6px", background: current === lang.code ? "#f1f5f9" : "transparent", 
               border: "none", textAlign: "left", cursor: "pointer", fontSize: "14px"}}>
-              {lang.flag} {lang.label}
+                <img  style={{width:"20px",height:"20px",objectFit:"contain",marginRight:"10px"}} src={lang?.flag} alt="" />
+               {lang.label}
             </button>
           ))}
         </div>
