@@ -49,8 +49,7 @@ function FiveSolutionsSlider({ items }) {
                 <div className="image">
                   <img src={item.image} alt={item.title} />
                 </div>
-                <strong className="text-light">{item.title}</strong>
-
+                <strong className="text-light">{item.title}</strong> 
                 <Link href={item.link}>
                   <button className="tekup-default-btn" type="button">
                     Saiba mais
@@ -103,8 +102,7 @@ function MainItemCategoryPage({ item }) {
         <div className="mt-2 mb-2">
           <hr />
         </div>
-        <br />
-
+        <br /> 
         <Link href={item?.link}>
           <button className="tekup-default-btn" type="button">
             Saiba mais
@@ -145,7 +143,7 @@ function CardSliderVertical({ item }) {
             <small>{item?.product}</small>
             <Link href={item?.link}>
               <h5>{item?.title}</h5>
-            </Link>
+            </Link> 
             <Link href={item?.link}>
               <button className="bg-primary text-light" type="button">
                 Saiba mais
@@ -467,15 +465,15 @@ export default function ShopSection() {
     page.top_solutions?.map((x) => ({
       title: x.solution?.wl_title || "",
       image: x.solution?.wl_image || "",
-      link: x.solution?.wl_product?.wl_link || "#",
+      link: x.solution?.wl_product?.wl_link || `/single-shop?product=${x.solution?.wl_product?._id}`,
       product: x.solution?.wl_product?.wl_name,
     })) || [];
-
+ 
   const mainItem = {
     images: page.featured_product?.images || [],
     title: page.featured_product?.title || "",
     description: page.featured_product?.description || "",
-    link: page.featured_product?.product?.wl_link || "#",
+    link: page.featured_product?.product?.wl_link || `/single-shop?product=${page.featured_product?.product?._id}`,
   };
 
   const sliderSolutions =
@@ -488,7 +486,7 @@ export default function ShopSection() {
   const twoSpecial =
     page.two_special_products?.map((s) => ({
       image: s.image || "",
-      link: s.product?.wl_link || "#",
+      link: s.product?.wl_link || `/single-shop?product=${ s.product?._id}`,
     })) || [];
 
   const mostUsed =
