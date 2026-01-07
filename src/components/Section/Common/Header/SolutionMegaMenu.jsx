@@ -43,7 +43,7 @@ export default function SolutionMegaMenu() {
   const closeTimerRef = useRef(null);
 
   // HOVER OPEN DELAY (ms) - mostrar megamenu em hover apenas após 2000ms
-  const HOVER_OPEN_DELAY_MS = 2000;
+  const HOVER_OPEN_DELAY_MS = 500;
   const hoverTimerRef = useRef(null);
 
   function clearCloseTimer() {
