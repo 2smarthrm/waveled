@@ -6,6 +6,7 @@ import { FaLongArrowAltRight } from "react-icons/fa";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 export default function ProductMegaMenu() {
+  // ...existing code...
   const router = useRouter();
 
   const isBrowser = typeof window !== "undefined";
@@ -46,10 +47,21 @@ export default function ProductMegaMenu() {
   const menuRef = useRef(null);
   const closeTimerRef = useRef(null);
 
+
+  const HOVER_OPEN_DELAY_MS = 500;
+  const hoverTimerRef = useRef(null);
+
   function clearCloseTimer() {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
+    }
+  }
+
+  function clearHoverTimer() {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
     }
   }
 
@@ -60,8 +72,17 @@ export default function ProductMegaMenu() {
 
   function closeNow() {
     clearCloseTimer();
+    clearHoverTimer();
     setOpen(false);
   }
+
+  // cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      clearCloseTimer();
+      clearHoverTimer();
+    };
+  }, []);
 
   function goTo(url) {
     closeNow();
@@ -293,6 +314,9 @@ export default function ProductMegaMenu() {
 
   const productWrapperRef = useRef(null);
 
+  // ref to avoid repeatedly auto-expanding while scrolling
+  const autoExpandRef = useRef(false);
+
   // =========================
   // Tabs arrows (overflow)
   // =========================
@@ -366,6 +390,9 @@ export default function ProductMegaMenu() {
   }, [isBrowser]);
 
   useEffect(() => {
+    // reset auto-expand when changing category
+    autoExpandRef.current = false;
+
     setShowAll(false);
     setWasAtBottomByButton(false);
     requestAnimationFrame(() => {
@@ -392,6 +419,23 @@ export default function ProductMegaMenu() {
         setHasScroll(overflow);
         setAtBottom(overflow ? bottom : true);
         if (!bottom) setWasAtBottomByButton(false);
+
+        // If user scrolls near bottom and we haven't expanded, auto-expand (no need to click "Ver todos")
+        if (!showAll && overflow) {
+          const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 48;
+          if (nearBottom && !autoExpandRef.current) {
+            autoExpandRef.current = true;
+            setShowAll(true);
+            // smooth scroll to bottom after expanding
+            requestAnimationFrame(() => {
+              el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+              setTimeout(() => {
+                const bottomNow = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+                if (bottomNow) setWasAtBottomByButton(true);
+              }, 420);
+            });
+          }
+        }
       });
     };
 
@@ -445,6 +489,56 @@ export default function ProductMegaMenu() {
     }, 420);
   }
 
+  // --- NEW: prevent page scroll when scrolling inside the product list ---
+  useEffect(() => {
+    const el = productWrapperRef.current;
+    if (!el) return;
+
+    let touchStartY = 0;
+
+    function onTouchStart(e) {
+      if (!e.touches || e.touches.length === 0) return;
+      touchStartY = e.touches[0].clientY;
+    }
+
+    function onTouchMove(e) {
+      if (!e.touches || e.touches.length === 0) return;
+      const currentY = e.touches[0].clientY;
+      const dy = touchStartY - currentY; // positive when scrolling down
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+      // if trying to scroll past top or bottom of the inner scrollable, prevent body scroll
+      if ((dy < 0 && atTop) || (dy > 0 && atBottom)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    function onWheel(e) {
+      const delta = e.deltaY;
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+      if ((delta < 0 && atTop) || (delta > 0 && atBottom)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    // need passive: false so preventDefault works
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [open, visibleProducts.length]);
+  // --- end prevent page scroll ---
+
   // min-height 520px quando existir conteúdo
   const hasMenuContent =
     tabsLoading ||
@@ -459,17 +553,37 @@ export default function ProductMegaMenu() {
         className="product-menu"
         ref={triggerRef}
         onMouseEnter={() => {
+          // start hover timer; only open if stayed long enough
           clearCloseTimer();
-          setOpen(true);
-          requestAnimationFrame(updateMenuPosition);
+          clearHoverTimer();
+
+          // if already open (e.g. clicked), ensure position updated immediately
+          if (open) {
+            requestAnimationFrame(updateMenuPosition);
+            return;
+          }
+
+          hoverTimerRef.current = setTimeout(() => {
+            hoverTimerRef.current = null;
+            setOpen(true);
+            requestAnimationFrame(updateMenuPosition);
+          }, HOVER_OPEN_DELAY_MS);
         }}
-        onMouseLeave={scheduleClose}
+        onMouseLeave={() => {
+          // if leaving before hover delay, cancel opening
+          clearHoverTimer();
+          // only schedule close when menu is actually open
+          if (open) scheduleClose();
+        }}
       >
         <a
           href="/products"
           className={`wl-navlink ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
+            // clicking toggles immediately (ignore hover delay)
+            clearHoverTimer();
+            clearCloseTimer();
             setOpen((s) => !s);
             requestAnimationFrame(updateMenuPosition);
           }}
@@ -487,6 +601,7 @@ export default function ProductMegaMenu() {
         style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
         onMouseEnter={() => {
           clearCloseTimer();
+          clearHoverTimer();
           setOpen(true);
         }}
         onMouseLeave={scheduleClose}

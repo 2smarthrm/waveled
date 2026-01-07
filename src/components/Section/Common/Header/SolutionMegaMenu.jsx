@@ -1,4 +1,3 @@
-// ...existing code...
 "use client";
 import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -43,10 +42,21 @@ export default function SolutionMegaMenu() {
   const menuRef = useRef(null);
   const closeTimerRef = useRef(null);
 
+  // HOVER OPEN DELAY (ms) - mostrar megamenu em hover apenas após 2000ms
+  const HOVER_OPEN_DELAY_MS = 2000;
+  const hoverTimerRef = useRef(null);
+
   function clearCloseTimer() {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
+    }
+  }
+
+  function clearHoverTimer() {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
     }
   }
 
@@ -57,8 +67,17 @@ export default function SolutionMegaMenu() {
 
   function closeNow() {
     clearCloseTimer();
+    clearHoverTimer();
     setOpen(false);
   }
+
+  // cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      clearCloseTimer();
+      clearHoverTimer();
+    };
+  }, []);
 
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 0 });
 
@@ -115,6 +134,9 @@ export default function SolutionMegaMenu() {
     return () => window.removeEventListener("resize", checkSize);
   }, [isBrowser]);
 
+  // =========================
+  // Slider (carrega logo que a página carrega)
+  // =========================
   const [sliderItems, setSliderItems] = useState([]);
   const [sliderLoading, setSliderLoading] = useState(false);
 
@@ -201,6 +223,9 @@ export default function SolutionMegaMenu() {
     ? `single-shop?product=${encodeURIComponent(current.productId)}`
     : current.link || "#";
 
+  // =========================
+  // Tabs (carrega logo que a página carrega)
+  // =========================
   const [tabs, setTabs] = useState([]);
   const [tabsLoading, setTabsLoading] = useState(false);
 
@@ -346,23 +371,46 @@ export default function SolutionMegaMenu() {
     ? "min(520px, calc(100vh - 170px))"
     : "min(420px, calc(100vh - 170px))";
 
+  // show central loader while any primary data is still loading
+  const primaryLoading = tabsLoading || sliderLoading;
+
   return (
     <div className="wl-mega-root">
       <div
         className="product-menu"
         ref={triggerRef}
         onMouseEnter={() => {
+          // start hover timer; only open if stayed long enough
           clearCloseTimer();
-          setOpen(true);
-          requestAnimationFrame(updateMenuPosition);
+          clearHoverTimer();
+
+          // if already open (e.g. clicked), ensure position updated immediately
+          if (open) {
+            requestAnimationFrame(updateMenuPosition);
+            return;
+          }
+
+          hoverTimerRef.current = setTimeout(() => {
+            hoverTimerRef.current = null;
+            setOpen(true);
+            requestAnimationFrame(updateMenuPosition);
+          }, HOVER_OPEN_DELAY_MS);
         }}
-        onMouseLeave={scheduleClose}
+        onMouseLeave={() => {
+          // if leaving before hover delay, cancel opening
+          clearHoverTimer();
+          // only schedule close when menu is actually open
+          if (open) scheduleClose();
+        }}
       >
         <a
           href="/solutions"
           className={`wl-navlink ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
+            // clicking toggles immediately (ignore hover delay)
+            clearHoverTimer();
+            clearCloseTimer();
             setOpen((s) => !s);
             requestAnimationFrame(updateMenuPosition);
           }}
@@ -377,15 +425,25 @@ export default function SolutionMegaMenu() {
         ref={menuRef}
         className={`wl-mega ${open ? "show" : ""}`}
         role="menu"
+        aria-busy={primaryLoading ? "true" : "false"}
         style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
         onMouseEnter={() => {
           clearCloseTimer();
+          clearHoverTimer();
           setOpen(true);
         }}
         onMouseLeave={scheduleClose}
       >
         <div className="wl-mega-inner" style={{ maxHeight: compactHeight }}>
-          <div className="content-box">
+          {/* central loader while primary data loads */}
+          {open && primaryLoading ? (
+            <div className="wl-center-loader" role="status" aria-live="polite">
+              <div className="spinner" />
+              <div className="loader-text">A carregar conteúdos…</div>
+            </div>
+          ) : null}
+
+          <div className="content-box" style={{ visibility: open && primaryLoading ? "hidden" : "visible" }}>
             {sliderItems.length ? (
               <div className="content-slide">
                 <div
@@ -626,6 +684,37 @@ export default function SolutionMegaMenu() {
           overflow: hidden;
           width: 100%;
           min-height:620px;
+          position: relative;
+        }
+
+        /* center loader */
+        .wl-center-loader {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          background: rgba(255,255,255,0.92);
+          z-index: 40;
+          pointer-events: none;
+        }
+        .wl-center-loader .loader-text {
+          color: #6b7280;
+          font-weight: 800;
+        }
+        .spinner {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          border: 6px solid rgba(0,0,0,0.08);
+          border-top-color: #0019ff;
+          animation: spin 0.9s linear infinite;
+          box-sizing: border-box;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
         .content-box {
@@ -996,4 +1085,3 @@ export default function SolutionMegaMenu() {
     </div>
   );
 }
-// ...existing code...
