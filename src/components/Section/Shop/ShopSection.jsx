@@ -49,8 +49,8 @@ function FiveSolutionsSlider({ items }) {
                 <div className="image">
                   <img src={item.image} alt={item.title} />
                 </div>
-                <strong className="text-light">{item.title}</strong> 
-                <Link href={item.link}>
+                <strong className="text-light">{item.title}</strong>
+                <Link href={item._productLink}>
                   <button className="tekup-default-btn" type="button">
                     Saiba mais
                   </button>
@@ -102,8 +102,8 @@ function MainItemCategoryPage({ item }) {
         <div className="mt-2 mb-2">
           <hr />
         </div>
-        <br /> 
-        <Link href={item?.link}>
+        <br />
+        <Link href={item._productLink}>
           <button className="tekup-default-btn" type="button">
             Saiba mais
           </button>
@@ -141,10 +141,10 @@ function CardSliderVertical({ item }) {
         <div className="image">
           <div className="over-image">
             <small>{item?.product}</small>
-            <Link href={item?.link}>
+            <Link href={item._productLink}>
               <h5>{item?.title}</h5>
-            </Link> 
-            <Link href={item?.link}>
+            </Link>
+            <Link href={item._productLink}>
               <button className="bg-primary text-light" type="button">
                 Saiba mais
               </button>
@@ -163,7 +163,8 @@ function TwoNiceProducts({ items }) {
       {items.map((item, index) => (
         <article key={index}>
           <img src={item?.image} alt={item.title} />
-          <Link href={item?.link}>
+          <h5 className="mb-4">{item.title}</h5>
+          <Link href={item._productLink}>
             <button className="tekup-default-btn" type="button">
               Saiba mais
             </button>
@@ -335,14 +336,14 @@ function MoreProducts({ items }) {
             <div className="image">
               <img src={item?.image} alt="" />
               <div className="over-image">
-                <Link href={item?.link}>
+                <Link href={item._productLink}>
                   <button className="tekup-default-btn" type="button">
                     Saiba mais
                   </button>
                 </Link>
               </div>
             </div>
-            <Link href={item?.link}>
+            <Link href={item._productLink}>
               <strong className="text-dark">{item?.title}</strong>
             </Link>
           </article>
@@ -379,6 +380,14 @@ export default function ShopSection() {
     ],
   };
 
+  // helper to build product link (prefer explicit id)
+  function buildProductLink(productOrId, fallbackLink) {
+    const pid = productOrId;
+    if (pid && String(pid).trim()) return `/single-shop?product=${encodeURIComponent(String(pid))}`;
+    if (fallbackLink) return fallbackLink;
+    return "#";
+  }
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -414,8 +423,56 @@ export default function ShopSection() {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <p>A carregar…</p>
+      <div className="container text-center">
+        <div className="loader-wrap" role="status" aria-live="polite" aria-label="Carregando conteúdo">
+          <div className="spinner-border" role="status" aria-hidden="false">
+            <span className="visually-hidden">A carregar…</span>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .loader-wrap {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin-top: 200px;
+            margin-bottom: 100px;
+            gap: 12px;
+          }
+
+          /* large circular spinner (Bootstrap-like) */
+          .spinner-border {
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            vertical-align: text-bottom;
+            border: 20px solid rgba(0,0,0,0.08);
+            border-top-color: #0019ff; /* azul primário */
+            border-radius: 50%;
+            animation: spinner-border 0.75s linear infinite;
+            box-sizing: border-box;
+            background: transparent;
+          }
+
+          @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+          }
+
+          /* visually-hidden for accessibility */
+          .visually-hidden {
+            position: absolute !important;
+            height: 1px; width: 1px;
+            overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+            white-space: nowrap; border: 0; padding: 0; margin: -1px;
+          }
+
+          @media (max-width: 800px) {
+            .spinner-border { width: 220px; height: 220px; border-width: 12px; }
+            .loader-wrap { margin-top: 80px; margin-bottom: 40px; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -461,40 +518,63 @@ export default function ShopSection() {
     );
   }
 
+  // map content and ensure a product id + _productLink for every item
   const topVerticalSolutions =
-    page.top_solutions?.map((x) => ({
-      title: x.solution?.wl_title || "",
-      image: x.solution?.wl_image || "",
-      link: x.solution?.wl_product?.wl_link || `/single-shop?product=${x.solution?.wl_product?._id}`,
-      product: x.solution?.wl_product?.wl_name,
-    })) || [];
- 
+    page.top_solutions?.map((x) => {
+      const pid = x.solution?.wl_product?._id || x.solution?.wl_product;
+      const fallback = x.solution?.wl_product?.wl_link;
+      return {
+        title: x.solution?.wl_title || "",
+        image: x.solution?.wl_image || "",
+        productId: pid || "",
+        _productLink: buildProductLink(pid, fallback),
+        product: x.solution?.wl_product?.wl_name,
+      };
+    }) || [];
+
   const mainItem = {
     images: page.featured_product?.images || [],
     title: page.featured_product?.title || "",
     description: page.featured_product?.description || "",
-    link: page.featured_product?.product?.wl_link || `/single-shop?product=${page.featured_product?.product?._id}`,
+    productId: page.featured_product?.product?._id || page.featured_product?.product || "",
+    _productLink: buildProductLink(page.featured_product?.product?._id || page.featured_product?.product, page.featured_product?.product?.wl_link || "#"),
   };
 
   const sliderSolutions =
-    page.slider_solutions?.map((s) => ({
-      title: s.title || "",
-      image: s.image || "",
-      link:   `/single-shop?product=${s.product?._id}`,
-    })) || [];
+    page.slider_solutions?.map((s) => {
+      const pid = s.product?._id || s.product;
+      const fallback = s.product?.wl_link;
+      return {
+        title: s.title || "",
+        image: s.image || "",
+        productId: pid || "",
+        _productLink: buildProductLink(pid, fallback),
+      };
+    }) || [];
 
   const twoSpecial =
-    page.two_special_products?.map((s) => ({
-      image: s.image || "",
-      link: s.product?.wl_link || `/single-shop?product=${ s.product?._id}`,
-    })) || [];
+    page.two_special_products?.map((s) => {
+      const pid = s.product?._id || s.product;
+      const fallback = s.product?.wl_link;
+      return {
+        image: s.image || "",
+        title: s.title || "",
+        productId: pid || "",
+        _productLink: buildProductLink(pid, fallback),
+      };
+    }) || [];
 
   const mostUsed =
-    page.most_used_solutions?.map((x) => ({
-      title: x.solution?.wl_title || "",
-      image: x.solution?.wl_image || "",
-      link: x.solution?.wl_product?.wl_link || `/single-shop?product=${x.solution?.wl_product?._id}`,
-    })) || [];
+    page.most_used_solutions?.map((x) => {
+      const pid = x.solution?.wl_product?._id || x.solution?.wl_product;
+      const fallback = x.solution?.wl_product?.wl_link;
+      return {
+        title: x.solution?.wl_title || "",
+        image: x.solution?.wl_image || "",
+        productId: pid || "",
+        _productLink: buildProductLink(pid, fallback),
+      };
+    }) || [];
 
   const activeAreaTitle =
     page.wl_area?.wl_solution_title || page.wl_area?.wl_title || page.wl_area?.wl_name || "Área";
