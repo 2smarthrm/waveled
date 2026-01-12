@@ -1,3 +1,4 @@
+ // slick-dots
 "use client";
 
 import Link from "next/link";
@@ -368,19 +369,23 @@ export default function ShopSection() {
 
   const verticalSliderSettings = {
     dots: true,
-    infinite: false,
+    infinite: true,    
     arrows: false,
-    speed: 1200,
+    speed: 6000, 
+    cssEase: "linear",  
+    autoplay: true,  
+    autoplaySpeed: 6000, 
     slidesToShow: 3,
-    slidesToScroll: 3,
+    slidesToScroll: 1,    
+    pauseOnHover: true,    
+    pauseOnFocus: true,
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 3 } },
       { breakpoint: 768, settings: { slidesToShow: 2 } },
       { breakpoint: 480, settings: { slidesToShow: 1 } },
     ],
   };
-
-  // helper to build product link (prefer explicit id)
+ 
   function buildProductLink(productOrId, fallbackLink) {
     const pid = productOrId;
     if (pid && String(pid).trim()) return `/single-shop?product=${encodeURIComponent(String(pid))}`;
@@ -652,3 +657,4 @@ export default function ShopSection() {
     </div>
   );
 }
+ 

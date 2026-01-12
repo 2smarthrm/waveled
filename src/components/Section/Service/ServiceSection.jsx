@@ -105,32 +105,31 @@ export default function ServiceSection() {
 
 const Sections = [
   {
-    video:
-      "https://video-previews.elements.envatousercontent.com/h264-video-previews/ff4944d8-11bb-411c-a722-761d19ec76d0/57389351.mp4",
+    video: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(83).png",
     title: "Planeamento",
     reverse: false,
     description:
       "Transformamos objetivos em especificações técnicas: levantamento de espaço, simulação de visibilidade, cálculo de pitch e luminosidade, cronograma e logística. Para eventos (feiras, congressos, ativações) entregamos aluguer chave-na-mão com transporte, montagem, calibração e operação no local — alta resolução, brilho consistente e prazos cumpridos, sem dores de cabeça.",
-    image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(21).png",
+    image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg",
     over_text: { text_1: "Planeamos para impressionar", text_2: "Estudo • Simulação • execução" },
   },
   {
-    video: "https://video-previews.elements.envatousercontent.com/h264-video-previews/dfb54a0f-40b7-4d07-a2c7-01951cc5996d/59570406.mp4",
+    video: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202026-01-12T154552.830.jpg",
     title: "Implementação",
     reverse: true,
     description:
       "Projetamos e instalamos displays LED para retalho, showrooms, auditórios, centros comerciais e fachadas. Indoor de alta definição, outdoor com proteção climática e soluções transparentes para vitrines — tudo integrado com CMS simples, eficiência energética e acabamentos que respeitam a identidade da marca. Entrega “pronta a usar”, segura e fiável.",
-    image:   "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(17).jpg",
+    image:   "https://images.pexels.com/photos/6958531/pexels-photo-6958531.jpeg",
     over_text: { text_1: "Impacto visual sem limites", text_2: "Indoor • Outdoor • Transparente" },
   },
   {
-    video: "https://video-previews.elements.envatousercontent.com/h264-video-previews/b4975842-e96a-4eed-bc1d-ba1efb9b4fd2/11066805.mp4",
+    video: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(86).png",
     title: "Assistência Técnica",
     reverse: false,
     description:
       "Acompanhamos do primeiro dia ao dia-a-dia: auditoria técnica, manutenção preventiva e corretiva, atualizações de firmware, calibração de cor e formação de equipas. Suporte remoto e on-site, SLAs claros e stock de peças críticas para maximizar o tempo de atividade e a longevidade do investimento.",
     image:
-      "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(20).jpg",
+      "https://images.pexels.com/photos/7682087/pexels-photo-7682087.jpeg",
 over_text: { 
   text_1: "Assistência sempre disponível",
   text_2: "Suporte remoto e no local"
@@ -143,7 +142,7 @@ over_text: {
     description:
       "Propostas transparentes e comparáveis: dimensionamento, TCO (custo total de propriedade), consumo energético estimado, opções de financiamento e prazos de entrega. Indicamos o ROI esperado por cenário (retalho, eventos, corporate) e alinhamos tudo com o teu budget — sem surpresas, só clareza.",
     image:
-      "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(21).jpg",
+      "https://images.pexels.com/photos/4386373/pexels-photo-4386373.jpeg",
     over_text: { text_1: "Propostas que convencem", text_2: "ROI • TCO • Financiamento" },
   },
 ];
@@ -202,15 +201,11 @@ over_text: {
 
           {item.video ? 
             <section className="video-area">
-              <video
-                ref={(el) => (videoRefs.current[index] = el)}
-                src={item.video} 
-                loop
-                muted
-                playsInline
-                preload="none"
-                style={{ width: "100%", height: "auto", display: "block" }}
-              />
+              <img 
+                src={item.video}
+                alt={item.title}
+                loading="lazy"
+              /> 
               <div className="over-video-large">
                 <div className="tekup-section-padding">
                   <div className="container">
@@ -227,41 +222,7 @@ over_text: {
           : <></>} 
          
         </div>
-      ))}
-        <aside style={{backgroundColor:"#f2f3fc"}} > 
-        <div className="container">          
-          <h2>Produtos em destaque</h2> 
-          
-        <div id="products-carousel" className="products-carousel pt-0 mb-0">
-          <div className="carousel-featured-products">
-            <div className="container-fluid"> 
-              {LoadingStatus === true ?
-              <Slider {...settings}>
-                {LoadingData?.map((item, index) => (
-                  <div className="d-flex" > 
-                  <article key={index}>
-                    <div style={{minHeight:"500px"}} className="card-content"  >
-                      <strong className="sku">SKU-{item.wl_product?.wl_sku}</strong>
-                     <Link href={`single-shop?product=${item?.wl_product?._id}`}>
-                         <h5>{item?.wl_product?.wl_name.split("").length > 30 ? item?.wl_product?.wl_name.substring(0, 30)+"...": item?.wl_product?.wl_name} </h5>
-                      </Link>
-                      <p>{item.description}</p>
-                      <div className="image"  > 
-                           <img  src={item?.wl_product?.wl_images.length > 0 ? BaseUrl + item?.wl_product?.wl_images[0] : ""} alt={item.title} /> 
-                      </div>
-                    </div> 
-                    </article>   
-                    <div className="dvpd" style={{padding:"10px 15px"}}></div>
-                  </div> 
-                ))}
-              </Slider>
-             : <></>
-              }
-            </div>
-          </div>
-        </div>
-        </div> 
-      </aside>
+      ))} 
     </>
   );
 }

@@ -22,7 +22,7 @@ function getCarouselConfig(containerWidth) {
 
   let partialVisible = false;
   let gutter = 0;
-
+ 
   if (items >= 2 && leftover > 0) {
     const fraction = leftover / MIN_CARD_WIDTH;
     if (fraction >= 0.15) {
@@ -193,10 +193,10 @@ const TestimonialSection = () => {
 
   return (
     <>
-      <div
-        className="section dark-bg blur-slide-screen"
-        style={{ position: "relative" }}
-      >
+    <div className="section bg-dark d-none image-rack">
+         <img src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(79).png" alt="" />
+    </div>
+      <div   className="section dark-bg blur-slide-screen"   style={{ position: "relative" }}  >
         <div className="image-wall">
           <img
             src="https://ik.imagekit.io/fsobpyaa5i/happy-diverse-friends-celebrating-with-sparklers-o-2025-02-13-00-11-44-utc.jpg"
