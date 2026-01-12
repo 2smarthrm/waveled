@@ -24,11 +24,11 @@ const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const API_BASE =
   protocol === "https"
-    ? "https://waveledserver1.vercel.app"
+    ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 const IMG_HOST =
   protocol === "https"
-    ? "https://waveledserver1.vercel.app"
+    ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 
 // --------- Helpers ---------
@@ -155,25 +155,15 @@ function CardSliderVertical({ item }) {
 
 const HomeFour = ({ deviceType: deviceTypeProp }) => {
   const deviceType = deviceTypeProp || (isMobileUA() ? "mobile" : "desktop");
-
-  // --------------------------
-  // "Explorar todas as soluções"
-  // --------------------------
+ 
   const [solutions, setSolutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
-
-  // --------------------------
-  // Vertical Solutions (FAVORITOS)
-  // --------------------------
+ 
   const [VerticalSolutionsItems, SetVerticalSolutionsItems] = useState([]);
   const [verticalLoading, setVerticalLoading] = useState(true);
   const [verticalErr, setVerticalErr] = useState(null);
-
-  // ==========================
-  // FIX: Pause imediato no hover
-  // - Congela a track no transform atual (sem esperar acabar a transição)
-  // ==========================
+ 
   const verticalSliderRef = useRef(null);
   const trackTransitionRef = useRef("");
   const isFrozenRef = useRef(false);
@@ -187,16 +177,13 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
 
     const track = listEl.querySelector(".slick-track");
     if (!track) return;
-
-    // Guarda transition atual só uma vez
+ 
     if (!isFrozenRef.current) {
       trackTransitionRef.current = track.style.transition || "";
     }
-
-    // Pausa autoplay/timer
+ 
     slider?.slickPause?.();
-
-    // Congela no transform atual (frame exato)
+ 
     const computedTransform = window.getComputedStyle(track).transform;
     track.style.transition = "none";
     if (computedTransform && computedTransform !== "none") {
@@ -577,8 +564,73 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
         .card-slides-vertical .slick-list {
           overflow: hidden;
         }
+
+        /* FORCE DOTS VISIBLE:
+           - reset any transparent/overridden rules
+           - replace default pseudo-dot with a solid button so it's always visible
+        */
         .card-slides-vertical .slick-dots {
-          bottom: -28px;
+          position: relative;
+          bottom: 8px; /* bring dots into view */
+          margin: 12px 0 0;
+          display: flex !important;
+          justify-content: center;
+          gap: 8px;
+          z-index: 30;
+          pointer-events: auto;
+        }
+
+        .card-slides-vertical .slick-dots li {
+          margin: 0 !important;
+          padding: 0;
+          list-style: none;
+        }
+
+        /* hide default pseudo and render our own circular button */
+        .card-slides-vertical .slick-dots li button {
+          width: 12px;
+          height: 12px;
+          padding: 0;
+          border-radius: 999px;
+          border: none;
+          background: rgba(255, 255, 255, 0.9);
+          display: inline-block; 
+          transition: width 240ms ease, background 240ms ease, transform 160ms ease;
+          -webkit-appearance: none;
+        }
+
+        /* remove default :before visual (some themes set it) */
+        .card-slides-vertical .slick-dots li button:before {
+          content: '';
+          display: none;
+        }
+
+        .card-slides-vertical .slick-dots li.slick-active button {
+          width: 28px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.98);
+          transform: scale(1.02);
+        }
+
+        /* small responsive tweak */
+        @media (max-width: 768px) {
+          .card-slides-vertical .slick-dots {
+            bottom: 6px;
+          }
+          .card-slides-vertical .slick-dots li button {
+            width: 10px;
+            height: 10px;
+          }
+          .card-slides-vertical .slick-dots li.slick-active button {
+            width: 22px;
+          }
+        }
+
+        /* ensure dots aren't clipped by overflow on parent containers */
+        .card-slides-vertical,
+        .card-slides-vertical .slick-list,
+        .card-slides-vertical .slick-slider {
+          overflow: visible !important;
         }
       `}</style>
     </div>
