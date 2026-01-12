@@ -131,7 +131,7 @@ const HeaderFourInner = () => {
 
     const targets = Array.from(
       document.querySelectorAll(
-        ".main-home-hero, .blur-slide-screen, .video-shop-large-section, .service-img, .services-section, .video-area"
+        ".blur-slide-screen, .video-shop-large-section, .service-img, .services-section, .video-area"
       )
     );
     if (!targets.length) return false;

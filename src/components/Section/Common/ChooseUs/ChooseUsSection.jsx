@@ -1,3 +1,5 @@
+
+// #f2f3fc -      
 "use client"
 
 import Image from "next/image";
@@ -5,13 +7,14 @@ import Link from "next/link";
 
 const ChooseUsSection = ({ className }) => {
   return (
-    <div className={className}>
+    <div className={"main-area"}>
       <div className="container">
         <div className="text-center">
-          <br />
-          <div className="text-content">
-            <h1 className="text-white rainbow-run">
-              Distribuímos Luz e Imagem para todos os cantos do Globo
+          <br /><br /><br /><br /><br /><br /><br />
+          <div className="text-content service-header">
+            <span className="service-badge">Serviços</span>
+            <h1 className="text-dark rainbow-run rainbow-text">
+               Distribuímos Luz  e imagem para  todos os  cantos do Globo 
             </h1>
             <p className="text-secondary">
               Somos uma empresa focada na <strong>distribuição de displays LED </strong> 

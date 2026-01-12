@@ -43,7 +43,7 @@ const ItSolutionSection = () => {
             <div className="tekup-thumb ml-60">
               <img
                 className="sport-img"
-                src="https://ddw.usa18.mega--cloud.com/uploads/image/65fa8c0fab636.jpg"
+                src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(66).png"
                 alt="Painel LED instalado em contexto desportivo"
               />
             </div>
@@ -76,56 +76,61 @@ const ItSolutionSection = () => {
 
       {/* CARDS DE PRODUTO / SOLUÇÕES */}
       <section className="section py-2 pb-0 tekup-section-padding">
-        <div className="home-top-product">
-          {/* 1º CARD – TELAS LED PARA QUIOSQUES */}
-          <article className="top-product-card">
-            <div className="image">
-              <img
-                src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(36).png"
-                alt="Telas LED em quiosque digital"
-              />
-            </div>
-            <div className="over-card">
-              <h3>Telas LED para quiosques e pontos de informação</h3>
-              <p>
-                <small>
-                  Transforme quiosques, receções e pontos de atendimento com
-                  telas LED personalizadas. Ideal para menus digitais,
-                  sinalética interativa, campanhas promocionais e informação em
-                  tempo real.
-                </small>
-              </p>
-              <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
-              </Link>
-            </div>
-          </article>
+  <div className="home-top-product">
+    {/* 1º CARD – PAINÉIS LED PARA PUBLICIDADE EXTERIOR */}
+    <article className="top-product-card">
+      <div className="image">
+        <img
+          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(64).png"
+          alt="Painel LED publicitário exterior"
+          loading="lazy"
+        />
+      </div>
 
-          {/* 2º CARD – TELAS TRANSPARENTES MODERNAS */}
-          <article className="top-product-card">
-            <div className="image">
-              <img
-                src="https://ik.imagekit.io/fsobpyaa5i/uh4ur4uh4.jpg"
-                alt="Telas LED transparentes em montra"
-              />
-            </div>
-            <div className="over-card">
-              <h3>Telas LED transparentes para empresas modernas</h3>
-              <p>
-                <small>
-                  Dê um aspeto futurista à sua empresa com telas LED
-                  transparentes para montras, showrooms e escritórios. Perfeitas
-                  para comunicar ofertas, reforçar o branding e criar
-                  experiências visuais inovadoras sem bloquear a visibilidade.
-                </small>
-              </p>
-              <Link className="tekup-default-btn" href="/contact-us">
-                Solicitar projeto <i className="ri-arrow-right-up-line"></i>
-              </Link>
-            </div>
-          </article>
-        </div>
-      </section>
+      <div className="over-card">
+        <h3>Painéis LED para publicidade exterior</h3>
+        <p>
+          <small>
+            Soluções de painéis LED de grande formato para publicidade exterior,
+            ideais para outdoors, fachadas e estruturas urbanas. Garantem alta
+            luminosidade, excelente visibilidade à distância.
+          </small>
+        </p>
+
+        <Link className="tekup-default-btn" href="/contact-us">
+          Solicitar projeto <i className="ri-arrow-right-up-line"></i>
+        </Link>
+      </div>
+    </article>
+
+    {/* 2º CARD – TELAS LED PARA SALAS DE REUNIÃO E CORPORATE */}
+    <article className="top-product-card">
+      <div className="image">
+        <img
+          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(65).png"
+          alt="Tela LED em sala de reuniões corporativa"
+          loading="lazy"
+        />
+      </div>
+
+      <div className="over-card">
+        <h3>Telas LED para salas de reunião e ambientes corporativos</h3>
+        <p>
+          <small>
+            Telas LED profissionais para salas de reunião, auditórios e espaços
+            corporativos. Ideais para apresentações, dashboards, videoconferência
+            e visualização de dados em tempo real.
+          </small>
+        </p>
+
+        <Link className="tekup-default-btn" href="/contact-us">
+          Solicitar projeto <i className="ri-arrow-right-up-line"></i>
+        </Link>
+      </div>
+    </article>
+  </div>
+</section>
+
 
       <br />
       <br />

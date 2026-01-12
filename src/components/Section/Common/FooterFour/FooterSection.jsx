@@ -5,7 +5,13 @@ import { useEffect, useState } from "react";
 
 const isBrowser = typeof window !== "undefined";
 const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
+const API_BASE =
+  protocol === "https"
+    ? "https://waveledserver.vercel.app"
+    : "http://localhost:4000";
+
+const LOGO_URL =
+  "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png";
 
 const toArray = (raw) =>
   Array.isArray(raw)
@@ -33,11 +39,11 @@ export default function FooterFore() {
     (async () => {
       setLoading(true);
       setErr("");
-      try { 
+      try {
         const raw = await fetchJson(`${API_BASE}/api/cms/application-areas`);
         if (abort) return;
-        const items = toArray(raw);
 
+        const items = toArray(raw);
         const list = (items || [])
           .map((a) => {
             const id = a?._id || a?.wl_slug || String(a?.wl_name || "");
@@ -61,158 +67,195 @@ export default function FooterFore() {
     };
   }, []);
 
-  return (
-    <>
-      <footer className="tekup-footer-section dark-bg">
-        <div className="container">
-          <div className="tekup-footer-top tekup-section-padding">
-            <div className="row">
-              <div className="col-xl-3 col-lg-12">
-                <div className="tekup-footer-textarea light-color">
-                  <Link href="/">
-                    <img
-                      src={"https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png"}
-                      alt=""
-                      style={{ maxHeight: "65px" }}
-                    />
-                  </Link>
-                  <p>
-                    Waveled é uma empresa inovadora especializada em soluções
-                    display led, unindo eficiência, qualidade e
-                    design moderno.
-                  </p>
-                  <div className="tekup-social-icon-box style-two">
-                    <ul>
-                      <li>
-                        <Link className="social-link" href="#">
-                          <i className="ri-facebook-fill" />
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="social-link" href="#">
-                          <i className="ri-linkedin-fill" />
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div className="col-xl-2 offset-xl-1 col-md-3">
-                <div className="tekup-footer-menu light-color">
-                  <div className="tekup-footer-title light-color">
-                    <h5>Empresa</h5>
-                  </div>
-                  <ul>
-                    <li>
-                      <Link href="about-us">Sobre Nós</Link>
-                    </li>
-                    <li>
-                      <Link href="/service">Serviços</Link>
-                    </li>
-                    <li>
-                      <Link href="contact-us">Contatos</Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-xl-3 col-md-4">
-                <div className="tekup-footer-menu light-color extar-margin">
-                  <div className="tekup-footer-title light-color">
-                    <h5>Soluções</h5>
-                  </div>
-                  {loading ? (
-                    <ul>
-                      <li>
-                        <span className="text-light">A carregar…</span>
-                      </li>
-                    </ul>
-                  ) : err ? (
-                    <ul>
-                      <li>
-                        <span className="text-danger">{err}</span>
-                      </li>
-                      <li>
-                        <Link href="/shop">Todas as soluções</Link>
-                      </li>
-                    </ul>
-                  ) : areasList.length === 0 ? (
-                    <ul>
-                      <li>
-                        <span className="text-light">Sem áreas de aplicação.</span>
-                      </li>
-                    </ul>
-                  ) : (
-                    <ul>
-                      {areasList.map((a) => (
-                        <li key={a.id}>
-                          <Link href={`/shop?area=${encodeURIComponent(a.id)}`}>{a.name}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
+  // Estilos: footer branco + texto preto
+  const footerStyle = {
+    backgroundColor: "#ffffff",
+    color: "#111111",
+    borderTop: "1px solid #eaeaea",
+  };
 
-              <div className="col-xl-3 col-md-4">
-                <div className="tekup-footer-menu light-color extar-margin">
-                  <div className="tekup-footer-title light-color">
-                    <h5>Contactos</h5>
-                  </div>
+  const textStyle = { color: "#111111" };
+  const mutedStyle = { color: "#333333" };
+  const linkStyle = { color: "#111111" };
+
+  return (
+    <footer className="tekup-footer-section" style={footerStyle}>
+      <div className="container">
+        <div className="tekup-footer-top tekup-section-padding">
+          <div className="row">
+            <div className="col-xl-3 col-lg-12">
+              <div className="tekup-footer-textarea">
+                <Link href="/">
+                  <img
+                    src={LOGO_URL}
+                    alt="Waveled"
+                    style={{ maxHeight: "65px", width: "auto" }}
+                  />
+                </Link>
+
+                <p style={{ ...mutedStyle, marginTop: "14px" }}>
+                  Waveled é uma empresa inovadora especializada em soluções display led,
+                  unindo eficiência, qualidade e design moderno.
+                </p>
+
+                <div className="tekup-social-icon-box d-none style-two">
                   <ul>
                     <li>
-                      <div className="icon"> </div>
-                      <span className="text-light text-white">
-                        Rua Fernando Farinha nº 2A e 2B Braço de Prata
-                        1950-448 Lisboa
-                      </span>
+                      <Link className="social-link" href="#" style={linkStyle}>
+                        <i className="ri-facebook-fill" />
+                      </Link>
                     </li>
                     <li>
-                      <div className="icon"> </div>
-                      <span className="text-light text-white">
-                        Email : <a href="mailto:sales@waveled.com">sales@waveled.com</a>
-                      </span>
-                    </li>
-                    <li>
-                      <div className="icon"> </div>
-                      <span className="text-light text-white">Tel : +351 210 353 555</span>
-                      <br />
-                      <span style={{ marginLeft: "40px" }} className="text-light">
-                        +351 212 456 082
-                      </span>
-                      <br />
-                      <small style={{ fontSize: "14px" }} className="text-primary">
-                        Chamada para a Rede Fixa Nacional
-                      </small>
+                      <Link className="social-link" href="#" style={linkStyle}>
+                        <i className="ri-linkedin-fill" />
+                      </Link>
                     </li>
                   </ul>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="tekup-footer-bottom">
-            <div className="row">
-              <div className="col-md-6">
-                <div className="tekup-copywright light-color right">
-                  <p>©{new Date().getFullYear()} waveled. All rights reserved.</p>
+
+            <div className="col-xl-2 offset-xl-1 col-md-3">
+              <div className="tekup-footer-menu">
+                <div className="tekup-footer-title">
+                  <h5 style={textStyle}>Empresa</h5>
                 </div>
+                <ul>
+                  <li>
+                    <Link href="about-us" style={linkStyle}>
+                      Sobre Nós
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/service" style={linkStyle}>
+                      Serviços
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="contact-us" style={linkStyle}>
+                      Contatos
+                    </Link>
+                  </li>
+                </ul>
               </div>
-              <div className="col-md-6">
-                <div className="tekup-footer-menu light-color style-two right mb-0">
+            </div>
+
+            <div className="col-xl-3 col-md-4">
+              <div className="tekup-footer-menu extar-margin">
+                <div className="tekup-footer-title">
+                  <h5 style={textStyle}>Soluções</h5>
+                </div>
+
+                {loading ? (
                   <ul>
                     <li>
-                      <Link href="/privacy_and_policy">Políticas de Privacidade</Link>
-                    </li>
-                    <li>
-                      <Link href="/terms_and_conditions">Termos &amp; Condições</Link>
+                      <span style={mutedStyle}>A carregar…</span>
                     </li>
                   </ul>
+                ) : err ? (
+                  <ul>
+                    <li>
+                      <span style={{ color: "#dc2626" }}>{err}</span>
+                    </li>
+                    <li>
+                      <Link href="/shop" style={linkStyle}>
+                        Todas as soluções
+                      </Link>
+                    </li>
+                  </ul>
+                ) : areasList.length === 0 ? (
+                  <ul>
+                    <li>
+                      <span style={mutedStyle}>Sem áreas de aplicação.</span>
+                    </li>
+                  </ul>
+                ) : (
+                  <ul>
+                    {areasList.map((a) => (
+                      <li key={a.id}>
+                        <Link
+                          href={`/shop?area=${encodeURIComponent(a.id)}`}
+                          style={linkStyle}
+                        >
+                          {a.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-4">
+              <div className="tekup-footer-menu extar-margin">
+                <div className="tekup-footer-title">
+                  <h5 style={textStyle}>Contactos</h5>
                 </div>
+                <ul>
+                  <li>
+                    <div className="icon" />
+                    <span style={mutedStyle}>
+                      Rua Fernando Farinha nº 2A e 2B Braço de Prata 1950-448 Lisboa
+                    </span>
+                  </li>
+
+                  <li>
+                    <div className="icon" />
+                    <span style={mutedStyle}>
+                      Email :{" "}
+                      <a href="mailto:sales@waveled.com" style={linkStyle}>
+                        sales@waveled.com
+                      </a>
+                    </span>
+                  </li>
+
+                  <li>
+                    <div className="icon" />
+                    <span style={mutedStyle}>Tel : +351 210 353 555</span>
+                    <br />
+                    <span style={{ marginLeft: "40px", ...mutedStyle }}>
+                      +351 212 456 082
+                    </span>
+                    <br />
+                    <small style={{ fontSize: "14px", color: "#2563eb" }}>
+                      Chamada para a Rede Fixa Nacional
+                    </small>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
-      </footer>
-    </>
+
+        <div className="tekup-footer-bottom" style={{ borderTop: "1px solid #eaeaea" }}>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="tekup-copywright right">
+                <p style={{ ...mutedStyle, margin: 0 }}>
+                  ©{new Date().getFullYear()} Waveled. All rights reserved.
+                </p>
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <div className="tekup-footer-menu style-two right mb-0">
+                <ul>
+                  <li>
+                    <Link href="/privacy_and_policy" style={linkStyle}>
+                      Políticas de Privacidade
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/terms_and_conditions" style={linkStyle}>
+                      Termos &amp; Condições
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
- 

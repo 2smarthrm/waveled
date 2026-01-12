@@ -1,50 +1,79 @@
 "use client";
+
 import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Slider from "react-slick";
+import { GoArrowLeft, GoArrowRight } from "react-icons/go";
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+function NextArrow(props) {
+  const { onClick, currentSlide, slideCount } = props || {};
+  const isEnd =
+    typeof currentSlide === "number" && typeof slideCount === "number"
+      ? currentSlide >= slideCount - 1
+      : false;
+  if (isEnd) return null;
+
+  return (
+    <button type="button" className="navArrow navNext" onClick={onClick} aria-label="Próximo">
+      <span className="icon">
+        <GoArrowRight />
+      </span>
+    </button>
+  );
+}
+
+function PrevArrow(props) {
+  const { onClick, currentSlide } = props || {};
+  const isStart = typeof currentSlide === "number" ? currentSlide <= 0 : false;
+  if (isStart) return null;
+
+  return (
+    <button type="button" className="navArrow navPrev" onClick={onClick} aria-label="Anterior">
+      <span className="icon">
+        <GoArrowLeft />
+      </span>
+    </button>
+  );
+}
 
 export default function SolutionMegaMenu() {
   const isBrowser = typeof window !== "undefined";
-  const protocol =
-    isBrowser && window.location.protocol === "https:" ? "https" : "http";
-  const API_BASE =
-    protocol === "https"
-      ? "https://waveledserver.vercel.app"
-      : "http://localhost:4000";
-  const IMG_HOST = API_BASE;
-
-  function normalizeImg(src) {
-    if (!src) return "";
-    const s = String(src);
-    if (s.startsWith("http://") || s.startsWith("https://")) return s;
-    return `${IMG_HOST}${s.startsWith("/") ? "" : "/"}${s}`;
-  }
+  const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
+  const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
 
   async function fetchJson(url) {
-    const r = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
+    const r = await fetch(url, { credentials: "include", cache: "no-store" });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data?.error || "Falha ao carregar");
     return data;
   }
 
-  function hashString(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    return h;
+  function normalizeImg(src) {
+    if (!src) return "";
+    const s = String(src);
+    if (s.startsWith("http://") || s.startsWith("https://")) return s;
+    return `${API_BASE}${s.startsWith("/") ? "" : "/"}${s}`;
   }
+
+  const PLACEHOLDER =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='250' height='400' viewBox='0 0 250 400'>
+        <rect fill='#e9ecef' width='100%' height='100%'/>
+        <g fill='#cfd6dd' font-family='Arial, Helvetica, sans-serif' font-size='12' text-anchor='middle'>
+          <text x='50%' y='50%' dy='0.35em'>Sem imagem</text>
+        </g>
+      </svg>`
+    );
 
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
   const closeTimerRef = useRef(null);
-
-  // HOVER OPEN DELAY (ms) - mostrar megamenu em hover apenas após 2000ms
-  const HOVER_OPEN_DELAY_MS = 500;
-  const hoverTimerRef = useRef(null);
+  const hoverOpenTimerRef = useRef(null);
 
   function clearCloseTimer() {
     if (closeTimerRef.current) {
@@ -52,35 +81,30 @@ export default function SolutionMegaMenu() {
       closeTimerRef.current = null;
     }
   }
-
-  function clearHoverTimer() {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
+  function clearHoverOpenTimer() {
+    if (hoverOpenTimerRef.current) {
+      clearTimeout(hoverOpenTimerRef.current);
+      hoverOpenTimerRef.current = null;
     }
   }
-
   function scheduleClose() {
     clearCloseTimer();
     closeTimerRef.current = setTimeout(() => setOpen(false), 160);
   }
-
   function closeNow() {
     clearCloseTimer();
-    clearHoverTimer();
+    clearHoverOpenTimer();
     setOpen(false);
   }
 
-  // cleanup timers on unmount
   useEffect(() => {
     return () => {
       clearCloseTimer();
-      clearHoverTimer();
+      clearHoverOpenTimer();
     };
   }, []);
 
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 0 });
-
   function updateMenuPosition() {
     const el = triggerRef.current;
     if (!el || !isBrowser) return;
@@ -93,286 +117,193 @@ export default function SolutionMegaMenu() {
   useEffect(() => {
     if (!open) return;
     updateMenuPosition();
-
     const onScroll = () => updateMenuPosition();
     const onResize = () => updateMenuPosition();
-
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
-
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
     };
   }, [open]);
 
+  // ✅ Bloquear scroll da página enquanto o menu está aberto
+  useEffect(() => {
+    if (!isBrowser) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    // guardamos estilos atuais para repor
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+
+    const lock = () => {
+      // compensa a scrollbar para não “saltar” o layout
+      const scrollBarWidth = window.innerWidth - html.clientWidth;
+      body.style.overflow = "hidden";
+      if (scrollBarWidth > 0) body.style.paddingRight = `${scrollBarWidth}px`;
+    };
+
+    const unlock = () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+    };
+
+    const onWheel = (e) => {
+      if (!open) return;
+      const menu = menuRef.current;
+      if (!menu) {
+        e.preventDefault();
+        return;
+      }
+      // permite wheel dentro do menu/slider, bloqueia fora
+      const inside = menu.contains(e.target);
+      if (!inside) e.preventDefault();
+    };
+
+    const onTouchMove = (e) => {
+      if (!open) return;
+      const menu = menuRef.current;
+      if (!menu) {
+        e.preventDefault();
+        return;
+      }
+      const inside = menu.contains(e.target);
+      if (!inside) e.preventDefault();
+    };
+
+    if (open) {
+      lock();
+      // wheel/touch com passive:false para permitir preventDefault
+      window.addEventListener("wheel", onWheel, { passive: false });
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+    } else {
+      unlock();
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", onTouchMove);
+    }
+
+    return () => {
+      unlock();
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [open, isBrowser]);
+
+  // -------- DATA: areas + pages (builder) ----------
+  const [loading, setLoading] = useState(false);
+  const [tiles, setTiles] = useState([]);
+
+  const pickVerticalImgFromPage = (pageDoc) => {
+    if (!pageDoc || typeof pageDoc !== "object") return "";
+
+    const top0 = Array.isArray(pageDoc.top_solutions) ? pageDoc.top_solutions[0] : null;
+    const topImg = top0?.solution?.wl_image;
+
+    const most0 = Array.isArray(pageDoc.most_used_solutions) ? pageDoc.most_used_solutions[0] : null;
+    const mostImg = most0?.solution?.wl_image;
+
+    return normalizeImg(topImg || mostImg || "");
+  };
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const areasRes = await fetchJson(`${API_BASE}/api/cms/application-areas`);
+        const areasRaw = Array.isArray(areasRes?.data) ? areasRes.data : [];
+
+        const pagesRes = await fetchJson(`${API_BASE}/api/cms/area-pages`);
+        const pagesRaw = Array.isArray(pagesRes?.data) ? pagesRes.data : [];
+
+        const pageByAreaId = new Map();
+        pagesRaw.forEach((p) => {
+          const aid = String(p?.wl_area?._id || p?.wl_area || "");
+          if (aid) pageByAreaId.set(aid, p);
+        });
+
+        const merged = areasRaw.map((a) => {
+          const id = String(a?._id || "");
+          const label = String(a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área");
+          const page = pageByAreaId.get(id) || null;
+          const img = pickVerticalImgFromPage(page);
+
+          return { id, label, image: img || "", page, rawArea: a };
+        });
+
+        const safe = merged.filter((x) => x.id);
+        if (alive) setTiles(safe);
+      } catch (e) {
+        console.clear();
+        console.log("error = ", e);
+        if (alive) setTiles([]);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE]);
+
+  // close on outside click
   useEffect(() => {
     function onDown(e) {
       if (!open) return;
       const t = e.target;
       const trig = triggerRef.current;
       const menu = menuRef.current;
-
       const insideTrigger = trig && trig.contains(t);
       const insideMenu = menu && menu.contains(t);
-
       if (!insideTrigger && !insideMenu) setOpen(false);
     }
-
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-  useEffect(() => {
-    function checkSize() {
-      if (!isBrowser) return;
-      setIsLargeScreen(window.innerWidth > 1300);
-    }
-    checkSize();
-    window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
-  }, [isBrowser]);
-
-  // =========================
-  // Slider (carrega logo que a página carrega)
-  // =========================
-  const [sliderItems, setSliderItems] = useState([]);
-  const [sliderLoading, setSliderLoading] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-
-    async function loadBanners() {
-      setSliderLoading(true);
-      try {
-        const data = await fetchJson(`${API_BASE}/api/cms/megamenu-banners`);
-        const list = (data?.data || [])
-          .map((b) => {
-            const productId = b?.wl_product?._id || b?.wl_product || "";
-            return {
-              title: b?.wl_title || "",
-              desc: b?.wl_description || "",
-              image: normalizeImg(b?.wl_image),
-              productId,
-              link: b?.wl_product?.wl_link || "",
-            };
-          })
-          .filter((x) => x.image);
-
-        if (alive) setSliderItems(list);
-      } catch {
-        if (alive) setSliderItems([]);
-      } finally {
-        if (alive) setSliderLoading(false);
-      }
-    }
-
-    loadBanners();
-    return () => {
-      alive = false;
-    };
-  }, [API_BASE]);
-
-  const [idx, setIdx] = useState(0);
-  const [pause, setPause] = useState(false);
-
-  useEffect(() => {
-    if (!open || pause || !sliderItems.length) return;
-    const t = setInterval(() => {
-      setIdx((p) => (p + 1) % sliderItems.length);
-    }, 4500);
-    return () => clearInterval(t);
-  }, [open, pause, sliderItems.length]);
-
-  useEffect(() => {
-    if (open) setIdx(0);
-  }, [open]);
-
-  function next() {
-    if (!sliderItems.length) return;
-    setIdx((p) => (p + 1) % sliderItems.length);
-  }
-
-  function prev() {
-    if (!sliderItems.length) return;
-    setIdx((p) => (p - 1 + sliderItems.length) % sliderItems.length);
-  }
-
+  // escape
   useEffect(() => {
     function onKey(e) {
       if (!open) return;
       if (e.key === "Escape") closeNow();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const current =
-    sliderItems[idx] || {
-      title: sliderLoading ? "A carregar…" : "",
-      desc: "",
-      image: "",
-      productId: "",
-      link: "",
-    };
+  const HOVER_OPEN_DELAY_MS = 260;
 
-  const sliderCtaHref = current.productId
-    ? `single-shop?product=${encodeURIComponent(current.productId)}`
-    : current.link || "#";
+  const sliderSettings = useMemo(
+    () => ({
+      dots: false,
+      infinite: false,
 
-  // =========================
-  // Tabs (carrega logo que a página carrega)
-  // =========================
-  const [tabs, setTabs] = useState([]);
-  const [tabsLoading, setTabsLoading] = useState(false);
+      // ✅ mais suave
+      speed: 650,
+      cssEase: "cubic-bezier(0.22, 1, 0.36, 1)",
 
-  useEffect(() => {
-    let alive = true;
+      slidesToShow: 1,
+      slidesToScroll: 1,
 
-    async function loadApplicationAreas() {
-      setTabsLoading(true);
-      try {
-        const data = await fetchJson(`${API_BASE}/api/cms/application-areas`);
-        const raw = data?.data || [];
+      swipeToSlide: true,
+      draggable: true,
+      touchMove: true,
+      accessibility: true,
 
-        // Map each solution group but include only areas that have solutions
-        const mapped = raw
-          .map((doc, i) => {
-            const key = String(doc?._id || `tab-${i}`);
-            const label = String(doc?.wl_solution_title || `Solução ${i + 1}`);
-            const areas = Array.isArray(doc?.areas) ? doc.areas : [];
-            const industries = areas
-              .filter((a) => Array.isArray(a?.solutions) && a.solutions.length > 0)
-              .map((a) => a?.title)
-              .filter(Boolean)
-              .map(String);
+      variableWidth: true,
+      arrows: true,
+      nextArrow: <NextArrow />,
+      prevArrow: <PrevArrow />,
 
-            return {
-              key,
-              label,
-              heading: `${label} — Áreas de Aplicação`,
-              hasIndustries: true,
-              industries,
-              __raw: doc,
-            };
-          })
-          // keep only solution groups that have at least one area with solutions
-          .filter((t) => t.industries?.length);
-
-        // Do not create an aggregated "Todas" tab — use only mapped groups
-        const finalTabs = mapped;
-
-        if (alive) setTabs(finalTabs);
-      } catch {
-        if (alive) setTabs([]);
-      } finally {
-        if (alive) setTabsLoading(false);
-      }
-    }
-
-    loadApplicationAreas();
-    return () => {
-      alive = false;
-    };
-  }, [API_BASE]);
-
-  const [activeTab, setActiveTab] = useState("");
-  useEffect(() => {
-    if (!activeTab && tabs.length) setActiveTab(tabs[0].key);
-  }, [tabs, activeTab]);
-
-  const active = useMemo(
-    () => tabs.find((t) => t.key === activeTab) || tabs[0] || null,
-    [tabs, activeTab]
+      adaptiveHeight: false,
+    }),
+    []
   );
-
-  const [activeIndustry, setActiveIndustry] = useState("");
-  useEffect(() => {
-    if (active?.hasIndustries) {
-      setActiveIndustry(active?.industries?.[0] || "");
-    } else {
-      setActiveIndustry("");
-    }
-  }, [activeTab, active?.hasIndustries, active?.industries]);
-
-  function getCardsNoRepeat(tab, industry) {
-    const doc = tab?.__raw;
-    const areas = Array.isArray(doc?.areas) ? doc.areas : [];
-    const area = areas.find((a) => a?.title === industry) || areas[0];
-    const sols = Array.isArray(area?.solutions) ? area.solutions : [];
-
-    const base = sols
-      .map((s) => ({
-        img: normalizeImg(s?.image),
-        tag: s?.title || (s?.product?.wl_name || ""),
-        _id: s?.product?._id || s?.product || s?._id || "",
-      }))
-      .filter((x) => x.img);
-
-    if (!base.length) return [];
-
-    const seed = tab?.hasIndustries ? hashString(`${tab.key}::${industry}`) : 0;
-    const rotated = base
-      .map((x, i) => ({ ...x, __i: i }))
-      .sort((a, b) => ((a.__i + seed) % 97) - ((b.__i + seed) % 97))
-      .map(({ __i, ...rest }) => rest);
-
-    const wanted = isLargeScreen ? 4 : 4;
-    return rotated.slice(0, Math.min(wanted, rotated.length));
-  }
-
-  const cards = useMemo(
-    () => getCardsNoRepeat(active, activeIndustry),
-    [active, activeIndustry, isLargeScreen]
-  );
-
-  const hasTabs = tabs.length > 0;
-  const hasIndustries = (active?.industries?.length || 0) > 0;
-  const hasSolutionsForIndustry = cards.length > 0;
-
-  const hasAnySolutionsContent = hasTabs && hasIndustries && hasSolutionsForIndustry;
-
-  const showGlobalEmptyMessage =
-    !tabsLoading &&
-    !sliderLoading &&
-    sliderItems.length === 0 &&
-    !hasAnySolutionsContent;
-
-  const emptyMessageText = "Ainda não foram adicionadas soluções.";
-
-  function slugify(str) {
-    return (str || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  }
-
-  // CTA href for the active tab: prefer parent solution id when available
-  const ctaHref = useMemo(() => {
-    if (!active) return "/solutions";
-    const parentId = active.__raw?._id;
-    if (parentId) return `/shop?area=${encodeURIComponent(parentId)}`;
-    // fallback slug
-    return `/shop?area=${slugify(active.label || active.key)}`;
-  }, [active]);
-
-  function handleLinkClick() {
-    closeNow();
-  }
-
-  const compactHeight = showGlobalEmptyMessage
-    ? "min(240px, calc(100vh - 170px))"
-    : sliderItems.length
-    ? "min(520px, calc(100vh - 170px))"
-    : "min(420px, calc(100vh - 170px))";
-
-  // show central loader while any primary data is still loading
-  const primaryLoading = tabsLoading || sliderLoading;
 
   return (
     <div className="wl-mega-root">
@@ -380,26 +311,20 @@ export default function SolutionMegaMenu() {
         className="product-menu"
         ref={triggerRef}
         onMouseEnter={() => {
-          // start hover timer; only open if stayed long enough
           clearCloseTimer();
-          clearHoverTimer();
-
-          // if already open (e.g. clicked), ensure position updated immediately
+          clearHoverOpenTimer();
           if (open) {
             requestAnimationFrame(updateMenuPosition);
             return;
           }
-
-          hoverTimerRef.current = setTimeout(() => {
-            hoverTimerRef.current = null;
+          hoverOpenTimerRef.current = setTimeout(() => {
+            hoverOpenTimerRef.current = null;
             setOpen(true);
             requestAnimationFrame(updateMenuPosition);
           }, HOVER_OPEN_DELAY_MS);
         }}
         onMouseLeave={() => {
-          // if leaving before hover delay, cancel opening
-          clearHoverTimer();
-          // only schedule close when menu is actually open
+          clearHoverOpenTimer();
           if (open) scheduleClose();
         }}
       >
@@ -408,8 +333,7 @@ export default function SolutionMegaMenu() {
           className={`wl-navlink ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            // clicking toggles immediately (ignore hover delay)
-            clearHoverTimer();
+            clearHoverOpenTimer();
             clearCloseTimer();
             setOpen((s) => !s);
             requestAnimationFrame(updateMenuPosition);
@@ -425,208 +349,84 @@ export default function SolutionMegaMenu() {
         ref={menuRef}
         className={`wl-mega ${open ? "show" : ""}`}
         role="menu"
-        aria-busy={primaryLoading ? "true" : "false"}
+        aria-busy={loading ? "true" : "false"}
         style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
         onMouseEnter={() => {
           clearCloseTimer();
-          clearHoverTimer();
+          clearHoverOpenTimer();
           setOpen(true);
         }}
         onMouseLeave={scheduleClose}
       >
-        <div className="wl-mega-inner" style={{ maxHeight: compactHeight }}>
-          {/* central loader while primary data loads */}
-          {open && primaryLoading ? (
-            <div className="wl-center-loader" role="status" aria-live="polite">
-              <div className="spinner" />
-              <div className="loader-text">A carregar conteúdos…</div>
-            </div>
-          ) : null}
+        <div className="wl-mega-inner" style={{ maxHeight: "min(600px, calc(100vh - 120px))" }}>
+          <div className="wl-header-row">
+            <h5 className="wl-heading">Áreas de Aplicação</h5>
+            <button
+              type="button"
+              className="close-icon wl-close-top"
+              onClick={closeNow}
+              aria-label="Fechar menu"
+              title="Fechar"
+            >
+              ✕
+            </button>
+          </div>
 
-          <div className="content-box" style={{ visibility: open && primaryLoading ? "hidden" : "visible" }}>
-            {sliderItems.length ? (
-              <div className="content-slide">
-                <div
-                  className="wl-slider"
-                  onMouseEnter={() => setPause(true)}
-                  onMouseLeave={() => setPause(false)}
-                >
-                  <div className="wl-slide-bg">
-                    {current.image ? (
-                      <img
-                        src={current.image}
-                        alt={current.title}
-                        className="wl-slide-img"
-                        loading="eager"
-                      />
-                    ) : null}
-
-                    <div className="wl-slide-overlay" />
-
-                    <div className="wl-slide-content">
-                      <div className="text-content">
-                        <h3 className="wl-slide-title">
-                          {sliderLoading ? "A carregar…" : current.title}
-                        </h3>
-                        {current.desc ? (
-                          <p className="wl-slide-desc">{current.desc}</p>
-                        ) : null}
-                      </div>
-
-                      <div className="space-div">
-                        <Link
-                          href={sliderCtaHref}
-                          className="wl-slide-cta text-dark"
-                          onClick={handleLinkClick}
-                        >
-                          <span>Explorar soluções</span>
-                        </Link>
-
-                        <div className="wl-dots" aria-label="Paginação">
-                          {sliderItems.map((_, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              className={`wl-dot ${i === idx ? "active" : ""}`}
-                              onClick={() => setIdx(i)}
-                              aria-label={`Ir para slide ${i + 1}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <div className="wl-content">
+            {loading ? (
+              <div className="wl-center-loader" role="status" aria-live="polite">
+                <div className="bootstrap-spinner" />
               </div>
-            ) : null}
+            ) : tiles.length === 0 ? (
+              <div className="wl-empty-compact">
+                <div className="wl-empty-text">Ainda não existem áreas disponíveis.</div>
+              </div>
+            ) : (
+              <div className="sliderWrap" aria-label="Slider de áreas">
+                <Slider {...sliderSettings} className="areasSlider">
+                  {tiles.map((a) => {
+                    const href = `/shop?area=${encodeURIComponent(a.id)}`;
+                    const imgSrc = a.image || PLACEHOLDER;
 
-            <div className="wl-right">
-              <button
-                type="button"
-                className="close-icon wl-close-top"
-                onClick={closeNow}
-                aria-label="Fechar menu"
-                title="Fechar"
-              >
-                ✕
-              </button>
-
-              {showGlobalEmptyMessage ? (
-                <div className="wl-empty-compact">
-                  <div className="wl-empty-text ">{emptyMessageText}</div>
-                  <Link href="/solutions" className="wl-empty-link d-none" onClick={handleLinkClick}>
-                    Ver página de soluções
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <div className="space-div">
-                    <div>
-                      <h5 className="wl-heading">
-                        {tabsLoading ? "A carregar…" : active?.heading || "Soluções"}
-                      </h5>
-
-                      {/* Tabs bar: pill tabs, only solution groups that have areas with solutions are present */}
-                      <div className="wl-tabs" role="tablist" aria-label="Soluções tabs">
-                        {tabs.map((t) => (
-                          <button
-                            key={t.key}
-                            type="button"
-                            className={`wl-tab-item ${t.key === activeTab ? "is-active" : ""}`}
-                            onClick={() => {
-                              setActiveTab(t.key);
-                              // reset industry to first of new tab
-                              setActiveIndustry(t.industries?.[0] || "");
-                            }}
-                            role="tab"
-                            aria-selected={t.key === activeTab}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <span style={{ width: 36, height: 36 }} />
-                  </div>
-
-                  <div style={{ margin: "15px 0px" }}>
-                    <hr />
-                  </div>
-
-                  {hasAnySolutionsContent ? (
-                    <div className="wl-body">
-                      <div className="wl-two">
-                        <div className="wl-list" role="listbox" aria-label="Áreas de aplicação">
-                          {(active.industries || []).map((it, i) => {
-                            const isActive = it === activeIndustry;
-                            return (
-                              <button
-                                key={`${active.key}-${i}`}
-                                type="button"
-                                className={`wl-list-item ${isActive ? "is-active" : ""}`}
-                                onClick={() => setActiveIndustry(it)}
-                                role="option"
-                                aria-selected={isActive}
-                              >
-                                <span>{it}</span>
-                                {isActive ? <span className="wl-arrow">→</span> : null}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="images-area-grid">
-                          <div className="wl-grid">
-                            {cards.map((f, i) => {
-                              if (!f?._id) return null;
-                              return (
-                                <Link
-                                  key={`${active.key}-${activeIndustry}-img-${i}`}
-                                  href={`single-shop?product=${encodeURIComponent(f._id)}`}
-                                  className="wl-card"
-                                  title={`${f.tag}${activeIndustry ? ` — ${activeIndustry}` : ""}`}
-                                  onClick={handleLinkClick}
-                                >
-                                  <img
-                                    src={f.img}
-                                    alt={f.tag}
-                                    className="wl-card-img"
-                                    loading="lazy"
-                                  />
-                                  <div className="wl-card-shade" />
-                                </Link>
-                              );
-                            })}
+                    return (
+                      <div key={a.id} className="slideItem" style={{ width: 330 }}>
+                        <Link
+                          href={href}
+                          className="tile"
+                          onClick={() => closeNow()}
+                          aria-label={a.label}
+                          title={a.label}
+                        >
+                          <div className="tile-image-wrap" aria-hidden="true">
+                            <img
+                              src={imgSrc}
+                              alt={a.label}
+                              className="tile-image"
+                              width="300"
+                              height="400"
+                              loading="lazy"
+                              onError={(e) => {
+                                const t = e.currentTarget;
+                                if (t && t.src !== PLACEHOLDER) t.src = PLACEHOLDER;
+                              }}
+                            />
                           </div>
 
-                          <div style={{ marginTop: 8 }}>
-                            <Link href={ctaHref} className="wl-all" onClick={handleLinkClick}>
-                              Ver mais soluções
-                            </Link>
+                          <div className="tile-label" title={a.label}>
+                            {a.label}
                           </div>
-                        </div>
+                        </Link>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="wl-empty-compact">
-                      <div className="wl-empty-text">{emptyMessageText}</div>
-                      <Link href="/solutions" className="wl-empty-link" onClick={handleLinkClick}>
-                        Ver página de soluções
-                      </Link>
-                    </div>
-                  )}
-                </>
-              )}
-
-              <button type="button" className="wl-close d-lg-none" onClick={closeNow}>
-                Fechar
-              </button>
-            </div>
+                    );
+                  })}
+                </Slider>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <style jsx global>{`
+      <style jsx>{`
         .wl-mega-root {
           position: relative;
           display: inline-block;
@@ -637,15 +437,14 @@ export default function SolutionMegaMenu() {
           font-weight: 600;
           color: #111;
           text-decoration: none;
-          transition: background 0.15s ease, color 0.15s ease;
+          transition: color 0.15s ease;
           display: inline-flex;
           align-items: center;
-          font-size:20px;
+          font-size: 20px;
         }
         .wl-navlink.is-open {
           color: #0019ff;
         }
-
         .wl-caret {
           width: 8px;
           height: 8px;
@@ -666,10 +465,11 @@ export default function SolutionMegaMenu() {
           opacity: 0;
           transform: translateY(8px);
           pointer-events: none;
-          transition: opacity 0.18s ease, transform 0.18s ease;
+          transition: opacity 0.22s ease, transform 0.22s ease;
           z-index: 999999;
-          padding: 0px 60px;
-          min-height:630px;
+          left: 0;
+          right: 0;
+          padding: 12px 36px;
         }
         .wl-mega.show {
           opacity: 1;
@@ -679,309 +479,25 @@ export default function SolutionMegaMenu() {
 
         .wl-mega-inner {
           background: #fff;
-          border-radius: 18px;
-          box-shadow: 0 16px 50px rgba(0, 0, 0, 0.12);
+          border-radius: 14px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
           overflow: hidden;
           width: 100%;
-          min-height:620px;
-          position: relative;
         }
 
-        /* center loader */
-        .wl-center-loader {
-          position: absolute;
-          inset: 0;
+        .wl-header-row {
           display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          background: rgba(255,255,255,0.92);
-          z-index: 40;
-          pointer-events: none;
-        }
-        .wl-center-loader .loader-text {
-          color: #6b7280;
-          font-weight: 800;
-        }
-        .spinner {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          border: 6px solid rgba(0,0,0,0.08);
-          border-top-color: #0019ff;
-          animation: spin 0.9s linear infinite;
-          box-sizing: border-box;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .content-box {
-          display: flex;
-          width: 100%;
-          max-height: inherit;
-        }
-
-        .content-slide {
-          flex: 0 0 auto;
-        }
-
-        .wl-slider {
-          height: 100%;
-          min-height: 670px;
-          min-width: 460px;
-          max-width: 460px; 
-        }
-
-        .wl-slide-bg {
-          position: relative;
-          height: 100%;
-          min-height: 420px;
-          background: #0b0f18;
-          overflow: hidden;
-        }
-
-        .wl-slide-img {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transform: scale(1.02);
-          filter: saturate(1.05);
-        }
-
-        .wl-slide-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to bottom, transparent 40%, #000);
-        }
-
-        .wl-slide-content {
-          position: relative;
-          z-index: 2;
-          height: 100%;
-          padding: 22px 20px 16px;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-        }
-
-        .space-div {
-          display: flex;
-          align-items: flex-start;
           justify-content: space-between;
-          gap: 12px;
-        }
-
-        .wl-slide-title {
-          color: #fff;
-          font-size: 24px;
-          line-height: 1.15;
-          margin: 0 0 6px;
-          font-weight: 900;
-          text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        .wl-slide-desc {
-          color: rgba(255, 255, 255, 0.82);
-          margin: 0 0 12px;
-          max-width: 44ch;
-          font-size: 16px;
-        }
-
-        .wl-slide-cta {
-          width: fit-content;
-          background: #fff;
-          color: #0b0f18 !important;
-          text-decoration: none;
-          font-weight: 800;
-          padding: 10px 14px;
-          border-radius: 12px;
-          transition: transform 0.15s ease;
-          white-space: nowrap;
-        }
-        .wl-slide-cta:hover {
-          transform: translateY(-1px);
-        }
-
-        .wl-dots {
-          display: flex;
-          gap: 8px;
           align-items: center;
-          margin-top: 12px;
-        }
-
-        .wl-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-          border: 0;
-          background: #fff;
-          cursor: pointer;
-          transition: transform 0.15s ease, background 0.15s ease,
-            width 0.15s ease;
-        }
-
-        .wl-dot.active {
-          background: #0019ff;
-          width: 26px;
-        }
-
-        .wl-right {
-          padding: 18px 18px 16px;
-          min-width: 0;
-          flex: 1 1 auto;
-          position: relative;
+          padding: 16px 20px 8px;
+          border-bottom: 1px solid rgba(15, 23, 42, 0.04);
         }
 
         .wl-heading {
-          font-size: 20px;
-          font-weight: 900;
-          color: #111827;
           margin: 0;
-        }
-
-        .wl-close-top {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          z-index: 5;
-        }
-
-        /* tabs: pill style, blue with white text when active */
-        .wl-tabs {
-          display: flex;
-          gap: 8px;
-          margin-top: 12px;
-          flex-wrap: wrap;
-        }
-        .wl-tab-item {
-          padding: 6px 20px;
-          border-radius: 10px;
-          background-color: #F2F3FC;
-          border-radius: 100px;
-          font-weight: 550;
-          font-size: 16px;
-          color: #000;
-
-          min-width:130px;
-          transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
-          font-size: 16px;
-        }
-        .wl-tab-item:hover {
-          transform: translateY(-1px);
-        }
-        .wl-tab-item.is-active {
-          color: #ffffff;
-          background: #0019ff;
-        }
-
-        .wl-two {
-          display: flex; 
-          gap: 16px;
-          align-items: start;
-          justify-content:space-between;
-               width:100%; 
-        }
-
-        .wl-list {
-          display: grid;
-          width:80%;
-          gap: 10px;
-          padding-right: 6px;
-          max-height: 420px;
-          overflow: auto;
-        }
-
-        .wl-list-item {
-          border: 0;
-          background: transparent;
-          width: 100%;
-          text-align: left;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          color: #6b7280;
+          font-size: 24px;
           font-weight: 900;
-          padding: 2px 10px;
-          font-size: 16px;
-          cursor: pointer;
-          border-radius: 10px;
-          transition: background 0.12s ease, color 0.12s ease;
-        }
-
-        .wl-list-item:hover {
-          background: rgba(13, 110, 253, 0.06);
-          color: #0019ff;
-        }
-
-        .wl-list-item.is-active {
-          color: #0019ff;
-        }
-
-        .wl-arrow {
-          color: #0019ff;
-          font-weight: 900;
-        }
-
-        .wl-grid { 
-          display: grid;
-          gap: 12px;  
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .images-area-grid{ 
-          min-width:600px;
-          max-width:600px !important; 
-        }
-
-        @media (min-width: 1301px) {
-          .wl-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        .wl-card {
-          position: relative;
-          border-radius: 12px;
-          overflow: hidden;
-          height: 200px;
-          text-decoration: none; 
-        }
-
-        .wl-card-img {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transform: scale(1.02);
-        }
-
-        .wl-card-shade {
-          position: absolute;
-          inset: 0; 
-        }
-
-        .wl-all {
-          display: inline-block;
-          margin-top: 10px;
-          font-weight: 900;
-          color: #0019ff;
-          text-decoration: none;
-        }
-
-        .wl-close {
-          width: 100%;
-          border: 0;
-          margin-top: 14px;
-          background: #0019ff;
-          color: #fff;
-          font-weight: 900;
-          padding: 12px 14px;
-          border-radius: 12px;
+          color: #0f172a;
         }
 
         .close-icon {
@@ -995,90 +511,187 @@ export default function SolutionMegaMenu() {
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          font-weight: 900;
-          transition: transform 0.12s ease, background 0.12s ease;
-          flex: 0 0 auto;
         }
-
         .close-icon:hover {
           transform: scale(1.04);
           background: rgba(0, 0, 0, 0.06);
         }
 
-        .wl-empty-compact {
-          padding: 36px 10px 18px;
+        .wl-content {
+          padding: 18px 45px;
+          max-height: 560px;
+          overflow: hidden;
+        }
+
+        .wl-center-loader {
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          text-align: center;
-          gap: 10px;
-          min-height: 160px;
+          padding: 36px 0;
+        }
+        .bootstrap-spinner {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 6px solid rgba(0, 0, 0, 0.06);
+          border-top-color: #0019ff;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
         }
 
+        .wl-empty-compact {
+          padding: 40px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
         .wl-empty-text {
           color: #6b7280;
-          font-weight: 900;
-          font-size: 15px;
-          line-height: 1.35;
+          font-weight: 800;
         }
 
-        .wl-empty-link {
-          display: inline-flex;
-          width: fit-content;
+        /* --- slider wrap --- */
+        .sliderWrap {
+          position: relative;
+          padding: 10px 4px;
+        }
+
+        /* ✅ MAIS SUAVE: transição do track */
+        :global(.areasSlider .slick-track) {
+          display: flex !important;
+          gap: 20px;
+          align-items: flex-start;
+          will-change: transform;
+        }
+        :global(.areasSlider .slick-list) {
+          overflow: hidden;
+        }
+        :global(.areasSlider .slick-slide) {
+          height: auto;
+        }
+
+        .slideItem {
+          width: 250px;
+          display:flex;
+          align-items:center;
+          flex-direction:column;
+          text-align:center;
+          justify-content:center;
+        } 
+
+
+        :global(a.tile) {
+          width: 330px !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: stretch !important;
+          justify-content: flex-start !important;
+          gap: 12px !important;
+          text-decoration: none !important;
+          color: inherit !important;
+          border-radius: 10px !important;
+          padding: 6px 2px !important;
+          transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+        }
+        :global(a.tile:hover) {
+          transform: translateY(-6px);
+          box-shadow: 0 14px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        .tile-image-wrap {
+          width: 330px;
+          height: 400px;
+          border-radius: 10px;
+          overflow: hidden;
+          background: linear-gradient(180deg, #efeff8, #e9ebfb);
+          display: block; 
+        }
+        .tile-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .tile-label {
+          width: 100%;
+          display: block;
+          text-align: center;
           font-weight: 900;
+          font-size: 18px;
+          color: #111827;
+          line-height: 1.1;
+          margin: 0 auto; 
+        }
+
+        /* arrows */
+        :global(.navArrow) {
+          position: absolute;
+          top: 200px;
+          transform: translateY(-50%);
+          z-index: 6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0b0f1a;
+          border: 0;
+          box-shadow: 0 10px 30px rgba(11, 15, 26, 0.14);
+          cursor: pointer;
+          transition: background 180ms ease, transform 160ms ease;
+          height: 52px;
+          width: 52px;
+        }
+
+        :global(.navArrow .icon) {
+          font-size: 22px;
+          line-height: 1;
+          color: #0b0f1a;
+        }
+
+        :global(.navArrow:hover) {
+          background: #0b0f1a;
+          transform: translateY(-50%) scale(1.03);
+        }
+        :global(.navArrow:hover .icon) {
           color: #0019ff;
-          text-decoration: none;
-          padding: 10px 12px;
-          border-radius: 12px;
-          background: rgba(0, 25, 255, 0.06);
         }
 
-        .wl-empty-link:hover {
-          background: rgba(0, 25, 255, 0.1);
+        :global(.navPrev) {
+          left: 10px;
+        }
+        :global(.navNext) {
+          right: 10px;
         }
 
-        @media (max-width: 991.98px) {
+        /* responsive */
+        @media (max-width: 1024px) {
           .wl-mega {
-            padding: 0 12px;
+            padding: 8px 12px;
           }
-
-          .content-box {
-            display: block;
+          .wl-header-row {
+            padding: 12px;
           }
-
-          .wl-slider {
-            min-height: 260px;
-            min-width: unset;
-            max-width: unset;
+          :global(.navPrev) {
+            left: 6px;
           }
-
-          .wl-slide-bg {
-            min-height: 260px;
-          }
-
-          .wl-right {
-            padding: 14px 14px 14px;
-          }
-
-          .wl-two {
-            grid-template-columns: 1fr;
-          }
-
-          .wl-list {
-            max-height: 220px;
+          :global(.navNext) {
+            right: 6px;
           }
         }
 
-        @media (max-width: 420px) {
-          .wl-slide-title {
+        @media (max-width: 520px) {
+          :global(.navArrow) {
+            height: 46px;
+            width: 46px;
+          }
+          :global(.navArrow .icon) {
             font-size: 20px;
-          }
-          .wl-grid {
-            grid-template-columns: 1fr;
-          }
-          .wl-card {
-            min-height: 110px;
           }
         }
       `}</style>

@@ -1,63 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { GoArrowLeft, GoArrowRight, GoPlay, GoPause } from "react-icons/go";
 
-/* ================== CONFIG API ================== */
-const isBrowser = typeof window !== "undefined";
-const protocol =
-  isBrowser && window.location.protocol === "https:" ? "https" : "http";
-const API_BASE =
-  protocol === "https"
-    ? "https://waveledserver.vercel.app"
-    : "http://localhost:4000";
-
-async function fetchJson(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-/* Extrair categorias dos produtos (simplificado/adaptável ao teu schema) */
-function extractProductCategories(p) {
-  const list = [];
-  if (Array.isArray(p?.wl_categories)) {
-    for (const c of p.wl_categories) {
-      const id = c?._id || c;
-      if (!id) continue;
-      list.push({
-        id: String(id),
-        name: c?.wl_name || c?.name || String(id),
-        slug: c?.wl_slug || c?.slug || "",
-      });
-    }
-  } else if (p?.wl_category) {
-    const c = p.wl_category;
-    const id = c?._id || c;
-    if (id) {
-      list.push({
-        id: String(id),
-        name: c?.wl_name || c?.name || String(id),
-        slug: c?.wl_slug || c?.slug || "",
-      });
-    }
-  }
-  return list;
-}
-
-/* ================== ARROWS SLIDER PRINCIPAL ================== */
 function NextArrow({ onClick }) {
   return (
     <button
       type="button"
-      className="slick-arrow-custom slick-arrow-custom-next"
+      className="navArrow navNext"
       onClick={onClick}
-      aria-label="Próximo slide"
+      aria-label="Próximo"
     >
-      →
+      <span className="icon">
+        <GoArrowRight />
+      </span>
     </button>
   );
 }
@@ -66,596 +26,553 @@ function PrevArrow({ onClick }) {
   return (
     <button
       type="button"
-      className="slick-arrow-custom slick-arrow-custom-prev"
+      className="navArrow navPrev"
       onClick={onClick}
-      aria-label="Slide anterior"
+      aria-label="Anterior"
     >
-      ←
+      <span className="icon">
+        <GoArrowLeft />
+      </span>
     </button>
   );
 }
 
-/* ================== HEADER COM SLIDER + CATEGORIAS ================== */
+export default function HeroSection() {
+  const router = useRouter();
+  const sliderRef = useRef(null);
 
-function HeaderWithSlick() {
-  /* ====== SLIDER PRINCIPAL (podes depois ligar à categoria) ====== */
-  const topCategoriesSlides = useMemo(
+ 
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isHover, setIsHover] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);  
+  const [pausedByInteraction, setPausedByInteraction] = useState(false);  
+  const [progress, setProgress] = useState(0);  
+  const rafRef = useRef(null);
+  const startRef = useRef(0);
+
+  const slides = useMemo(
     () => [
       {
-        id: "1",
-        title: "Outdoor Billboards",
-        image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(34).png",
-        link: "/shop?category=billboards",
+        id: "s1",
+        image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(88).png",
+        title: "Painel Led publicitario 3d para publicidade realista",
+        description:
+          "Soluções LED profissionais para instalação nos cantos de estádios e grandes recintos desportivos. Ecrãs modulares de grande dimensão, alta luminosidade e elevada resistência, ideais para placares, publicidade dinâmica e experiências visuais imersivas.",
+        button: "Ver soluções",
+        action: () => router.push("/shop"),
       },
       {
-        id: "2",
-        title: "Creative Campaigns",
-        image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(34).png",
-        link: "/shop",
+        id: "s2",
+        image: "https://ik.imagekit.io/zks5iegia/image-gen%20(34).jpg",
+        title: "Monitores LED Transparentes para Montras Premium",
+        description:
+          "Ecrãs LED transparentes que preservam a visão do interior enquanto exibem conteúdo dinâmico — ideal para montras, showrooms e escritórios que querem destaque sem perder estética.",
+        button: "Falar com um especialista",
+        action: () => router.push("/contact-us"),
+      },
+      {
+        id: "s3",
+        image: "https://ik.imagekit.io/zks5iegia/image-gen%20(35).jpg",
+        title: "Totens e Expositores LED Verticais para PDV",
+        description:
+          "Displays verticais e totemes para pontos de venda e ativações: instalação rápida, baixo consumo e formato pensado para conversão — perfeito para promoções, menus digitais e campanhas locais.",
+        button: "Pedir orçamento",
+        action: () => router.push("/contact-us"),
       },
     ],
-    []
+    [router]
   );
 
-  /* ====== CATEGORIAS VINDAS DO ENDPOINT ====== */
-  const [baseCategories, setBaseCategories] = useState([]); // [{id, name, slug}]
-  const [loadingCats, setLoadingCats] = useState(true);
+  const AUTOPLAY_MS = 6000;
 
-  useEffect(() => {
-    let abort = false;
+  const resetProgress = () => {
+    startRef.current = performance.now();
+    setProgress(0);
+  };
 
-    async function loadCategories() {
-      try {
-        setLoadingCats(true);
+  const shouldRun = () => { 
+    return !userPaused && !pausedByInteraction;
+  };
 
-        const raw = await fetchJson(`${API_BASE}/api/products`);
-        if (abort) return;
+  const tick = (t) => {
+    const elapsed = t - startRef.current;
+    const p = Math.max(0, Math.min(1, elapsed / AUTOPLAY_MS));
+    setProgress(p);
 
-        const items = Array.isArray(raw?.data)
-          ? raw.data
-          : Array.isArray(raw)
-          ? raw
-          : [];
-
-        const map = new Map(); // id -> {id, name, slug}
-
-        items.forEach((p) => {
-          const cats = extractProductCategories(p);
-          cats.forEach((c) => {
-            if (!c.id) return;
-            if (!map.has(c.id)) {
-              map.set(c.id, {
-                id: c.id,
-                name: c.name || "Categoria",
-                slug: c.slug || "",
-              });
-            }
-          });
-        });
-
-        let arr = Array.from(map.values());
-        if (!arr.length) {
-          arr = [
-            { id: "trending", name: "Trending Categories", slug: "trending" },
-            { id: "ooh", name: "OOH & Billboards", slug: "ooh-billboards" },
-            { id: "creative", name: "Creative Campaigns", slug: "creative" },
-          ];
-        } else {
-          arr.sort((a, b) => a.name.localeCompare(b.name, "pt"));
-        }
-
-        if (!abort) {
-          setBaseCategories(arr);
-        }
-      } catch (e) {
-        if (!abort) {
-          // fallback em caso de erro
-          setBaseCategories([
-            { id: "trending", name: "Trending Categories", slug: "trending" },
-            { id: "ooh", name: "OOH & Billboards", slug: "ooh-billboards" },
-            { id: "creative", name: "Creative Campaigns", slug: "creative" },
-          ]);
-        }
-      } finally {
-        if (!abort) setLoadingCats(false);
-      }
+    if (p >= 1) { 
+      startRef.current = t;
+      setProgress(0);
     }
 
-    loadCategories();
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
+  useEffect(() => {
+    resetProgress();
     return () => {
-      abort = true;
-    };
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    }; 
   }, []);
 
-  /* ====== LÓGICA SLIDER INFINITO COM UMA ACTIVE ====== */
-  const chipTrackRef = useRef(null);
-  const segmentWidthRef = useRef(0);
-
-  const baseLen = baseCategories.length || 1;
-
-  // triplica o array para dar efeito "infinito" 
-  const extendedCategories = useMemo(() => {
-    if (!baseCategories.length) return [];
-    return [...baseCategories, ...baseCategories, ...baseCategories];
-  }, [baseCategories]);
-
-  const [activeIndex, setActiveIndex] = useState(0); // índice lógico (0..baseLen-1)
-
-  // posicionar no “meio” e corrigir scroll infinite
   useEffect(() => {
-    const track = chipTrackRef.current;
-    if (!track || !extendedCategories.length) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    segmentWidthRef.current = track.scrollWidth / 3;
+    if (shouldRun()) { 
+      sliderRef.current?.slickPlay?.(); 
+      startRef.current = performance.now() - progress * AUTOPLAY_MS;
+      rafRef.current = requestAnimationFrame(tick);
+    } else { 
+      sliderRef.current?.slickPause?.();
+    }
 
-    requestAnimationFrame(() => {
-      track.scrollLeft = segmentWidthRef.current;
-    });
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    }; 
+  }, [userPaused, pausedByInteraction]);
 
-    const handleInfiniteScroll = () => {
-      const seg = segmentWidthRef.current;
-      if (!seg) return;
-      const current = track.scrollLeft;
-      const min = seg * 0.5;
-      const max = seg * 1.5;
-
-      if (current < min) {
-        track.scrollLeft = current + seg;
-      } else if (current > max) {
-        track.scrollLeft = current - seg;
-      }
-    };
-
-    track.addEventListener("scroll", handleInfiniteScroll);
-    return () => track.removeEventListener("scroll", handleInfiniteScroll);
-  }, [extendedCategories]);
-
-  const scrollStep = (direction) => {
-    const track = chipTrackRef.current;
-    if (!track) return;
-    const STEP = 220;
-    track.scrollTo({
-      left: track.scrollLeft + STEP * direction,
-      behavior: "smooth",
-    });
+  const pauseBecauseInteraction = () => { 
+    if (isHover && !userPaused) {
+      setPausedByInteraction(true);
+    }
   };
 
-  // scroll horizontal com roda do rato
-  useEffect(() => {
-    const track = chipTrackRef.current;
-    if (!track) return;
-
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        track.scrollLeft += e.deltaY;
-      }
-    };
-
-    track.addEventListener("wheel", onWheel, { passive: false });
-    return () => track.removeEventListener("wheel", onWheel);
-  }, []);
-
-  // click numa categoria – só 1 active mesmo havendo clones
-  const handleCategoryClick = (baseIdx, cat) => {
-    setActiveIndex(baseIdx);
-
-    // Aqui podes ligar à lógica de filtros / fetch / trocar slides:
-    // ex: console.log("Categoria clicada:", cat.slug);
+  const onMouseEnter = () => {
+    setIsHover(true); 
   };
 
-  /* ====== SETTINGS DO SLIDER PRINCIPAL ====== */
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-    autoplay: true,
-    autoplaySpeed: 4500,
-    pauseOnHover: true,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    appendDots: (dots) => (
-      <div className="slick-dots-wrapper">
-        <ul>{dots}</ul>
-      </div>
-    ),
-    customPaging: () => <div className="slick-dot-custom" />,
+  const onMouseLeave = () => {
+    setIsHover(false); 
+    if (pausedByInteraction) setPausedByInteraction(false);
   };
+
+  const togglePlayPause = () => {
+    setUserPaused((v) => !v); 
+    setPausedByInteraction(false);
+  };
+
+  const settings = useMemo(
+    () => ({
+      dots: true,
+      infinite: true,
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      arrows: false,
+
+      autoplay: true,
+      autoplaySpeed: AUTOPLAY_MS,
+      pauseOnHover: false,  
+      fade: true,
+      speed: 1200,
+      cssEase: "linear", 
+      nextArrow: (
+        <NextArrow
+          onClick={() => {
+            pauseBecauseInteraction();
+            sliderRef.current?.slickNext?.();
+          }}
+        />
+      ),
+      prevArrow: (
+        <PrevArrow
+          onClick={() => {
+            pauseBecauseInteraction();
+            sliderRef.current?.slickPrev?.();
+          }}
+        />
+      ),
+
+      appendDots: (dots) => (
+        <div className="dotsWrap">
+          <ul>{dots}</ul>
+        </div>
+      ),
+      customPaging: () => <div className="dot" />,
+
+      beforeChange: (oldIndex, newIndex) => {
+        setActiveIndex(newIndex);
+      },
+      afterChange: (index) => {
+        setActiveIndex(index);
+        resetProgress();
+      },
+    }), 
+    [AUTOPLAY_MS, isHover, userPaused]
+  );
+ 
+  const onClickCapture = (e) => {
+    const target = e.target;
+    if (!target) return;
+
+    const inDots =
+      typeof target.closest === "function" && target.closest(".slick-dots");
+    const inArrow =
+      typeof target.closest === "function" && target.closest(".navArrow");
+
+    if (inDots || inArrow) {
+      pauseBecauseInteraction();
+    }
+  };
+ 
+  const size = 44;
+  const stroke = 3.5;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = c * progress;
 
   return (
-    <div className="header-slick-wrapper">
-      {/* ===== SLIDER DE CATEGORIAS ===== */}
-      <div className="category-chips-wrapper">
-        <div className="category-shadow shadow-left" />
-        <div className="category-shadow shadow-right" />
-
+    <section className="heroFull">
+      <div
+        className="heroWrap"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClickCapture={onClickCapture}
+      > 
         <button
           type="button"
-          className="chip-arrow chip-arrow-left"
-          aria-label="Categorias anteriores"
-          onClick={() => scrollStep(-1)}
+          className="miniLoader d-none"
+          onClick={togglePlayPause}
+          aria-label={userPaused ? "Reproduzir slider" : "Pausar slider"}
+          title={userPaused ? "Play" : "Pause"}
         >
-          ←
+          <svg
+            width={size}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
+            className="ring"
+            aria-hidden="true"
+          >
+            <circle
+              className="ringBg"
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              strokeWidth={stroke}
+            />
+            <circle
+              className="ringProg"
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              strokeWidth={stroke}
+              strokeDasharray={`${dash} ${c - dash}`}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            />
+          </svg>
+
+          <span className="miniIcon d-none" aria-hidden="true">
+           
+          </span>
         </button>
 
-        <div className="chip-slider-viewport">
-          <div className="chip-track" ref={chipTrackRef}>
-            {loadingCats && !extendedCategories.length && (
-              <span className="chip chip-loading">A carregar categorias…</span>
-            )}
+        <Slider ref={sliderRef} {...settings} className="heroSlider">
+          {slides.map((s) => (
+            <div key={s.id} className="slide">
+              <div className="media">
+                <img src={s.image} alt={s.title} className="bg" />
+                <div className="overlay" />
+              </div>
 
-            {!loadingCats &&
-              extendedCategories.map((cat, index) => {
-                const baseIdx = index % baseLen;
-                const isActive = baseIdx === activeIndex;
+              <div className="content">
+                <h1 className="title">{s.title}</h1>
+                <p className="desc">{s.description}</p>
 
-                return (
+                <div className="actions">
                   <button
-                    key={`${cat.id}-${index}`}
                     type="button"
-                    className={`chip ${isActive ? "active" : ""}`}
-                    onClick={() => handleCategoryClick(baseIdx, cat)}
+                    className="tekup-default-btn"
+                    onClick={() => router.push("/about-us")}
                   >
-                    {cat.name}
+                    Saber mais
                   </button>
-                );
-              })}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="chip-arrow chip-arrow-right"
-          aria-label="Próximas categorias"
-          onClick={() => scrollStep(1)}
-        >
-          →
-        </button>
-      </div>
-
-      {/* ===== SLIDER PRINCIPAL ===== */}
-      <div className="hero-slider">
-        <Slider {...sliderSettings}>
-          {topCategoriesSlides.map((item) => (
-            <div key={item.id} className="slide-container">
-              <img src={item.image} alt={item.title} className="slide-image" />
-              <div className="slide-footer">
-                <Link href={item.link} className="tekup-default-btn">
-                  Saiba Mais
-                </Link>
+                </div>
               </div>
             </div>
           ))}
         </Slider>
       </div>
 
-      {/* ===== ESTILOS INLINE (podes migrar para o teu CSS global) ===== */}
       <style jsx>{`
-        .header-slick-wrapper {
+        .heroFull {
           width: 100%;
-          padding: 32px 30px;
-          background: #f5f6f8;
+          margin: 0;
           margin-top: 100px;
+          padding: 0;
+          background: #0b0f1a;
         }
 
-        .category-chips-wrapper {
+        .heroWrap {
           position: relative;
           width: 100%;
-          padding: 8px 40px 18px;
-          box-sizing: border-box;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          overflow: hidden;
         }
 
-        .chip-slider-viewport {
+        :global(.heroSlider) {
+          width: 100%;
+        }
+
+        :global(.heroSlider .slick-list),
+        :global(.heroSlider .slick-track),
+        .slide {
+          height: calc(100vh - 100px);
+          min-height: 520px;
+        }
+
+        @media (min-height: 900px) {
+          :global(.heroSlider .slick-list),
+          :global(.heroSlider .slick-track),
+          .slide {
+            height: calc(100vh - 100px);
+          }
+        }
+
+        .slide {
           position: relative;
-          flex: 1;
+          width: 100%;
           overflow: hidden;
         }
 
-        .chip-track {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          white-space: nowrap;
-          overflow-x: scroll;
-          scroll-behavior: auto;
-        }
-
-        .chip-track::-webkit-scrollbar {
-          display: none;
-        }
-        .chip-track {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        .chip {
-          padding: 4px 20px;
-          border-radius: 999px;
-          border:1px solid #d3d7dc;
-          background: #ffffff;
-          font-size: 15px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: 0.18s ease;
-          white-space: nowrap;
-        }
-
-        .chip:hover {
-          border-color: #111827;
-          background: #f3f4f6;
-        }
-
-        .chip.active {
-          background: #0019ff;
-          color: #ffffff;
-          border-color: #36425cff;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-        }
-
-        .chip-loading {
-          opacity: 0.7;
-          cursor: default;
-        }
-
-        .chip-arrow {
-          width: 32px;
-          height: 32px;
-          border-radius: 999px;
-          border: none;
-          background: #ffffff;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          font-size: 16px;
-          flex-shrink: 0;
-          transition: transform 0.15s ease, box-shadow 0.15s ease,
-            background 0.15s ease;
-          z-index: 3;
-        }
-
-        .chip-arrow-left:hover {
-          transform: translateX(-2px);
-        }
-        .chip-arrow-right:hover {
-          transform: translateX(2px);
-        }
-
-        .chip-arrow:hover {
-          background: #f3f4f6;
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
-        }
-
-        .category-shadow {
+        .media {
           position: absolute;
-          top: 0;
-          bottom: 0;
-          width: 40px;
+          inset: 0;
+        }
+
+        .bg {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transform: translateZ(0);
+          filter: saturate(1.05) contrast(1.02);
+        }
+
+        .overlay {
+          position: absolute;
+          inset: 0;
           pointer-events: none;
+          background: radial-gradient(
+              1200px 820px at 10% 90%,
+              rgba(0, 0, 0, 0.92) 0%,
+              rgba(0, 0, 0, 0.68) 30%,
+              rgba(0, 0, 0, 0.28) 60%,
+              rgba(0, 0, 0, 0) 82%
+            ),
+            linear-gradient(
+              to top,
+              rgba(0, 0, 0, 0.62) 0%,
+              rgba(0, 0, 0, 0.28) 35%,
+              rgba(0, 0, 0, 0) 72%
+            );
+        }
+
+        .content {
+          position: absolute;
+          left: clamp(16px, 4vw, 56px);
+          bottom: clamp(16px, 4vw, 56px);
+          max-width: 720px;
           z-index: 2;
         }
 
-        .shadow-left {
-          left: 40px;
-          background: linear-gradient(
-            to right,
-            rgba(245, 246, 248, 1) 0%,
-            rgba(245, 246, 248, 0) 100%
-          );
+        .title {
+          margin: 0;
+          color: #fff;
+          font-size: clamp(30px, 4.2vw, 58px);
+          line-height: 1.02;
+          letter-spacing: -0.03em;
+          max-width: 650px;
+          text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
         }
 
-        .shadow-right {
-          right: 40px;
-          background: linear-gradient(
-            to left,
-            rgba(245, 246, 248, 1) 0%,
-            rgba(245, 246, 248, 0) 100%
-          );
+        .desc {
+          margin: 14px 0 0;
+          color: rgba(255, 255, 255, 0.9);
+          font-size: clamp(14px, 1.25vw, 18px);
+          line-height: 1.55;
+          max-width: 62ch;
+          text-shadow: 0 14px 46px rgba(0, 0, 0, 0.55);
         }
 
-        .hero-slider {
-          position: relative;
-          margin-top: 4px;
-          padding: 0 16px;
+        .actions {
+          margin-top: 18px;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
         }
 
- 
-        .slide-container {
-          position: relative;
-          border-radius: 24px;
-          overflow: hidden;
-        }
-
-        .slide-image {
-          width: 100%;
-          height: 500px;
-          object-fit: cover;
-          display: block;
-        }
-
-        .slide-footer {
+        /* ---------- MINI LOADER (top right) ---------- */
+        .miniLoader {
           position: absolute;
-          right: 24px;
-          bottom: 24px;
-        }
-
-        .shop-btn {
-          padding: 10px 22px;
-          background: #ffffff;
+          top: 18px;
+          right: 18px;
+          z-index: 9;
+          width: 54px;
+          height: 54px;
           border-radius: 999px;
-          font-weight: 600;
-          color: #111827;
-          border: 1px solid #e5e7eb;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-          text-decoration: none;
-          font-size: 13px;
-          letter-spacing: 0.02em;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(0, 0, 0, 0.32);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          transition: transform 160ms ease, background 160ms ease,
+            border-color 160ms ease;
         }
 
-        .shop-btn:hover {
-          background: #f9fafb;
+        .miniLoader:hover {
+          transform: scale(1.03);
+          background: rgba(0, 0, 0, 0.42);
+          border-color: rgba(255, 255, 255, 0.26);
         }
 
-        .hero-slider :global(.slick-slider) {
-          position: relative;
-        }
-
-        .slick-arrow-custom {
+        .ring {
           position: absolute;
-          top: -18px;
+          inset: 0;
+        }
+
+        .ringBg {
+          fill: none;
+          stroke: rgba(255, 255, 255, 0.22);
+          stroke-linecap: round;
+        }
+
+        .ringProg {
+          fill: none;
+          stroke: rgba(255, 255, 255, 0.92);
+          stroke-linecap: round;
+          transition: stroke-dasharray 80ms linear;
+        }
+
+        .miniIcon {
+          width: 30px;
+          height: 30px;
+          border-radius: 999px;
+          display: grid;
+          place-items: center;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+          font-size: 18px;
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+        }
+
+        /* ---------- ARROWS ---------- */
+        :global(.navArrow) {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
           z-index: 6;
-          width: 36px;
-          height: 36px;
-          border-radius: 999px;
-          border: none;
-          background: #ffffff;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
-          font-size: 20px;
-          color: #111827;
-          transition: transform 0.15s ease, box-shadow 0.15s ease,
-            background 0.15s ease;
-        }
-
-        .slick-arrow-custom-prev {
-          left: calc(100% - 96px);
-        }
-
-        .slick-arrow-custom-next {
-          left: calc(100% - 52px);
-        }
-
-        .slick-arrow-custom:hover {
-          background: #f3f4f6;
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
-        }
-
-        .slick-arrow-custom-prev:hover {
-          transform: translateX(-3px);
-        }
-        .slick-arrow-custom-next:hover {
-          transform: translateX(3px);
-        }
-
-        .slick-dots-wrapper {
-          position: absolute;
-          width: 100%;
-          left: 0;
-          bottom: 18px;
-          text-align: center;
-        }
-
-        .slick-dots-wrapper :global(ul) {
-          display: inline-flex;
-          gap: 6px;
-          padding: 0;
-        }
-
- 
-        .slick-dot-custom {
-          width: 11px;
-          height: 11px;
-          border-radius: 50%;
+          border-radius: 100%;
           background: #ffffff;
-          border: 2px solid #ffffff;
+          color: #0b0f1a;
+          border: 0;
+          box-shadow: 0 8px 28px rgba(11, 15, 26, 0.12);
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 180ms ease, transform 160ms ease;
+          height: 55px;
+          width: 55px;
         }
 
-        .hero-slider :global(.slick-dots li.slick-active div) {
-          background: #0a57ff;
-          border-color: #ffffff;
+        :global(.navArrow .icon) {
+          font-size: 22px;
+          line-height: 1;
+          color: #0b0f1a;
+          display: inline-block;
+        }
+
+        :global(.navArrow:hover) {
+          background: #0b0f1a;
+          transform: translateY(-50%) scale(1.02);
+        }
+        :global(.navArrow:hover .icon) {
+          color: #0019ff;
+        }
+
+        :global(.navPrev) {
+          left: 16px;
+        }
+        :global(.navNext) {
+          right: 16px;
+        }
+
+        /* Dots */
+        :global(.dotsWrap) {
+          position: absolute;
+          left: clamp(16px, 4vw, 56px);
+          bottom: 18px;
+          width: auto;
+          z-index: 7;
+        }
+
+        :global(.dotsWrap ul) {
+          display: inline-flex !important;
+          gap: 8px;
+          padding: 10px 12px;
+          margin: 0;
+          border-radius: 999px;
+          background: rgba(0, 0, 0, 0.35);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          list-style: none;
+        }
+
+        :global(.dotsWrap li) {
+          margin: 0 !important;
+          width: auto !important;
+          height: auto !important;
+        }
+
+        :global(.dot) {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.35);
+          transition: width 260ms ease, background 260ms ease;
+        }
+
+        :global(.slick-dots li.slick-active .dot) {
+          width: 28px;
+          background: rgba(255, 255, 255, 0.92);
+        }
+
+        :global(.slick-dots li button:before) {
+          display: none;
         }
 
         @media (max-width: 768px) {
-          .header-slick-wrapper {
-            padding: 24px 16px;
+          :global(.navArrow) {
+            height: 48px;
+            width: 48px;
           }
 
-          .category-chips-wrapper {
-            padding: 8px 30px 14px;
-            gap: 6px;
+          .content {
+            max-width: 92vw;
           }
 
-          .category-shadow {
-            width: 30px;
+          :global(.navPrev) {
+            left: 8px;
           }
-          .shadow-left {
-            left: 30px;
-          }
-          .shadow-right {
-            right: 30px;
+          :global(.navNext) {
+            right: 8px;
           }
 
-          .chip {
-            font-size: 13px;
-            padding: 4px 16px;
+          .miniLoader {
+            top: 12px;
+            right: 12px;
+            width: 50px;
+            height: 50px;
           }
+        }
 
-          .slide-image {
-            height: 300px;
+        @media (prefers-reduced-motion: reduce) {
+          :global(.heroSlider *),
+          :global(.heroSlider *::before),
+          :global(.heroSlider *::after) {
+            transition: none !important;
+            animation: none !important;
           }
         }
       `}</style>
-    </div>
+    </section>
   );
 }
-
-/* ================== HERO SECTION (VERSÃO 1 / VERSÃO 2) ================== */
-
-const HeroSection = () => {
-  const [isVersion2, setIsVersion2] = useState(false);
-
-  useEffect(() => { 
-    setIsVersion2(false);
-  }, []);
-
-  function Hero() {
-    return (
-      <div className="main-home-hero">
-        <div className="video-backgound">
-          <video
-            src="https://ik.imagekit.io/fsobpyaa5i/video_header.mp4"
-            poster="https://luxmage.com/data/upload/hnhnhthctmnhnhledchnng2.png"
-            muted
-            autoPlay
-            loop
-          ></video>
-        </div>
-        <div className="main-home-hero-overlay">
-          <div className="container-fluid">
-            <div className="text-content">
-              <h1>Soluções LED que Transformam Espaços</h1>
-              <p>
-                Somos especialistas na venda, montagem e Aluguer de ecrãs LED
-                para eventos, publicidade, empresas e projetos especiais.
-                Oferecemos soluções modernas, de alta qualidade e adaptadas a
-                cada cliente.
-              </p>
-              <Link href={"/about-us"} className="tekup-default-btn">
-                Saiba mais
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function HeroSlider() {
-    return <HeaderWithSlick />;
-  }
-
-  return <section>{isVersion2 ? <HeroSlider /> : <Hero />}</section>;
-};
-
-export default HeroSection;
