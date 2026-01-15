@@ -13,7 +13,7 @@ const AboutSection = () => {
                 alt=""
               />
             </div>
-          </div>
+          </div> 
           <div className="col-xl-5 offset-xl-1 col-lg-6 d-flex align-items-center">
             <div className="tekup-default-content">
               <h2>WaveLED — Displays LED para todas as necessidades</h2>

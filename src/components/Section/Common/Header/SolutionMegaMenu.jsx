@@ -17,7 +17,12 @@ function NextArrow(props) {
   if (isEnd) return null;
 
   return (
-    <button type="button" className="navArrow navNext" onClick={onClick} aria-label="Próximo">
+    <button
+      type="button"
+      className="navArrow navNext"
+      onClick={onClick}
+      aria-label="Próximo"
+    >
       <span className="icon">
         <GoArrowRight />
       </span>
@@ -31,7 +36,12 @@ function PrevArrow(props) {
   if (isStart) return null;
 
   return (
-    <button type="button" className="navArrow navPrev" onClick={onClick} aria-label="Anterior">
+    <button
+      type="button"
+      className="navArrow navPrev"
+      onClick={onClick}
+      aria-label="Anterior"
+    >
       <span className="icon">
         <GoArrowLeft />
       </span>
@@ -42,7 +52,8 @@ function PrevArrow(props) {
 export default function SolutionMegaMenu() {
   const isBrowser = typeof window !== "undefined";
   const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
-  const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
+  const API_BASE =
+    protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
 
   async function fetchJson(url) {
     const r = await fetch(url, { credentials: "include", cache: "no-store" });
@@ -127,19 +138,17 @@ export default function SolutionMegaMenu() {
     };
   }, [open]);
 
-  // ✅ Bloquear scroll da página enquanto o menu está aberto
+  // Bloquear scroll enquanto o menu está aberto
   useEffect(() => {
     if (!isBrowser) return;
 
     const html = document.documentElement;
     const body = document.body;
 
-    // guardamos estilos atuais para repor
     const prevOverflow = body.style.overflow;
     const prevPaddingRight = body.style.paddingRight;
 
     const lock = () => {
-      // compensa a scrollbar para não “saltar” o layout
       const scrollBarWidth = window.innerWidth - html.clientWidth;
       body.style.overflow = "hidden";
       if (scrollBarWidth > 0) body.style.paddingRight = `${scrollBarWidth}px`;
@@ -157,7 +166,6 @@ export default function SolutionMegaMenu() {
         e.preventDefault();
         return;
       }
-      // permite wheel dentro do menu/slider, bloqueia fora
       const inside = menu.contains(e.target);
       if (!inside) e.preventDefault();
     };
@@ -175,7 +183,6 @@ export default function SolutionMegaMenu() {
 
     if (open) {
       lock();
-      // wheel/touch com passive:false para permitir preventDefault
       window.addEventListener("wheel", onWheel, { passive: false });
       window.addEventListener("touchmove", onTouchMove, { passive: false });
     } else {
@@ -191,7 +198,7 @@ export default function SolutionMegaMenu() {
     };
   }, [open, isBrowser]);
 
-  // -------- DATA: areas + pages (builder) ----------
+  // -------- DATA ----------
   const [loading, setLoading] = useState(false);
   const [tiles, setTiles] = useState([]);
 
@@ -278,15 +285,68 @@ export default function SolutionMegaMenu() {
 
   const HOVER_OPEN_DELAY_MS = 260;
 
+  // =========================
+  //  FRACTIONAL (N + 0.5)
+  // =========================
+  const GAP_PX = 15; // máximo 15px como pediste
+  const sliderWrapRef = useRef(null);
+  const [cardW, setCardW] = useState(320);
+
+  const getTargetFullSlides = () => {
+    if (!isBrowser) return 4;
+    const w = window.innerWidth;
+    if (w >= 1400) return 5; // 5.5
+    if (w >= 1200) return 4; // 4.5
+    if (w >= 900) return 3;  // 3.5
+    return 2;                // 2.5
+  };
+
+  const recomputeCardWidth = () => {
+    const el = sliderWrapRef.current;
+    if (!el) return;
+
+    const wrapWidth = el.clientWidth; // largura real disponível
+    const full = getTargetFullSlides(); // N
+    const desired = full + 0.5;         // N.5
+
+    // Espaço ocupado por gaps entre os N cards completos (o meio card também “leva” gap visual, mas aqui funciona bem)
+    // widthCard ≈ (wrapWidth - gap*(full - 1)) / (full + 0.5)
+    const raw = (wrapWidth - GAP_PX * (full - 1)) / desired;
+
+    // limites para não ficar gigante/pequeno em ecrãs estranhos
+    const clamped = Math.max(210, Math.min(380, Math.floor(raw)));
+    setCardW(clamped);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
+    recomputeCardWidth();
+
+    const el = sliderWrapRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() => recomputeCardWidth());
+    ro.observe(el);
+
+    const onResize = () => recomputeCardWidth();
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const sliderSettings = useMemo(
     () => ({
       dots: false,
       infinite: false,
-
-      // ✅ mais suave
       speed: 650,
       cssEase: "cubic-bezier(0.22, 1, 0.36, 1)",
 
+      // com variableWidth, isto fica 1 e quem manda é a largura do slide
       slidesToShow: 1,
       slidesToScroll: 1,
 
@@ -296,6 +356,7 @@ export default function SolutionMegaMenu() {
       accessibility: true,
 
       variableWidth: true,
+
       arrows: true,
       nextArrow: <NextArrow />,
       prevArrow: <PrevArrow />,
@@ -382,14 +443,14 @@ export default function SolutionMegaMenu() {
                 <div className="wl-empty-text">Ainda não existem áreas disponíveis.</div>
               </div>
             ) : (
-              <div className="sliderWrap" aria-label="Slider de áreas">
+              <div ref={sliderWrapRef} className="sliderWrap" aria-label="Slider de áreas">
                 <Slider {...sliderSettings} className="areasSlider">
                   {tiles.map((a) => {
                     const href = `/shop?area=${encodeURIComponent(a.id)}`;
                     const imgSrc = a.image || PLACEHOLDER;
 
                     return (
-                      <div key={a.id} className="slideItem" style={{ width: 330 }}>
+                      <div key={a.id} className="slideItem" style={{ width: cardW }}>
                         <Link
                           href={href}
                           className="tile"
@@ -402,8 +463,6 @@ export default function SolutionMegaMenu() {
                               src={imgSrc}
                               alt={a.label}
                               className="tile-image"
-                              width="300"
-                              height="400"
                               loading="lazy"
                               onError={(e) => {
                                 const t = e.currentTarget;
@@ -557,35 +616,38 @@ export default function SolutionMegaMenu() {
         /* --- slider wrap --- */
         .sliderWrap {
           position: relative;
-          padding: 10px 4px;
+          padding: 10px 0;
+          overflow: hidden; /* bloqueia scroll horizontal mas deixa o slider funcionar */
         }
 
-        /* ✅ MAIS SUAVE: transição do track */
+        /* ========= IMPORTANT =========
+           Em vez de "gap" no track (que dá bugs),
+           usamos padding nos slides para ter exatamente 15px entre cards.
+        */
+        :global(.areasSlider .slick-list) {
+          overflow: visible; /* para o “meio card” aparecer */
+          margin: 0 -7.5px;  /* compensa o padding dos slides */
+        }
+        :global(.areasSlider .slick-slide) {
+          padding: 0 7.5px; /* 7.5 + 7.5 = 15px */
+          height: auto;
+        }
         :global(.areasSlider .slick-track) {
           display: flex !important;
-          gap: 20px;
           align-items: flex-start;
           will-change: transform;
         }
-        :global(.areasSlider .slick-list) {
-          overflow: hidden;
-        }
-        :global(.areasSlider .slick-slide) {
-          height: auto;
-        }
 
         .slideItem {
-          width: 250px;
-          display:flex;
-          align-items:center;
-          flex-direction:column;
-          text-align:center;
-          justify-content:center;
-        } 
-
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+          text-align: center;
+          justify-content: center;
+        }
 
         :global(a.tile) {
-          width: 330px !important;
+          width: 100% !important;
           display: flex !important;
           flex-direction: column !important;
           align-items: stretch !important;
@@ -603,12 +665,12 @@ export default function SolutionMegaMenu() {
         }
 
         .tile-image-wrap {
-          width: 330px;
-          height: 400px;
+          width: 100%;
+          aspect-ratio: 3 / 4; /* mantém proporção parecida com a imagem */
           border-radius: 10px;
           overflow: hidden;
           background: linear-gradient(180deg, #efeff8, #e9ebfb);
-          display: block; 
+          display: block;
         }
         .tile-image {
           width: 100%;
@@ -625,13 +687,13 @@ export default function SolutionMegaMenu() {
           font-size: 18px;
           color: #111827;
           line-height: 1.1;
-          margin: 0 auto; 
+          margin: 0 auto;
         }
 
         /* arrows */
         :global(.navArrow) {
           position: absolute;
-          top: 200px;
+          top: 50%;
           transform: translateY(-50%);
           z-index: 6;
           display: flex;
@@ -682,6 +744,9 @@ export default function SolutionMegaMenu() {
           }
           :global(.navNext) {
             right: 6px;
+          }
+          .wl-content {
+            padding: 16px 16px;
           }
         }
 

@@ -6,7 +6,6 @@ import { FaLongArrowAltRight } from "react-icons/fa";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 export default function ProductMegaMenu() {
-  // ...existing code...
   const router = useRouter();
 
   const isBrowser = typeof window !== "undefined";
@@ -47,7 +46,6 @@ export default function ProductMegaMenu() {
   const menuRef = useRef(null);
   const closeTimerRef = useRef(null);
 
-
   const HOVER_OPEN_DELAY_MS = 500;
   const hoverTimerRef = useRef(null);
 
@@ -76,7 +74,6 @@ export default function ProductMegaMenu() {
     setOpen(false);
   }
 
-  // cleanup timers on unmount
   useEffect(() => {
     return () => {
       clearCloseTimer();
@@ -139,7 +136,7 @@ export default function ProductMegaMenu() {
   }, [open]);
 
   // =========================
-  // Slider
+  // Slider (mantido)
   // =========================
   const [sliderItems, setSliderItems] = useState([]);
   const [sliderLoading, setSliderLoading] = useState(false);
@@ -221,82 +218,104 @@ export default function ProductMegaMenu() {
     };
 
   // =========================
-  // Tabs
+  // Categories + Subcategories (NOVO)
   // =========================
   const [tabs, setTabs] = useState([]);
   const [tabsLoading, setTabsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("");
+
+  // guardamos o ID real da categoria (para queries)
+  const [activeCategoryId, setActiveCategoryId] = useState("");
+  const [activeTabKey, setActiveTabKey] = useState(""); // para UI (pode ser slug)
+
+  // subcategoria selecionada
+  const [activeSubId, setActiveSubId] = useState("all");
 
   useEffect(() => {
     let alive = true;
 
-    async function loadTabsFromProducts() {
+    async function loadCategoriesWithSubs() {
       setTabsLoading(true);
       try {
-        const data = await fetchJson(`${API_BASE}/api/products`);
-        const items = data?.data || [];
-        const map = new Map();
+        const data = await fetchJson(`${API_BASE}/api/categories-with-subcategories?_ts=${Date.now()}`);
 
-        items.forEach((p) => {
-          const cats = [];
-          if (p?.wl_category?._id) cats.push(p.wl_category);
-          if (Array.isArray(p?.wl_categories)) cats.push(...p.wl_categories);
+        // backend: ok(res,out) => { ok:true, data: out }
+        const list = data?.data || [];
+        const arr = Array.isArray(list)
+          ? list.map((c) => ({
+              id: String(c._id),
+              key: String(c.wl_slug || c._id),
+              label: String(c.wl_name || "Categoria"),
+              heading: String(c.wl_name || "Categoria"),
+              subcategories: Array.isArray(c.subcategories) ? c.subcategories : [],
+              wl_order: typeof c.wl_order === "number" ? c.wl_order : 0,
+            }))
+          : [];
 
-          cats.forEach((c) => {
-            if (!c?._id) return;
-            const id = String(c._id);
-            const slug = String(c.wl_slug || "");
-            const name = String(c.wl_name || "Categoria");
-            if (!map.has(id)) {
-              map.set(id, { id, key: slug || id, label: name, heading: name });
-            }
-          });
-        });
+        // ordena por wl_order (como no backend)
+        arr.sort((a, b) => (a.wl_order || 0) - (b.wl_order || 0));
 
-        const arr = Array.from(map.values()).sort((a, b) =>
-          String(a.label).localeCompare(String(b.label))
-        );
+        if (!alive) return;
 
-        if (alive) {
-          setTabs(arr);
-          setActiveTab((prev) => prev || arr[0]?.key || "");
+        setTabs(arr);
+
+        // default
+        const first = arr[0] || null;
+        if (first) {
+          setActiveTabKey((prev) => prev || first.key);
+          setActiveCategoryId((prev) => prev || first.id);
+        } else {
+          setActiveTabKey("");
+          setActiveCategoryId("");
         }
       } catch {
         if (alive) {
           setTabs([]);
-          setActiveTab("");
+          setActiveTabKey("");
+          setActiveCategoryId("");
         }
       } finally {
         if (alive) setTabsLoading(false);
       }
     }
 
-    loadTabsFromProducts();
+    loadCategoriesWithSubs();
     return () => {
       alive = false;
     };
   }, [API_BASE]);
 
-  const active = useMemo(() => {
-    return tabs.find((t) => t.key === activeTab) || tabs[0] || null;
-  }, [tabs, activeTab]);
+  const activeCategory = useMemo(() => {
+    return tabs.find((t) => t.id === activeCategoryId) || null;
+  }, [tabs, activeCategoryId]);
+
+  const visibleSubcategories = useMemo(() => {
+    const subs = activeCategory?.subcategories || [];
+    return subs.slice().sort((a, b) =>
+      String(a?.wl_name || "").localeCompare(String(b?.wl_name || ""))
+    );
+  }, [activeCategory]);
 
   // =========================
-  // Products
+  // Products (agora suporta subcategory)
   // =========================
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    if (!activeTab) return;
+    if (!activeCategoryId) return;
 
     async function loadProductsByCategory() {
       setProductsLoading(true);
       try {
-        const url = `${API_BASE}/api/products?category=${encodeURIComponent(
-          activeTab
-        )}`;
+        const params = new URLSearchParams();
+        params.set("category", activeCategoryId);
+
+        if (activeSubId && activeSubId !== "all") {
+          params.set("subcategory", activeSubId);
+        }
+
+        const url = `${API_BASE}/api/products?${params.toString()}`;
         const data = await fetchJson(url);
         if (alive) setProducts(data?.data || []);
       } catch {
@@ -310,11 +329,9 @@ export default function ProductMegaMenu() {
     return () => {
       alive = false;
     };
-  }, [API_BASE, activeTab]);
+  }, [API_BASE, activeCategoryId, activeSubId]);
 
   const productWrapperRef = useRef(null);
-
-  // ref to avoid repeatedly auto-expanding while scrolling
   const autoExpandRef = useRef(false);
 
   // =========================
@@ -360,7 +377,7 @@ export default function ProductMegaMenu() {
   }
 
   // =========================
-  // Visible products + see more logic
+  // Visible products + see more
   // =========================
   const [initialCount, setInitialCount] = useState(6);
   const [showAll, setShowAll] = useState(false);
@@ -390,16 +407,15 @@ export default function ProductMegaMenu() {
   }, [isBrowser]);
 
   useEffect(() => {
-    // reset auto-expand when changing category
     autoExpandRef.current = false;
-
     setShowAll(false);
     setWasAtBottomByButton(false);
+
     requestAnimationFrame(() => {
       const el = productWrapperRef.current;
       if (el) el.scrollTo({ top: 0 });
     });
-  }, [activeTab]);
+  }, [activeCategoryId, activeSubId]);
 
   const visibleProducts = useMemo(() => {
     const min = Math.max(5, initialCount);
@@ -420,17 +436,17 @@ export default function ProductMegaMenu() {
         setAtBottom(overflow ? bottom : true);
         if (!bottom) setWasAtBottomByButton(false);
 
-        // If user scrolls near bottom and we haven't expanded, auto-expand (no need to click "Ver todos")
         if (!showAll && overflow) {
-          const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 48;
+          const nearBottom =
+            el.scrollTop + el.clientHeight >= el.scrollHeight - 48;
           if (nearBottom && !autoExpandRef.current) {
             autoExpandRef.current = true;
             setShowAll(true);
-            // smooth scroll to bottom after expanding
             requestAnimationFrame(() => {
               el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
               setTimeout(() => {
-                const bottomNow = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+                const bottomNow =
+                  el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
                 if (bottomNow) setWasAtBottomByButton(true);
               }, 420);
             });
@@ -457,14 +473,7 @@ export default function ProductMegaMenu() {
     if (!showAll) return true;
     if (atBottom && wasAtBottomByButton) return false;
     return !atBottom;
-  }, [
-    productsLoading,
-    products,
-    hasScroll,
-    showAll,
-    atBottom,
-    wasAtBottomByButton,
-  ]);
+  }, [productsLoading, products, hasScroll, showAll, atBottom, wasAtBottomByButton]);
 
   function handleSeeMore() {
     const el = productWrapperRef.current;
@@ -489,7 +498,7 @@ export default function ProductMegaMenu() {
     }, 420);
   }
 
-  // --- NEW: prevent page scroll when scrolling inside the product list ---
+  // --- prevent page scroll while inside products list ---
   useEffect(() => {
     const el = productWrapperRef.current;
     if (!el) return;
@@ -504,11 +513,10 @@ export default function ProductMegaMenu() {
     function onTouchMove(e) {
       if (!e.touches || e.touches.length === 0) return;
       const currentY = e.touches[0].clientY;
-      const dy = touchStartY - currentY; // positive when scrolling down
+      const dy = touchStartY - currentY;
       const atTop = el.scrollTop <= 0;
       const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
 
-      // if trying to scroll past top or bottom of the inner scrollable, prevent body scroll
       if ((dy < 0 && atTop) || (dy > 0 && atBottom)) {
         e.preventDefault();
         e.stopPropagation();
@@ -526,7 +534,6 @@ export default function ProductMegaMenu() {
       }
     }
 
-    // need passive: false so preventDefault works
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("touchstart", onTouchStart, { passive: true });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
@@ -539,7 +546,6 @@ export default function ProductMegaMenu() {
   }, [open, visibleProducts.length]);
   // --- end prevent page scroll ---
 
-  // min-height 520px quando existir conteúdo
   const hasMenuContent =
     tabsLoading ||
     productsLoading ||
@@ -553,11 +559,9 @@ export default function ProductMegaMenu() {
         className="product-menu"
         ref={triggerRef}
         onMouseEnter={() => {
-          // start hover timer; only open if stayed long enough
           clearCloseTimer();
           clearHoverTimer();
 
-          // if already open (e.g. clicked), ensure position updated immediately
           if (open) {
             requestAnimationFrame(updateMenuPosition);
             return;
@@ -570,9 +574,7 @@ export default function ProductMegaMenu() {
           }, HOVER_OPEN_DELAY_MS);
         }}
         onMouseLeave={() => {
-          // if leaving before hover delay, cancel opening
           clearHoverTimer();
-          // only schedule close when menu is actually open
           if (open) scheduleClose();
         }}
       >
@@ -581,7 +583,6 @@ export default function ProductMegaMenu() {
           className={`wl-navlink ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            // clicking toggles immediately (ignore hover delay)
             clearHoverTimer();
             clearCloseTimer();
             setOpen((s) => !s);
@@ -648,19 +649,18 @@ export default function ProductMegaMenu() {
                       </button>
 
                       <div className="wl-dots" aria-label="Paginação">
-                        {(sliderLoading
-                          ? Array.from({ length: 5 })
-                          : sliderItems
-                        ).map((_, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            className={`wl-dot ${i === idx ? "active" : ""}`}
-                            onClick={() => setIdx(i)}
-                            aria-label={`Ir para slide ${i + 1}`}
-                            disabled={!sliderItems.length}
-                          />
-                        ))}
+                        {(sliderLoading ? Array.from({ length: 5 }) : sliderItems).map(
+                          (_, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className={`wl-dot ${i === idx ? "active" : ""}`}
+                              onClick={() => setIdx(i)}
+                              aria-label={`Ir para slide ${i + 1}`}
+                              disabled={!sliderItems.length}
+                            />
+                          )
+                        )}
                       </div>
                     </div>
                   </div>
@@ -674,7 +674,7 @@ export default function ProductMegaMenu() {
                 <div>
                   <h5 className="wl-heading">
                     Produtos <FaLongArrowAltRight />{" "}
-                    {active?.heading || "Categorias"}
+                    {activeCategory?.heading || "Categorias"}
                   </h5>
                 </div>
 
@@ -689,11 +689,8 @@ export default function ProductMegaMenu() {
                 </button>
               </div>
 
-              <div
-                className="wl-tabs-wrap"
-                role="tablist"
-                aria-label="Categorias"
-              >
+              {/* TABS */}
+              <div className="wl-tabs-wrap" role="tablist" aria-label="Categorias">
                 {tabsOverflow && !tabsAtLeft ? (
                   <button
                     type="button"
@@ -718,12 +715,14 @@ export default function ProductMegaMenu() {
                       <button
                         key={t.key}
                         type="button"
-                        className={`wl-tab ${
-                          activeTab === t.key ? "active" : ""
-                        }`}
-                        onClick={() => setActiveTab(t.key)}
+                        className={`wl-tab ${activeCategoryId === t.id ? "active" : ""}`}
+                        onClick={() => {
+                          setActiveTabKey(t.key);
+                          setActiveCategoryId(t.id);
+                          setActiveSubId("all"); // reset sub ao trocar categoria
+                        }}
                         role="tab"
-                        aria-selected={activeTab === t.key}
+                        aria-selected={activeCategoryId === t.id}
                         title={t.label}
                       >
                         {t.label}
@@ -752,16 +751,48 @@ export default function ProductMegaMenu() {
               </div>
 
               <div className="wl-body product-wrapper">
-                <div className="wl-wrap" ref={productWrapperRef}>
+                {/* SUBCATEGORIES */}
+                <aside className="subcategories-list">
+                  <ul>
+                    <li
+                      className={activeSubId === "all" ? "active" : ""}
+                      onClick={() => setActiveSubId("all")}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      Ver todos os produtos
+                    </li>
+
+                    {visibleSubcategories?.length ? (
+                      visibleSubcategories.map((s) => (
+                        <li
+                          key={s._id}
+                          className={activeSubId === String(s._id) ? "active" : ""}
+                          onClick={() => setActiveSubId(String(s._id))}
+                          title={s.wl_slug || ""}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {s.wl_name || "Subcategoria"}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="muted" style={{ cursor: "default" }}>
+                        Sem subcategorias
+                      </li>
+                    )}
+                  </ul>
+                </aside>
+
+                {/* PRODUCTS GRID */}
+                <div className="wl-wrap col" ref={productWrapperRef}>
                   {productsLoading ? (
-                    Array.from({ length: Math.max(6, initialCount) }).map(
-                      (_, i) => (
-                        <article key={`sk-${i}`} className="wl-skeleton">
-                          <div className="image" />
-                          <small className="wl-prod-name"> </small>
-                        </article>
-                      )
-                    )
+                    Array.from({ length: Math.max(6, initialCount) }).map((_, i) => (
+                      <article key={`sk-${i}`} className="wl-skeleton">
+                        <div className="image" />
+                        <small className="wl-prod-name"> </small>
+                      </article>
+                    ))
                   ) : visibleProducts?.length ? (
                     visibleProducts.map((p) => {
                       const img = p?.wl_images?.[0] || "";
@@ -775,16 +806,10 @@ export default function ProductMegaMenu() {
                             title={name}
                           >
                             <div className="image">
-                              <img
-                                src={normalizeImg(img)}
-                                alt={name}
-                                loading="lazy"
-                              />
+                              <img src={normalizeImg(img)} alt={name} loading="lazy" />
                             </div>
                             <small className="wl-prod-name">
-                              {name.length > 40
-                                ? name.substring(0, 40) + "..."
-                                : name}
+                              {name.length > 40 ? name.substring(0, 40) + "..." : name}
                             </small>
                           </button>
                         </article>
@@ -812,11 +837,7 @@ export default function ProductMegaMenu() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="wl-close d-lg-none"
-                onClick={closeNow}
-              >
+              <button type="button" className="wl-close d-lg-none" onClick={closeNow}>
                 Fechar
               </button>
             </div>
@@ -838,7 +859,7 @@ export default function ProductMegaMenu() {
           transition: background 0.15s ease, color 0.15s ease;
           display: inline-flex;
           align-items: center;
-          font-size:20px;
+          font-size: 20px;
         }
         .wl-navlink.is-open {
           color: #0019ff;
@@ -900,11 +921,11 @@ export default function ProductMegaMenu() {
         .wl-slider {
           width: 500px;
           min-width: 500px;
-          max-width: 500px; 
-          height: 620px; 
-          min-height:620px !important;
-          background:red;
-          display: flex; 
+          max-width: 500px;
+          height: 620px;
+          min-height: 620px !important;
+          background: red;
+          display: flex;
         }
 
         .wl-slide-bg {
@@ -1001,8 +1022,7 @@ export default function ProductMegaMenu() {
           border: 0;
           background: #fff;
           cursor: pointer;
-          transition: transform 0.15s ease, background 0.15s ease,
-            width 0.15s ease;
+          transition: transform 0.15s ease, background 0.15s ease, width 0.15s ease;
         }
 
         .wl-dot.active {
@@ -1014,8 +1034,6 @@ export default function ProductMegaMenu() {
           padding: 22px 22px 18px;
           min-width: 0;
           flex: 1 1 auto;
-
-          /* <- para ficar com a mesma altura do slider */
           display: flex;
           flex-direction: column;
           height: 100%;
@@ -1098,10 +1116,39 @@ export default function ProductMegaMenu() {
 
         .wl-body {
           margin-top: 6px;
-
-          /* <- deixa o corpo “crescer” e manter altura consistente */
           flex: 1 1 auto;
           min-height: 0;
+        }
+
+        .product-wrapper {
+          display: flex;
+        }
+
+        .subcategories-list {
+          padding-right: 30px;
+          min-width: 220px;
+        }
+
+        .subcategories-list ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .subcategories-list ul li {
+          font-size: 18px;
+          cursor: pointer;
+          margin-bottom: 10px;
+          user-select: none;
+        }
+
+        .subcategories-list ul li.active {
+          font-weight: bolder;
+          color: #0019ff;
+        }
+
+        .subcategories-list ul li.muted {
+          opacity: 0.55;
         }
 
         .product-wrapper .wl-wrap {
@@ -1115,6 +1162,7 @@ export default function ProductMegaMenu() {
           overflow-x: hidden;
           padding: 6px 10px 12px 2px;
           box-sizing: border-box;
+          width: 100%;
         }
 
         .wl-prod {
@@ -1217,7 +1265,6 @@ export default function ProductMegaMenu() {
             display: block;
           }
 
-          /* mobile: slider “auto height” */
           .wl-slider {
             width: 100%;
             min-width: unset;
@@ -1234,9 +1281,39 @@ export default function ProductMegaMenu() {
             height: auto;
           }
 
+          .product-wrapper {
+            flex-direction: column;
+          }
+
+          .subcategories-list {
+            padding-right: 0;
+            min-width: unset;
+            margin-bottom: 12px;
+          }
+
+          .subcategories-list ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+
+          .subcategories-list ul li {
+            margin-bottom: 0;
+            background: #f5f7fb;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 800;
+          }
+
+          .subcategories-list ul li.active {
+            background: #0019ff;
+            color: #fff;
+          }
+
           .product-wrapper .wl-wrap {
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            max-height: min(520px, calc(100vh - 320px));
+            max-height: min(520px, calc(100vh - 360px));
             gap: 16px;
             row-gap: 18px;
           }
