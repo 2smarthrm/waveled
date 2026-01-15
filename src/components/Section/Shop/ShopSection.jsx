@@ -245,7 +245,9 @@ function VideoSolutionsSlick() {
   }, [lightboxOpen]);
 
   return (
-    <section className="categorie-videos vs-wrap">
+    <div>
+       <br /><br /><br /><br />
+        <section className="categorie-videos d-none vs-wrap">
       <header className="vs-header">
         <h2>Veja as nossas soluções em ação</h2>
         <p>Displays LED transparentes, modulares e experiências imersivas</p>
@@ -324,6 +326,7 @@ function VideoSolutionsSlick() {
         @media (max-width: 720px) { .vs-close { top: 12px; right: 12px; width: 42px; height: 42px; } }
       `}</style>
     </section>
+    </div>
   );
 }
 
