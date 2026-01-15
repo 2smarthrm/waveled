@@ -3600,12 +3600,12 @@ body  .tekup-default-btn:hover {
   font-weight: 700;
 background: linear-gradient(
     90deg,
-  #ff3b1f 0%,
-  #ff9f1c 18%,
-  #fff18a 38%,
-  #29d9b1 58%,
-  #21b8ff 78%,
-  #0f5eff 100%
+  #bb240d 0%,
+  #d38211 18%,
+  #edd521 38%,
+  #16987a 58%,
+  #128dc6 78%,
+  #0a4cd0 100%
   );
   background-size: 200% 200%;
   -webkit-background-clip: text;
@@ -3641,3 +3641,169 @@ background: linear-gradient(
 body .categorie-page .slick-dots li.slick-active button{
   background:transparent !important;
 }
+
+
+
+/***** about page */
+
+body .about-hero{
+   background:#fff;
+  width:100%;
+  min-height:400px; 
+  position: relative;
+  overflow: hidden;
+}
+
+ 
+
+body .about-page-area {
+  background-color:#f2f3fc;
+}
+
+body .about-hero .about-over{ 
+  width:100%; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color:#232323;
+  text-align: center;
+}
+
+
+body .about-hero .about-over .text-center{
+    display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+body .about-hero .about-over h4{
+    font-size:90px;
+    margin-bottom:15px;  
+}
+ 
+ 
+body .about-description{
+  margin:80px 0px;
+}
+
+
+body .about-description .text-area{
+   display: flex; 
+   justify-content: space-between;
+}
+
+body .about-description .text-area .block-1{
+  min-width: 400px;
+  padding-right:100px;
+}
+
+body .about-description .text-area .block-1 h5{
+  font-size:35px;
+}
+
+
+body .about-description .text-area .block-1{
+  max-width:500px;
+}
+
+
+body .about-description  .some-services{
+  display: flex;
+  flex-wrap: wrap;
+  gap:10px;
+  margin-top:70px;
+}
+
+
+body .about-description  .some-services article{
+  width:30.5%;
+  min-height:100px;
+  border:1px solid rgb(232, 232, 232);
+  padding:30px;
+  border-radius:6px;
+  background:#ffff;
+}
+
+
+body .about-description  .some-services article .icon{
+  font-size:40px;
+  position: relative;
+}
+
+body .about-description  .some-services article .icon .svg{
+  position: relative;
+  z-index:10;
+}
+
+body .about-description  .some-services article .icon::after{
+  content:"";
+  position: absolute;
+  bottom:-10px;
+  left:20px;
+  z-index:1;
+  width:50px;
+  height:50px; 
+  background-image: linear-gradient( 110.6deg,  rgb(187, 192, 201) 11.3%, rgba(239,238,249,1) 91.7% );
+  border-radius:100%; 
+  opacity:0.5;
+}
+
+body .about-description  .some-services article h6{
+  font-size:30px;
+  margin:0px !important;
+}
+
+ body .about-info{
+  background-color:#fff;
+  padding-top:100px;
+ }
+
+  body .about-info .block-data{
+    margin:20px 0px;
+    display: flex;
+  }
+
+   body .about-info .image{
+       width:600px; 
+       min-width:600px;
+       height:500px; 
+   }
+
+  body .about-info h2{
+    margin-bottom:20px;
+  }
+
+  body .about-info .image img{
+    width:100%; 
+    height:100%;
+  }
+
+
+  body .about-info .block-data.rev{
+    flex-direction: row-reverse;
+  }
+
+
+  body .about-info .block-data .text{
+    padding-right:50px;
+  }
+
+
+  body .about-info .block-data.rev .text{
+     padding-left:50px;
+     padding-right:0px;
+  }
+
+  body .about-info-section{
+    background:#F2F3FC;
+    margin-top:60px;
+    padding:80px 0px;
+  }
+
+
+  body .about-info-section li svg{
+    margin-right:10px;
+  }

@@ -8,7 +8,7 @@ import axios from "axios";
 import Slider from "react-slick";
 import Link from "next/link";
 
-// ✅ yet-another-react-lightbox
+//  yet-another-react-lightbox
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
@@ -82,7 +82,7 @@ function useSolutionId() {
   return id;
 }
 
-// ✅ Util para criar slides do YARL a partir de itens {image,title} ou string
+//  Util para criar slides do YARL a partir de itens {image,title} ou string
 // YARL espera: slides=[{ src, title?, description? }]
 const toLbSlides = (arr = []) =>
   arr
@@ -544,7 +544,7 @@ const SolutionPage = () => {
   const [examples, setExamples] = useState([]); // lista já misturada
   const [error, setError] = useState(null);
 
-  // ✅ Estado do Lightbox (YARL)
+  //  Estado do Lightbox (YARL)
   const [lbOpen, setLbOpen] = useState(false);
   const [lbSlides, setLbSlides] = useState([]);
   const [lbIndex, setLbIndex] = useState(0);
@@ -806,7 +806,7 @@ const SolutionPage = () => {
       <CtaThreeSection />
       <FooterFour />
 
-      {/* ✅ Lightbox global (YARL) */}
+      {/*  Lightbox global (YARL) */}
       <Lightbox
         open={lbOpen}
         close={closeLightbox}
