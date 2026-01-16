@@ -136,7 +136,7 @@ export default function ProductMegaMenu() {
   }, [open]);
 
   // =========================
-  // Slider (mantido)
+  // Slider
   // =========================
   const [sliderItems, setSliderItems] = useState([]);
   const [sliderLoading, setSliderLoading] = useState(false);
@@ -218,16 +218,13 @@ export default function ProductMegaMenu() {
     };
 
   // =========================
-  // Categories + Subcategories (NOVO)
+  // Categories + Subcategories
   // =========================
   const [tabs, setTabs] = useState([]);
   const [tabsLoading, setTabsLoading] = useState(false);
 
-  // guardamos o ID real da categoria (para queries)
   const [activeCategoryId, setActiveCategoryId] = useState("");
-  const [activeTabKey, setActiveTabKey] = useState(""); // para UI (pode ser slug)
-
-  // subcategoria selecionada
+  const [activeTabKey, setActiveTabKey] = useState("");
   const [activeSubId, setActiveSubId] = useState("all");
 
   useEffect(() => {
@@ -236,9 +233,10 @@ export default function ProductMegaMenu() {
     async function loadCategoriesWithSubs() {
       setTabsLoading(true);
       try {
-        const data = await fetchJson(`${API_BASE}/api/categories-with-subcategories?_ts=${Date.now()}`);
+        const data = await fetchJson(
+          `${API_BASE}/api/categories-with-subcategories?_ts=${Date.now()}`
+        );
 
-        // backend: ok(res,out) => { ok:true, data: out }
         const list = data?.data || [];
         const arr = Array.isArray(list)
           ? list.map((c) => ({
@@ -251,14 +249,12 @@ export default function ProductMegaMenu() {
             }))
           : [];
 
-        // ordena por wl_order (como no backend)
         arr.sort((a, b) => (a.wl_order || 0) - (b.wl_order || 0));
 
         if (!alive) return;
 
         setTabs(arr);
 
-        // default
         const first = arr[0] || null;
         if (first) {
           setActiveTabKey((prev) => prev || first.key);
@@ -296,7 +292,7 @@ export default function ProductMegaMenu() {
   }, [activeCategory]);
 
   // =========================
-  // Products (agora suporta subcategory)
+  // Products
   // =========================
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -498,7 +494,7 @@ export default function ProductMegaMenu() {
     }, 420);
   }
 
-  // --- prevent page scroll while inside products list ---
+  // prevent page scroll while inside products list
   useEffect(() => {
     const el = productWrapperRef.current;
     if (!el) return;
@@ -544,7 +540,7 @@ export default function ProductMegaMenu() {
       el.removeEventListener("touchmove", onTouchMove);
     };
   }, [open, visibleProducts.length]);
-  // --- end prevent page scroll ---
+  // end prevent page scroll
 
   const hasMenuContent =
     tabsLoading ||
@@ -578,15 +574,13 @@ export default function ProductMegaMenu() {
           if (open) scheduleClose();
         }}
       >
+        {/* Hover: abre mega menu | Click: navega para /products */}
         <a
           href="/products"
           className={`wl-navlink ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
-            clearHoverTimer();
-            clearCloseTimer();
-            setOpen((s) => !s);
-            requestAnimationFrame(updateMenuPosition);
+            goTo("/products");
           }}
           aria-haspopup="true"
           aria-expanded={open}
@@ -719,7 +713,7 @@ export default function ProductMegaMenu() {
                         onClick={() => {
                           setActiveTabKey(t.key);
                           setActiveCategoryId(t.id);
-                          setActiveSubId("all"); // reset sub ao trocar categoria
+                          setActiveSubId("all");
                         }}
                         role="tab"
                         aria-selected={activeCategoryId === t.id}
@@ -746,7 +740,7 @@ export default function ProductMegaMenu() {
                 )}
               </div>
 
-              <div style={{ margin: "12px 0px" }}>
+              <div style={{ margin: "10px 0px" }}>
                 <hr />
               </div>
 
@@ -902,29 +896,31 @@ export default function ProductMegaMenu() {
           overflow: hidden;
         }
 
+        /* MESMA ALTURA DO SLIDER (desktop) */
         .wl-mega-inner.has-content {
-          min-height: 520px;
+          height: 540px;
         }
 
         .content-box {
           display: flex;
           width: 100%;
           align-items: stretch;
+          height: 100%;
         }
 
         .content-slide {
           flex: 0 0 auto;
           display: flex;
           align-self: stretch;
+          height: 100%;
         }
 
+        /* slider -100px (500 -> 400) e altura igual ao megamenu */
         .wl-slider {
-          width: 500px;
-          min-width: 500px;
-          max-width: 500px;
-          height: 620px;
-          min-height: 620px !important;
-          background: red;
+          width: 400px;
+          min-width: 400px;
+          max-width: 400px;
+          height: 100%;
           display: flex;
         }
 
@@ -958,7 +954,7 @@ export default function ProductMegaMenu() {
           z-index: 2;
           height: 100%;
           width: 100%;
-          padding: 26px 22px 18px;
+          padding: 22px 18px 16px;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
@@ -973,7 +969,7 @@ export default function ProductMegaMenu() {
 
         .wl-slide-title {
           color: #fff;
-          font-size: 28px;
+          font-size: 26px;
           line-height: 1.1;
           margin: 0 0 8px;
           font-weight: 800;
@@ -982,9 +978,9 @@ export default function ProductMegaMenu() {
 
         .wl-slide-desc {
           color: rgba(255, 255, 255, 0.82);
-          margin: 0 0 14px;
+          margin: 0 0 12px;
           max-width: 44ch;
-          font-size: 18px;
+          font-size: 16px;
         }
 
         .wl-slide-cta {
@@ -1030,8 +1026,9 @@ export default function ProductMegaMenu() {
           width: 26px;
         }
 
+        /* RIGHT side: ocupa 100% da altura do menu */
         .wl-right {
-          padding: 22px 22px 18px;
+          padding: 18px 20px 14px;
           min-width: 0;
           flex: 1 1 auto;
           display: flex;
@@ -1052,6 +1049,7 @@ export default function ProductMegaMenu() {
           align-items: center;
           gap: 8px;
           margin-top: 10px;
+          flex: 0 0 auto;
         }
 
         .wl-tabs {
@@ -1114,19 +1112,26 @@ export default function ProductMegaMenu() {
           color: #fff;
         }
 
+        /* corpo do lado direito deve preencher o resto do espaço */
         .wl-body {
           margin-top: 6px;
           flex: 1 1 auto;
-          min-height: 0;
+          min-height: 0; /* essencial para overflow funcionar */
         }
 
         .product-wrapper {
           display: flex;
+          height: 100%;
+          min-height: 0;
+          overflow: hidden;
         }
 
         .subcategories-list {
-          padding-right: 30px;
+          padding-right: 26px;
           min-width: 220px;
+          flex: 0 0 auto;
+          overflow: auto;
+          height: 100%;
         }
 
         .subcategories-list ul {
@@ -1151,18 +1156,37 @@ export default function ProductMegaMenu() {
           opacity: 0.55;
         }
 
+        /* GRID: desktop = minimo 3 por linha */
         .product-wrapper .wl-wrap {
+          flex: 1 1 auto;
+          min-width: 0;
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 18px;
           row-gap: 20px;
           align-content: start;
-          max-height: min(520px, calc(100vh - 280px));
+          height: 100%;
           overflow-y: auto;
           overflow-x: hidden;
           padding: 6px 10px 12px 2px;
           box-sizing: border-box;
           width: 100%;
+        }
+
+        /* minimo 3 items em desktop */
+        @media (min-width: 992px) {
+          .product-wrapper .wl-wrap {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+        @media (min-width: 1280px) {
+          .product-wrapper .wl-wrap {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
+        }
+        @media (min-width: 1540px) {
+          .product-wrapper .wl-wrap {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+          }
         }
 
         .wl-prod {
@@ -1261,8 +1285,14 @@ export default function ProductMegaMenu() {
           .wl-mega {
             padding: 0 12px;
           }
+
+          .wl-mega-inner.has-content {
+            height: auto; /* mobile volta ao natural */
+          }
+
           .content-box {
             display: block;
+            height: auto;
           }
 
           .wl-slider {
@@ -1283,12 +1313,16 @@ export default function ProductMegaMenu() {
 
           .product-wrapper {
             flex-direction: column;
+            height: auto;
+            overflow: visible;
           }
 
           .subcategories-list {
             padding-right: 0;
             min-width: unset;
             margin-bottom: 12px;
+            height: auto;
+            overflow: visible;
           }
 
           .subcategories-list ul {
@@ -1312,7 +1346,8 @@ export default function ProductMegaMenu() {
           }
 
           .product-wrapper .wl-wrap {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            height: auto;
             max-height: min(520px, calc(100vh - 360px));
             gap: 16px;
             row-gap: 18px;
@@ -1321,13 +1356,7 @@ export default function ProductMegaMenu() {
 
         @media (max-width: 520px) {
           .product-wrapper .wl-wrap {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          }
-        }
-
-        @media (max-width: 420px) {
-          .wl-slide-title {
-            font-size: 22px;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
           }
         }
       `}</style>

@@ -51,9 +51,12 @@ function PrevArrow(props) {
 
 export default function SolutionMegaMenu() {
   const isBrowser = typeof window !== "undefined";
-  const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
+  const protocol =
+    isBrowser && window.location.protocol === "https:" ? "https" : "http";
   const API_BASE =
-    protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
+    protocol === "https"
+      ? "https://waveledserver.vercel.app"
+      : "http://localhost:4000";
 
   async function fetchJson(url) {
     const r = await fetch(url, { credentials: "include", cache: "no-store" });
@@ -205,10 +208,14 @@ export default function SolutionMegaMenu() {
   const pickVerticalImgFromPage = (pageDoc) => {
     if (!pageDoc || typeof pageDoc !== "object") return "";
 
-    const top0 = Array.isArray(pageDoc.top_solutions) ? pageDoc.top_solutions[0] : null;
+    const top0 = Array.isArray(pageDoc.top_solutions)
+      ? pageDoc.top_solutions[0]
+      : null;
     const topImg = top0?.solution?.wl_image;
 
-    const most0 = Array.isArray(pageDoc.most_used_solutions) ? pageDoc.most_used_solutions[0] : null;
+    const most0 = Array.isArray(pageDoc.most_used_solutions)
+      ? pageDoc.most_used_solutions[0]
+      : null;
     const mostImg = most0?.solution?.wl_image;
 
     return normalizeImg(topImg || mostImg || "");
@@ -234,7 +241,9 @@ export default function SolutionMegaMenu() {
 
         const merged = areasRaw.map((a) => {
           const id = String(a?._id || "");
-          const label = String(a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área");
+          const label = String(
+            a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área"
+          );
           const page = pageByAreaId.get(id) || null;
           const img = pickVerticalImgFromPage(page);
 
@@ -288,7 +297,7 @@ export default function SolutionMegaMenu() {
   // =========================
   //  FRACTIONAL (N + 0.5)
   // =========================
-  const GAP_PX = 15; // máximo 15px como pediste
+  const GAP_PX = 15; // máximo 15px
   const sliderWrapRef = useRef(null);
   const [cardW, setCardW] = useState(320);
 
@@ -297,23 +306,19 @@ export default function SolutionMegaMenu() {
     const w = window.innerWidth;
     if (w >= 1400) return 5; // 5.5
     if (w >= 1200) return 4; // 4.5
-    if (w >= 900) return 3;  // 3.5
-    return 2;                // 2.5
+    if (w >= 900) return 3; // 3.5
+    return 2; // 2.5
   };
 
   const recomputeCardWidth = () => {
     const el = sliderWrapRef.current;
     if (!el) return;
 
-    const wrapWidth = el.clientWidth; // largura real disponível
-    const full = getTargetFullSlides(); // N
-    const desired = full + 0.5;         // N.5
+    const wrapWidth = el.clientWidth;
+    const full = getTargetFullSlides();
+    const desired = full + 0.5;
 
-    // Espaço ocupado por gaps entre os N cards completos (o meio card também “leva” gap visual, mas aqui funciona bem)
-    // widthCard ≈ (wrapWidth - gap*(full - 1)) / (full + 0.5)
     const raw = (wrapWidth - GAP_PX * (full - 1)) / desired;
-
-    // limites para não ficar gigante/pequeno em ecrãs estranhos
     const clamped = Math.max(210, Math.min(380, Math.floor(raw)));
     setCardW(clamped);
   };
@@ -346,7 +351,6 @@ export default function SolutionMegaMenu() {
       speed: 650,
       cssEase: "cubic-bezier(0.22, 1, 0.36, 1)",
 
-      // com variableWidth, isto fica 1 e quem manda é a largura do slide
       slidesToShow: 1,
       slidesToScroll: 1,
 
@@ -366,14 +370,25 @@ export default function SolutionMegaMenu() {
     []
   );
 
+  // ✅ NOVO: link do toggle (click) e comportamento separado do hover
+  const TOGGLE_HREF = "/solution?area=695b880b926032a07bbefef7";
+
+  // ✅ NOVO: abre no hover só se o rato ficar por cima (e não foi um click)
+  const didMouseDownRef = useRef(false);
+
   return (
     <div className="wl-mega-root">
       <div
         className="product-menu"
         ref={triggerRef}
         onMouseEnter={() => {
+          // hover abre o menu
           clearCloseTimer();
           clearHoverOpenTimer();
+
+          // se acabou de haver mousedown (click), não abrir por hover logo a seguir
+          if (didMouseDownRef.current) return;
+
           if (open) {
             requestAnimationFrame(updateMenuPosition);
             return;
@@ -389,21 +404,27 @@ export default function SolutionMegaMenu() {
           if (open) scheduleClose();
         }}
       >
-        <a
-          href="/solutions"
+        {/* ✅ Click vai para /solution?area=... | Hover mostra megamenu */}
+        <Link
+          href={TOGGLE_HREF}
           className={`wl-navlink ${open ? "is-open" : ""}`}
-          onClick={(e) => {
-            e.preventDefault();
-            clearHoverOpenTimer();
-            clearCloseTimer();
-            setOpen((s) => !s);
-            requestAnimationFrame(updateMenuPosition);
-          }}
           aria-haspopup="true"
           aria-expanded={open}
+          onMouseDown={() => {
+            // marca que foi intenção de click
+            didMouseDownRef.current = true;
+            // limpa no próximo tick para não bloquear hover para sempre
+            setTimeout(() => {
+              didMouseDownRef.current = false;
+            }, 0);
+          }}
+          onClick={() => {
+            // garantir que não fica aberto se o utilizador clicar e navegar
+            closeNow();
+          }}
         >
           Soluções <span className={`wl-caret ${open ? "up" : ""}`} />
-        </a>
+        </Link>
       </div>
 
       <div
@@ -419,7 +440,10 @@ export default function SolutionMegaMenu() {
         }}
         onMouseLeave={scheduleClose}
       >
-        <div className="wl-mega-inner" style={{ maxHeight: "min(600px, calc(100vh - 120px))" }}>
+        <div
+          className="wl-mega-inner"
+          style={{ maxHeight: "min(600px, calc(100vh - 120px))" }}
+        >
           <div className="wl-header-row">
             <h5 className="wl-heading">Áreas de Aplicação</h5>
             <button
@@ -440,13 +464,19 @@ export default function SolutionMegaMenu() {
               </div>
             ) : tiles.length === 0 ? (
               <div className="wl-empty-compact">
-                <div className="wl-empty-text">Ainda não existem áreas disponíveis.</div>
+                <div className="wl-empty-text">
+                  Ainda não existem áreas disponíveis.
+                </div>
               </div>
             ) : (
-              <div ref={sliderWrapRef} className="sliderWrap" aria-label="Slider de áreas">
+              <div
+                ref={sliderWrapRef}
+                className="sliderWrap"
+                aria-label="Slider de áreas"
+              >
                 <Slider {...sliderSettings} className="areasSlider">
                   {tiles.map((a) => {
-                    const href = `/shop?area=${encodeURIComponent(a.id)}`;
+                    const href = `/solution?area=${encodeURIComponent(a.id)}`;
                     const imgSrc = a.image || PLACEHOLDER;
 
                     return (
@@ -613,23 +643,18 @@ export default function SolutionMegaMenu() {
           font-weight: 800;
         }
 
-        /* --- slider wrap --- */
         .sliderWrap {
           position: relative;
           padding: 10px 0;
-          overflow: hidden; /* bloqueia scroll horizontal mas deixa o slider funcionar */
+          overflow: hidden;
         }
 
-        /* ========= IMPORTANT =========
-           Em vez de "gap" no track (que dá bugs),
-           usamos padding nos slides para ter exatamente 15px entre cards.
-        */
         :global(.areasSlider .slick-list) {
-          overflow: visible; /* para o “meio card” aparecer */
-          margin: 0 -7.5px;  /* compensa o padding dos slides */
+          overflow: visible;
+          margin: 0 -7.5px;
         }
         :global(.areasSlider .slick-slide) {
-          padding: 0 7.5px; /* 7.5 + 7.5 = 15px */
+          padding: 0 7.5px;
           height: auto;
         }
         :global(.areasSlider .slick-track) {
@@ -666,7 +691,7 @@ export default function SolutionMegaMenu() {
 
         .tile-image-wrap {
           width: 100%;
-          aspect-ratio: 3 / 4; /* mantém proporção parecida com a imagem */
+          aspect-ratio: 3 / 4;
           border-radius: 10px;
           overflow: hidden;
           background: linear-gradient(180deg, #efeff8, #e9ebfb);
@@ -690,7 +715,6 @@ export default function SolutionMegaMenu() {
           margin: 0 auto;
         }
 
-        /* arrows */
         :global(.navArrow) {
           position: absolute;
           top: 50%;
@@ -731,7 +755,6 @@ export default function SolutionMegaMenu() {
           right: 10px;
         }
 
-        /* responsive */
         @media (max-width: 1024px) {
           .wl-mega {
             padding: 8px 12px;
