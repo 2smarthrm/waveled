@@ -192,7 +192,7 @@ const Aboutpage = () => {
         </div>
       </section> 
       <CtaSection />
-      <FooterFour className="tekup-footer-section dark-bg" />
+      <FooterFour noHello className="tekup-footer-section dark-bg" />
     </div>
   );
 };

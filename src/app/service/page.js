@@ -18,7 +18,7 @@ const ServicePage = () => {
                 <ServiceSection/>
             </div> 
             <CtaSection/>
-            <FooterFour />
+            <FooterFour    />
         </div> 
     );
 };

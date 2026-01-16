@@ -804,7 +804,7 @@ const SolutionPage = () => {
       )}
 
       <CtaThreeSection />
-      <FooterFour />
+      <FooterFour noHello />
 
       {/*  Lightbox global (YARL) */}
       <Lightbox
