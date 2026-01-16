@@ -1,20 +1,15 @@
 "use client";
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { GoArrowLeft, GoArrowRight, GoPlay, GoPause } from "react-icons/go";
+import { GoArrowLeft, GoArrowRight } from "react-icons/go";
+import { FaPlay, FaPause } from "react-icons/fa";
 
 function NextArrow({ onClick }) {
   return (
-    <button
-      type="button"
-      className="navArrow navNext"
-      onClick={onClick}
-      aria-label="Próximo"
-    >
+    <button type="button" className="navArrow navNext" onClick={onClick} aria-label="Próximo">
       <span className="icon">
         <GoArrowRight />
       </span>
@@ -24,12 +19,7 @@ function NextArrow({ onClick }) {
 
 function PrevArrow({ onClick }) {
   return (
-    <button
-      type="button"
-      className="navArrow navPrev"
-      onClick={onClick}
-      aria-label="Anterior"
-    >
+    <button type="button" className="navArrow navPrev" onClick={onClick} aria-label="Anterior">
       <span className="icon">
         <GoArrowLeft />
       </span>
@@ -41,47 +31,20 @@ export default function HeroSection() {
   const router = useRouter();
   const sliderRef = useRef(null);
 
- 
+  const isBrowser = typeof window !== "undefined";
+  const protocol = isBrowser && window.location.protocol === "https:" ? "https" : "http";
+  const API_BASE = protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHover, setIsHover] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);  
-  const [pausedByInteraction, setPausedByInteraction] = useState(false);  
-  const [progress, setProgress] = useState(0);  
+  const [userPaused, setUserPaused] = useState(false);
+  const [pausedByInteraction, setPausedByInteraction] = useState(false);
+  const [progress, setProgress] = useState(0);
   const rafRef = useRef(null);
   const startRef = useRef(0);
 
-  const slides = useMemo(
-    () => [
-      {
-        id: "s1",
-        image: "https://ik.imagekit.io/fsobpyaa5i/image-gen%20(88).png",
-        title: "Painel Led publicitario 3d para publicidade realista",
-        description:
-          "Soluções LED profissionais para instalação nos cantos de estádios e grandes recintos desportivos. Ecrãs modulares de grande dimensão, alta luminosidade e elevada resistência, ideais para placares, publicidade dinâmica e experiências visuais imersivas.",
-        button: "Ver soluções",
-        action: () => router.push("/shop"),
-      },
-      {
-        id: "s2",
-        image: "https://ik.imagekit.io/zks5iegia/image-gen%20(34).jpg",
-        title: "Monitores LED Transparentes para Montras Premium",
-        description:
-          "Ecrãs LED transparentes que preservam a visão do interior enquanto exibem conteúdo dinâmico — ideal para montras, showrooms e escritórios que querem destaque sem perder estética.",
-        button: "Falar com um especialista",
-        action: () => router.push("/contact-us"),
-      },
-      {
-        id: "s3",
-        image: "https://ik.imagekit.io/zks5iegia/image-gen%20(35).jpg",
-        title: "Totens e Expositores LED Verticais para PDV",
-        description:
-          "Displays verticais e totemes para pontos de venda e ativações: instalação rápida, baixo consumo e formato pensado para conversão — perfeito para promoções, menus digitais e campanhas locais.",
-        button: "Pedir orçamento",
-        action: () => router.push("/contact-us"),
-      },
-    ],
-    [router]
-  );
+  const [slides, setSlides] = useState([]);
+  const [slidesLoading, setSlidesLoading] = useState(true);
 
   const AUTOPLAY_MS = 6000;
 
@@ -90,16 +53,14 @@ export default function HeroSection() {
     setProgress(0);
   };
 
-  const shouldRun = () => { 
-    return !userPaused && !pausedByInteraction;
-  };
+  const shouldRun = () => !userPaused && !pausedByInteraction;
 
   const tick = (t) => {
     const elapsed = t - startRef.current;
     const p = Math.max(0, Math.min(1, elapsed / AUTOPLAY_MS));
     setProgress(p);
 
-    if (p >= 1) { 
+    if (p >= 1) {
       startRef.current = t;
       setProgress(0);
     }
@@ -107,63 +68,138 @@ export default function HeroSection() {
     rafRef.current = requestAnimationFrame(tick);
   };
 
+  const handleLink = (link) => {
+    const href = String(link || "").trim();
+    if (!href) return;
+    if (/^https?:\/\//i.test(href)) {
+      window.open(href, "_blank", "noopener,noreferrer");
+      return;
+    }
+    router.push(href);
+  };
+
+  useEffect(() => {
+    let alive = true;
+
+    const loadSlides = async () => {
+      try {
+        setSlidesLoading(true);
+
+        const res = await fetch(`${API_BASE}/api/cms/home-hero-slides`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = await res.json();
+        const list = Array.isArray(json?.data) ? json.data : [];
+
+        const mapped = list
+          .filter((x) => x?.wl_enabled !== false)
+          .sort((a, b) => (a?.wl_order ?? 0) - (b?.wl_order ?? 0))
+          .map((x, idx) => ({
+            id: String(x?._id || `s${idx + 1}`),
+            image: String(x?.wl_image || ""),
+            title: String(x?.wl_title || ""),
+            description: String(x?.wl_description || ""),
+            button: String(x?.wl_link ? "Saber mais" : ""),
+            link: String(x?.wl_link || ""),
+          }))
+          .filter((s) => s.image);
+
+        if (!alive) return;
+
+        if (!mapped.length) {
+          setSlides([
+            {
+              id: "fallback-1",
+              image: "https://via.placeholder.com/1600x900?text=Waveled+Hero",
+              title: "Waveled LED Solutions",
+              description: "Conteúdo do HERO ainda não foi configurado no CMS.",
+              button: "Contactar",
+              link: "/contact-us",
+            },
+          ]);
+        } else {
+          setSlides(mapped);
+        }
+      } catch (_e) {
+        if (!alive) return;
+        setSlides([
+          {
+            id: "fallback-1",
+            image: "https://via.placeholder.com/1600x900?text=Waveled+Hero",
+            title: "Waveled LED Solutions",
+            description: "Não foi possível carregar os slides do HERO.",
+            button: "Contactar",
+            link: "/contact-us",
+          },
+        ]);
+      } finally {
+        if (alive) setSlidesLoading(false);
+      }
+    };
+
+    loadSlides();
+    return () => {
+      alive = false;
+    };
+  }, [API_BASE, router]);
+
   useEffect(() => {
     resetProgress();
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    }; 
+    };
   }, []);
 
   useEffect(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    if (shouldRun()) { 
-      sliderRef.current?.slickPlay?.(); 
+    if (shouldRun()) {
+      sliderRef.current?.slickPlay?.();
       startRef.current = performance.now() - progress * AUTOPLAY_MS;
       rafRef.current = requestAnimationFrame(tick);
-    } else { 
+    } else {
       sliderRef.current?.slickPause?.();
     }
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    }; 
+    };
   }, [userPaused, pausedByInteraction]);
 
-  const pauseBecauseInteraction = () => { 
-    if (isHover && !userPaused) {
-      setPausedByInteraction(true);
-    }
+  const pauseBecauseInteraction = () => {
+    if (isHover && !userPaused) setPausedByInteraction(true);
   };
 
-  const onMouseEnter = () => {
-    setIsHover(true); 
-  };
+  const onMouseEnter = () => setIsHover(true);
 
   const onMouseLeave = () => {
-    setIsHover(false); 
+    setIsHover(false);
     if (pausedByInteraction) setPausedByInteraction(false);
   };
 
   const togglePlayPause = () => {
-    setUserPaused((v) => !v); 
+    setUserPaused((v) => !v);
     setPausedByInteraction(false);
   };
 
   const settings = useMemo(
     () => ({
       dots: true,
-      infinite: true,
+      infinite: slides.length > 1,
       slidesToShow: 1,
       slidesToScroll: 1,
       arrows: false,
 
       autoplay: true,
       autoplaySpeed: AUTOPLAY_MS,
-      pauseOnHover: false,  
+      pauseOnHover: false,
       fade: true,
       speed: 1200,
-      cssEase: "linear", 
+      cssEase: "linear",
+
       nextArrow: (
         <NextArrow
           onClick={() => {
@@ -188,31 +224,25 @@ export default function HeroSection() {
       ),
       customPaging: () => <div className="dot" />,
 
-      beforeChange: (oldIndex, newIndex) => {
-        setActiveIndex(newIndex);
-      },
+      beforeChange: (_oldIndex, newIndex) => setActiveIndex(newIndex),
       afterChange: (index) => {
         setActiveIndex(index);
         resetProgress();
       },
-    }), 
-    [AUTOPLAY_MS, isHover, userPaused]
+    }),
+    [AUTOPLAY_MS, isHover, userPaused, slides.length]
   );
- 
+
   const onClickCapture = (e) => {
     const target = e.target;
     if (!target) return;
 
-    const inDots =
-      typeof target.closest === "function" && target.closest(".slick-dots");
-    const inArrow =
-      typeof target.closest === "function" && target.closest(".navArrow");
+    const inDots = typeof target.closest === "function" && target.closest(".slick-dots");
+    const inArrow = typeof target.closest === "function" && target.closest(".navArrow");
 
-    if (inDots || inArrow) {
-      pauseBecauseInteraction();
-    }
+    if (inDots || inArrow) pauseBecauseInteraction();
   };
- 
+
   const size = 44;
   const stroke = 3.5;
   const r = (size - stroke) / 2;
@@ -221,12 +251,7 @@ export default function HeroSection() {
 
   return (
     <section className="heroFull">
-      <div
-        className="heroWrap"
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onClickCapture={onClickCapture}
-      > 
+      <div className="heroWrap" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClickCapture={onClickCapture}>
         <button
           type="button"
           className="miniLoader d-none"
@@ -234,20 +259,8 @@ export default function HeroSection() {
           aria-label={userPaused ? "Reproduzir slider" : "Pausar slider"}
           title={userPaused ? "Play" : "Pause"}
         >
-          <svg
-            width={size}
-            height={size}
-            viewBox={`0 0 ${size} ${size}`}
-            className="ring"
-            aria-hidden="true"
-          >
-            <circle
-              className="ringBg"
-              cx={size / 2}
-              cy={size / 2}
-              r={r}
-              strokeWidth={stroke}
-            />
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="ring" aria-hidden="true">
+            <circle className="ringBg" cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} />
             <circle
               className="ringProg"
               cx={size / 2}
@@ -260,7 +273,7 @@ export default function HeroSection() {
           </svg>
 
           <span className="miniIcon d-none" aria-hidden="true">
-           
+            {userPaused ? <FaPlay /> : <FaPause />}
           </span>
         </button>
 
@@ -277,18 +290,16 @@ export default function HeroSection() {
                 <p className="desc">{s.description}</p>
 
                 <div className="actions">
-                  <button
-                    type="button"
-                    className="tekup-default-btn"
-                    onClick={() => router.push("/about-us")}
-                  >
-                    Saber mais
+                  <button type="button" className="tekup-default-btn" onClick={() => handleLink(s.link || "/about-us")}>
+                    {s.button || "Saber mais"}
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </Slider>
+
+        {slidesLoading ? <div className="loadingBadge">A carregar…</div> : null}
       </div>
 
       <style jsx>{`
@@ -305,6 +316,21 @@ export default function HeroSection() {
           width: 100%;
         }
 
+        .loadingBadge {
+          position: absolute;
+          top: 16px;
+          left: 16px;
+          z-index: 10;
+          padding: 8px 10px;
+          border-radius: 999px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 12px;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
         :global(.heroSlider) {
           width: 100%;
         }
@@ -314,14 +340,6 @@ export default function HeroSection() {
         .slide {
           height: calc(100vh - 100px);
           min-height: 520px;
-        }
-
-        @media (min-height: 900px) {
-          :global(.heroSlider .slick-list),
-          :global(.heroSlider .slick-track),
-          .slide {
-            height: calc(100vh - 100px);
-          }
         }
 
         .slide {
@@ -413,14 +431,6 @@ export default function HeroSection() {
           display: grid;
           place-items: center;
           cursor: pointer;
-          transition: transform 160ms ease, background 160ms ease,
-            border-color 160ms ease;
-        }
-
-        .miniLoader:hover {
-          transform: scale(1.03);
-          background: rgba(0, 0, 0, 0.42);
-          border-color: rgba(255, 255, 255, 0.26);
         }
 
         .ring {
@@ -449,8 +459,7 @@ export default function HeroSection() {
           place-items: center;
           background: rgba(255, 255, 255, 0.1);
           color: #fff;
-          font-size: 18px;
-          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+          font-size: 16px;
         }
 
         /* ---------- ARROWS ---------- */
@@ -467,9 +476,7 @@ export default function HeroSection() {
           color: #0b0f1a;
           border: 0;
           box-shadow: 0 8px 28px rgba(11, 15, 26, 0.12);
-          font-weight: 700;
           cursor: pointer;
-          transition: background 180ms ease, transform 160ms ease;
           height: 55px;
           width: 55px;
         }
@@ -478,15 +485,6 @@ export default function HeroSection() {
           font-size: 22px;
           line-height: 1;
           color: #0b0f1a;
-          display: inline-block;
-        }
-
-        :global(.navArrow:hover) {
-          background: #0b0f1a;
-          transform: translateY(-50%) scale(1.02);
-        }
-        :global(.navArrow:hover .icon) {
-          color: #0019ff;
         }
 
         :global(.navPrev) {
@@ -496,12 +494,10 @@ export default function HeroSection() {
           right: 16px;
         }
 
-        /* Dots */
         :global(.dotsWrap) {
           position: absolute;
           left: clamp(16px, 4vw, 56px);
           bottom: 18px;
-          width: auto;
           z-index: 7;
         }
 
@@ -514,12 +510,6 @@ export default function HeroSection() {
           background: rgba(0, 0, 0, 0.35);
           border: 1px solid rgba(255, 255, 255, 0.14);
           list-style: none;
-        }
-
-        :global(.dotsWrap li) {
-          margin: 0 !important;
-          width: auto !important;
-          height: auto !important;
         }
 
         :global(.dot) {
@@ -537,40 +527,6 @@ export default function HeroSection() {
 
         :global(.slick-dots li button:before) {
           display: none;
-        }
-
-        @media (max-width: 768px) {
-          :global(.navArrow) {
-            height: 48px;
-            width: 48px;
-          }
-
-          .content {
-            max-width: 92vw;
-          }
-
-          :global(.navPrev) {
-            left: 8px;
-          }
-          :global(.navNext) {
-            right: 8px;
-          }
-
-          .miniLoader {
-            top: 12px;
-            right: 12px;
-            width: 50px;
-            height: 50px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          :global(.heroSlider *),
-          :global(.heroSlider *::before),
-          :global(.heroSlider *::after) {
-            transition: none !important;
-            animation: none !important;
-          }
         }
       `}</style>
     </section>

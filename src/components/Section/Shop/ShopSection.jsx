@@ -504,7 +504,7 @@ export default function ShopSection() {
             title={"Escolhe uma área de aplicação"}
             areas={(areas || []).map((a) => ({
               title: a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área",
-              link: `/shop?area=${a._id}`,
+              link: `/solution?area=${a._id}`,
               id: a._id,
             }))}
             active={""}
@@ -603,7 +603,7 @@ export default function ShopSection() {
           title={activeAreaTitle}
           areas={(areas || []).map((a) => ({
             title: a?.wl_solution_title || a?.wl_title || a?.wl_name || "Área",
-            link: `/shop?area=${a._id}`,
+            link: `/solution?area=${a._id}`,
             id: a._id,
           }))}
           active={areaId}

@@ -926,6 +926,7 @@ export default function SingleShopSection() {
       )}
 
       <div className="section">
+        <br /><br /><br /> 
         <div className="container">
           <div className="row align-items-center">
             {/* GALERIA */}
