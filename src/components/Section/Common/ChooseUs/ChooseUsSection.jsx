@@ -10,7 +10,9 @@ const ChooseUsSection = ({ className }) => {
     <div className={"main-area"}>
       <div className="container">
         <div className="text-center">
-          <br /><br /><br /><br /><br /><br /><br />
+          <div className="br-1x">
+            <br /><br /><br /><br /><br /><br /><br />
+          </div>
           <div className="text-content service-header">
             <span className="service-badge">Serviços</span>
             <h1 className="text-dark rainbow-run rainbow-text">

@@ -17,7 +17,6 @@ import "react-multi-carousel/lib/styles.css";
 import { GoArrowUpRight } from "react-icons/go";
 import LanguageSwitcher from "~/components/components/lang-switcher/lang-switcher";
 
-//  Evita FOUC: ProductMegaMenu só no client (sem SSR)
 
 const ProductMegaMenu = dynamic(() => import("./ProductMegaMenu"), {
   ssr: false,
@@ -361,7 +360,16 @@ const HeaderFourInner = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [activeMenu]);
 
-  //  Visual Mode
+  const [WindowSize, SetWindowSize] = useState(window.innerWidth);
+  useEffect(() => { 
+    window.addEventListener("resize",(e)=>{   
+       SetWindowSize(e.target.innerWidth); 
+    }); 
+  }, []);
+
+ 
+
+
   const headerIsWhite = !!activeMenu || !isTransparent;
   const logoSrc = headerIsWhite ? LOGO_DARK : LOGO_LIGHT;
   const logoAlt = headerIsWhite ? "Waveled (logo preto)" : "Waveled (logo branco)";
@@ -415,7 +423,8 @@ const HeaderFourInner = () => {
         }
 
         /* Quando mega menu aberto, força branco (já coberto por headerIsWhite) */
-        .header-force-white .tekup-header-bottom {
+ 
+        .header-force-white .tekup-header-bottom{
           background: #fff !important;
         }
 
@@ -472,9 +481,12 @@ const HeaderFourInner = () => {
 
               <nav className={`menu-block ${isActive ? "active" : ""}`} id="append-menu-header">
                 <div className="mobile-menu-head">
-                  <div className="go-back" onClick={goBackClickHandler}>
-                    <i className="fa fa-angle-left"></i>
-                  </div>
+                   <div>
+                     <Link href={"/"}>
+                         <img src="https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png"
+                          style={{maxWidth:"160px",marginLeft:"20px"}} alt="" />
+                     </Link>
+                   </div>
                   <div className="current-menu-title"></div>
                   <div className="mobile-menu-close" onClick={() => setIsActive(false)}>
                     &times;
@@ -486,28 +498,22 @@ const HeaderFourInner = () => {
                     <Link href="/" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Início
                     </Link>
-                  </li>
-
+                  </li> 
                   {/* Produtos */}
-                  <li className="nav-item" style={{ marginLeft: "20px" }}>
-                    <ProductMegaMenu />
-                  </li>
-
+                  <li className="nav-item">
+                      {WindowSize  >= 900 ? <ProductMegaMenu /> : 
+                      <Link style={{paddingLeft:"20px"}} className="nav-link-item drop-trigger" href="/products">Produtos</Link>}
+                  </li> 
                  {/* Serviços */}
                   <li className="nav-item">
                     <Link href="/service" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Serviços
                     </Link>
-                  </li>
-
+                  </li> 
                   {/* Soluções */}
-                  <li className="nav-item" style={{ marginLeft: "20px" }}>
-                    <SolutionMegaMenu/>
-                  </li>
-              
-
-          
-
+                  <li className="nav-item">
+                     {WindowSize >= 900 ? <SolutionMegaMenu/> : <Link className="nav-link-item drop-trigger" href="//solution?area=695b880b926032a07bbefef7">Soluções</Link>}
+                  </li> 
                   <li className="nav-item">
                     <Link href="contact-us" className="nav-link-item" onClick={onMegaLinkClick}>
                       Contactos
@@ -515,8 +521,7 @@ const HeaderFourInner = () => {
                   </li>
                 </ul>
               </nav>
-            </div>
-
+            </div> 
             <div className="header-btn header-btn-l1 ms-auto">
               <div className="tekup-header-icon">
                 <Link href="tel:+351210353555" className="header-icon-info-box" onClick={onMegaLinkClick}>

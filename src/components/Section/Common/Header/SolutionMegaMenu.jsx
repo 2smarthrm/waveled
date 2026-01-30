@@ -370,10 +370,10 @@ export default function SolutionMegaMenu() {
     []
   );
 
-  // ✅ NOVO: link do toggle (click) e comportamento separado do hover
+  // NOVO: link do toggle (click) e comportamento separado do hover
   const TOGGLE_HREF = "/solution?area=695b880b926032a07bbefef7";
 
-  // ✅ NOVO: abre no hover só se o rato ficar por cima (e não foi um click)
+  // NOVO: abre no hover só se o rato ficar por cima (e não foi um click)
   const didMouseDownRef = useRef(false);
 
   return (
@@ -404,7 +404,7 @@ export default function SolutionMegaMenu() {
           if (open) scheduleClose();
         }}
       >
-        {/* ✅ Click vai para /solution?area=... | Hover mostra megamenu */}
+        {/* Click vai para /solution?area=... | Hover mostra megamenu */}
         <Link
           href={TOGGLE_HREF}
           className={`wl-navlink ${open ? "is-open" : ""}`}
