@@ -299,7 +299,7 @@ export default function HeroSection() {
           ))}
         </Slider>
 
-        {slidesLoading ? <div className="loadingBadge">A carregar…</div> : null}
+        {slidesLoading ? <div className="loadingBadge placeholder-glow"></div> : null}
       </div>
 
       <style jsx>{`
@@ -318,17 +318,11 @@ export default function HeroSection() {
 
         .loadingBadge {
           position: absolute;
-          top: 16px;
-          left: 16px;
+          top: 0px;
+          left: 0px;
           z-index: 10;
-          padding: 8px 10px;
-          border-radius: 999px;
-          background: rgba(0, 0, 0, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 12px;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          width:100%;
+          height:100vh;
         }
 
         :global(.heroSlider) {
@@ -353,7 +347,8 @@ export default function HeroSection() {
           inset: 0;
         }
 
-        .bg {
+          
+         .bg {
           width: 100%;
           height: 100%;
           object-fit: cover;

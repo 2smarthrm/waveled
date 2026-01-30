@@ -597,7 +597,9 @@ export default function ShopSection() {
   return (
     <div className="categorie-page">
       <div className="container">
-        <br /><br /><br /><br /><br /><br />
+        <div className="br-1"> <br /><br /></div>
+        <div className="br-2"><br /><br /></div>
+        <div className="br-3"><br /><br /></div>
 
         <HeaderAreaAndTitle
           title={activeAreaTitle}
