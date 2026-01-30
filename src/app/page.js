@@ -20,7 +20,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 // --------- ENV ---------
 const isBrowser = typeof window !== "undefined";
-const protocol =
+const protocol = 
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const API_BASE =
   protocol === "https"
@@ -73,7 +73,7 @@ const orderFirstOldestThenNewest = (arr) => {
   return merged;
 };
 
-// Repete itens quando há poucos, para o loop ficar “bonito” e sem espaços vazios
+ 
 function repeatToMin(items, minCount) {
   const src = Array.isArray(items) ? items : [];
   if (src.length === 0) return [];
@@ -386,7 +386,7 @@ const HomeFour = ({ deviceType: deviceTypeProp }) => {
         {
           breakpoint: 600,
           settings: {
-            slidesToShow: 2,
+            slidesToShow: 1,
             slidesToScroll: 1,
             infinite: verticalBaseCount > 2,
             autoplay:
