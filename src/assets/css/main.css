@@ -3234,7 +3234,7 @@ body .categorie-page .categorie-five-sliders article {
 
 body .categorie-page .categorie-five-sliders article .inner-item {
   width: 100%;
-  height: 450px;
+  height: 500px;
   display: flex;
   flex-direction: column;
 }
@@ -3242,7 +3242,8 @@ body .categorie-page .categorie-five-sliders article .inner-item {
 body .categorie-page .categorie-five-sliders article img {
   width: 100%;
   height: 100%;
-  height: 500px;
+  height: 550px;
+  object-fit: cover;
 }
 
 body .categorie-page .categorie-five-sliders article strong {
@@ -4046,8 +4047,191 @@ body .navigation.pagination button.current{
 body .image-prd{
   padding:50px;
   background:#f2f3fc;
+  min-height:300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 body .image-prd img{
   mix-blend-mode: multiply;
+  width:100%;
+  height:100%;
+}
+
+ 
+
+@media screen and (max-width:900px){
+   body .heroFull{
+       height:600px; 
+   }
+
+   body .heroSlider  .slide,
+   body .heroSlider .slick-list,
+   body .heroSlider .slick-slide{
+        height:600px !important;
+       min-height: 520px !important;
+   }
+
+   body .heroSlider .content{
+      bottom:50px;
+   }
+
+   body .heroSlider .slick-dots ul{ 
+    padding-bottom:15px;
+    padding-left:15px; 
+    display: flex;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+   }
+
+
+   body .large-features-section .container-fluid .row{
+       flex-direction:column;
+       padding:0px 20px;
+   }
+
+  body .large-features-section .container-fluid .row .ims-card{
+      width:100% !important;
+   }
+
+   body .home-top-product .top-product-card img{
+      width:100%;
+      height:100%;
+      min-height:400px !important;
+   }
+
+   body .home-top-product .top-product-card p{
+     display: none; 
+   } 
+
+     body .home-top-product .top-product-card{
+       min-height:350px;   
+   }
+
+     body .home-top-product .top-product-card .over-card{
+        min-height:100px;
+        bottom:20px;
+   }
+
+   body .categorie-five-sliders .space-div,
+   body .categorie-page-two,
+   body .about-description .text-area, 
+   body .categorie-page-products .items-wrap,
+   body .about-description .text-area .block,
+   body .rack-section .rack-rows{
+    flex-direction: column !important;
+   }
+
+   body .price-accordion .accordion-item{
+    margin-top:20px;
+   }
+
+   body .card-slides-vertical .card-slider-vertical .card-inner {
+     min-height:500px !important;
+     height:500px !important; 
+   }
+
+  body .card-slides-vertical .slick-dots li button{
+     background-color:transparent !important;
+  }
+
+  body .categorie-page .categorie-main-item {
+      display: block !important;
+  }
+
+  body .categorie-page .categorie-main-item .text-content {
+    padding-left:0px !important;
+  }
+
+   body .categorie-page-two article, 
+  body .categorie-page .categorie-main-item .image-slider{
+    min-width:100%;
+    width:100%;
+    text-align: center;
+  }
+
+    body .about-description .some-services article,
+     body .categorie-page-products .items-wrap article{
+        min-width:100%;
+        width:100%;
+     }
+
+  body .categorie-page .categorie-five-sliders article img {
+    height:350px;
+  }
+
+  body .categorie-page .categorie-five-sliders article{
+    min-height:500px;
+    height:500px;
+    margin-top:30px;
+  }
+    body .categorie-page .categorie-five-sliders{
+      height: auto !important;
+      min-height: auto !important;
+      padding-top:50px; 
+      padding-bottom:0px;
+    }
+
+    body #pills-tabContent #pills-description li{
+        flex-wrap: wrap;
+    }
+
+      body .br-1x,
+      body .categorie-page .br-1{
+        display: none !important;
+      }
+
+      body .service-area .video-area{
+        display: none;
+      }
+
+      body .service-header{
+         padding-top:150px;
+      }
+
+      body .rainbow-text{
+        font-size:48px !important;
+      }
+
+      body .about-hero {
+        min-height:250px !important;
+      }
+
+      body .about-description .some-services article{
+          display: flex;
+          align-items: center;
+      }
+
+      body .about-description .some-services .icon::after{
+        left:10px !important;
+      }
+
+      body .about-description .some-services .icon{
+         margin-right:25px;
+      }
+
+      body .about-info .block-data{
+          flex-direction: column !important;
+      }
+
+
+       body .about-info .block-data .text,
+       body .about-info .block-data .image{
+          margin:0px !important;
+          padding:0px !important;
+          min-width:100% !important;
+          width:100% !important;
+      }
+
+       body .about-info .block-data .image{
+           height:350px;
+           margin-top:40px !important;
+       }
+
+
+        body .about-info{
+          padding-top:50px !important;
+        }
+
 }
