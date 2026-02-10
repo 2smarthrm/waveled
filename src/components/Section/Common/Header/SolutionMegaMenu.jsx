@@ -140,8 +140,7 @@ export default function SolutionMegaMenu() {
       window.removeEventListener("resize", onResize);
     };
   }, [open]);
-
-  // Bloquear scroll enquanto o menu está aberto
+   
   useEffect(() => {
     if (!isBrowser) return;
 
@@ -200,8 +199,7 @@ export default function SolutionMegaMenu() {
       window.removeEventListener("touchmove", onTouchMove);
     };
   }, [open, isBrowser]);
-
-  // -------- DATA ----------
+ 
   const [loading, setLoading] = useState(false);
   const [tiles, setTiles] = useState([]);
 
@@ -263,11 +261,9 @@ export default function SolutionMegaMenu() {
 
     return () => {
       alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }; 
   }, [API_BASE]);
-
-  // close on outside click
+   
   useEffect(() => {
     function onDown(e) {
       if (!open) return;
@@ -282,7 +278,7 @@ export default function SolutionMegaMenu() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  // escape
+  
   useEffect(() => {
     function onKey(e) {
       if (!open) return;
@@ -294,10 +290,8 @@ export default function SolutionMegaMenu() {
 
   const HOVER_OPEN_DELAY_MS = 260;
 
-  // =========================
-  //  FRACTIONAL (N + 0.5)
-  // =========================
-  const GAP_PX = 15; // máximo 15px
+ 
+  const GAP_PX = 15;  
   const sliderWrapRef = useRef(null);
   const [cardW, setCardW] = useState(320);
 
@@ -340,8 +334,7 @@ export default function SolutionMegaMenu() {
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", onResize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }; 
   }, [open]);
 
   const sliderSettings = useMemo(
@@ -369,11 +362,8 @@ export default function SolutionMegaMenu() {
     }),
     []
   );
-
-  // NOVO: link do toggle (click) e comportamento separado do hover
-  const TOGGLE_HREF = "/solution?area=695b880b926032a07bbefef7";
-
-  // NOVO: abre no hover só se o rato ficar por cima (e não foi um click)
+ 
+  const TOGGLE_HREF = "/solution?area=695b880b926032a07bbefef7"; 
   const didMouseDownRef = useRef(false);
 
   return (
@@ -381,12 +371,9 @@ export default function SolutionMegaMenu() {
       <div
         className="product-menu"
         ref={triggerRef}
-        onMouseEnter={() => {
-          // hover abre o menu
+        onMouseEnter={() => { 
           clearCloseTimer();
-          clearHoverOpenTimer();
-
-          // se acabou de haver mousedown (click), não abrir por hover logo a seguir
+          clearHoverOpenTimer(); 
           if (didMouseDownRef.current) return;
 
           if (open) {
@@ -403,33 +390,29 @@ export default function SolutionMegaMenu() {
           clearHoverOpenTimer();
           if (open) scheduleClose();
         }}
-      >
-        {/* Click vai para /solution?area=... | Hover mostra megamenu */}
+      > 
         <Link
           href={TOGGLE_HREF}
-          className={`wl-navlink ${open ? "is-open" : ""}`}
+          className={`wl-navlink nav-link-item  ${open ? "is-open" : ""}`}
           aria-haspopup="true"
           aria-expanded={open}
-          onMouseDown={() => {
-            // marca que foi intenção de click
-            didMouseDownRef.current = true;
-            // limpa no próximo tick para não bloquear hover para sempre
+          onMouseDown={() => { 
+            didMouseDownRef.current = true; 
             setTimeout(() => {
               didMouseDownRef.current = false;
             }, 0);
           }}
-          onClick={() => {
-            // garantir que não fica aberto se o utilizador clicar e navegar
+          onClick={() => { 
             closeNow();
           }}
         >
-          Soluções <span className={`wl-caret ${open ? "up" : ""}`} />
+          Soluções <span className={`wl-caret  ${open ? "up" : ""}`} />
         </Link>
       </div>
 
       <div
         ref={menuRef}
-        className={`wl-mega ${open ? "show" : ""}`}
+        className={`wl-mega wl-solution-menu ${open ? "show" : ""}`}
         role="menu"
         aria-busy={loading ? "true" : "false"}
         style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
@@ -439,7 +422,7 @@ export default function SolutionMegaMenu() {
           setOpen(true);
         }}
         onMouseLeave={scheduleClose}
-      >
+      > 
         <div
           className="wl-mega-inner"
           style={{ maxHeight: "min(600px, calc(100vh - 120px))" }}

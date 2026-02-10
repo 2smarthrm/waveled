@@ -250,7 +250,7 @@ export default function HeroSection() {
   const dash = c * progress;
 
   return (
-    <section className="heroFull">
+    <section className="heroFull home-hero-full">
       <div className="heroWrap" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClickCapture={onClickCapture}>
         <button
           type="button"
@@ -305,10 +305,10 @@ export default function HeroSection() {
       <style jsx>{`
         .heroFull {
           width: 100%;
-          margin: 0;
-          margin-top: 100px;
+          margin: 0; 
           padding: 0;
           background: #0b0f1a;
+          position:relative;
         }
 
         .heroWrap {
@@ -332,7 +332,7 @@ export default function HeroSection() {
         :global(.heroSlider .slick-list),
         :global(.heroSlider .slick-track),
         .slide {
-          height: calc(100vh - 100px);
+          height: calc(115vh - 0px);
           min-height: 520px;
         }
 
@@ -380,17 +380,18 @@ export default function HeroSection() {
           position: absolute;
           left: clamp(16px, 4vw, 56px);
           bottom: clamp(16px, 4vw, 56px);
-          max-width: 720px;
+          max-width: 920px; 
+          padding-bottom:50px;
           z-index: 2;
         }
 
         .title {
           margin: 0;
           color: #fff;
-          font-size: clamp(30px, 4.2vw, 58px);
-          line-height: 1.02;
-          letter-spacing: -0.03em;
-          max-width: 650px;
+          font-size: clamp(30px, 4.2vw, 68px);
+          line-height: 1.09;
+          letter-spacing: -0.03em; 
+          max-width: 900px; 
           text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
         }
 

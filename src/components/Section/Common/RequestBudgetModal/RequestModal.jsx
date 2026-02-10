@@ -163,7 +163,7 @@ export default function RequestModal({ item, toggle_button }) {
       {/* Botão que abre o modal */}
       {typeof toggle_button === "function" && toggle_button(openModal)}
 
-      <Modal show={show} onHide={closeModal} centered size="lg" backdrop="static">
+      <Modal className="request-modal" show={show} onHide={closeModal} centered size="lg" backdrop="static">
         <Modal.Header closeButton={!submitting}>
           <Modal.Title>Pedido de orçamento</Modal.Title>
         </Modal.Header>

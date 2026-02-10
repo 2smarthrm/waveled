@@ -135,9 +135,7 @@ export default function ProductMegaMenu() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  // =========================
-  // Slider
-  // =========================
+ 
   const [sliderItems, setSliderItems] = useState([]);
   const [sliderLoading, setSliderLoading] = useState(false);
 
@@ -205,8 +203,7 @@ export default function ProductMegaMenu() {
       if (e.key === "ArrowRight") next();
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => document.removeEventListener("keydown", onKey); 
   }, [open]);
 
   const current =
@@ -217,9 +214,7 @@ export default function ProductMegaMenu() {
       id: "",
     };
 
-  // =========================
-  // Categories + Subcategories
-  // =========================
+ 
   const [tabs, setTabs] = useState([]);
   const [tabsLoading, setTabsLoading] = useState(false);
 
@@ -291,9 +286,7 @@ export default function ProductMegaMenu() {
     );
   }, [activeCategory]);
 
-  // =========================
-  // Products
-  // =========================
+  
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(false);
 
@@ -330,9 +323,7 @@ export default function ProductMegaMenu() {
   const productWrapperRef = useRef(null);
   const autoExpandRef = useRef(false);
 
-  // =========================
-  // Tabs arrows (overflow)
-  // =========================
+ 
   const tabsScrollerRef = useRef(null);
   const [tabsOverflow, setTabsOverflow] = useState(false);
   const [tabsAtLeft, setTabsAtLeft] = useState(true);
@@ -573,11 +564,10 @@ export default function ProductMegaMenu() {
           clearHoverTimer();
           if (open) scheduleClose();
         }}
-      >
-        {/* Hover: abre mega menu | Click: navega para /products */}
+      > 
         <a
           href="/products"
-          className={`wl-navlink ${open ? "is-open" : ""}`}
+          className={`wl-navlink nav-link-item  ${open ? "is-open" : ""}`}
           onClick={(e) => {
             e.preventDefault();
             goTo("/products");
@@ -639,7 +629,7 @@ export default function ProductMegaMenu() {
                         onClick={() => goToProduct(current.id)}
                         disabled={!current?.id}
                       >
-                        <span>Explorar soluções</span>
+                        <span className="sm-text">Explorar soluções</span>
                       </button>
 
                       <div className="wl-dots" aria-label="Paginação">
@@ -666,7 +656,7 @@ export default function ProductMegaMenu() {
             <div className="wl-right">
               <div className="space-div">
                 <div>
-                  <h5 className="wl-heading">
+                  <h5 className="wl-heading wl-txt">
                     Produtos <FaLongArrowAltRight />{" "}
                     {activeCategory?.heading || "Categorias"}
                   </h5>
@@ -709,16 +699,13 @@ export default function ProductMegaMenu() {
                       <button
                         key={t.key}
                         type="button"
-                        className={`wl-tab ${activeCategoryId === t.id ? "active" : ""}`}
+                        className={`wl-tab sm-text ${activeCategoryId === t.id ? "active" : ""}`}
                         onClick={() => {
                           setActiveTabKey(t.key);
                           setActiveCategoryId(t.id);
                           setActiveSubId("all");
                         }}
-                        role="tab"
-                        aria-selected={activeCategoryId === t.id}
-                        title={t.label}
-                      >
+                        role="tab"  aria-selected={activeCategoryId === t.id}  title={t.label}>
                         {t.label}
                       </button>
                     ))
@@ -749,7 +736,7 @@ export default function ProductMegaMenu() {
                 <aside className="subcategories-list">
                   <ul>
                     <li
-                      className={activeSubId === "all" ? "active" : ""}
+                      className={activeSubId === "all" ? "active sm-text" : "sm-text"}
                       onClick={() => setActiveSubId("all")}
                       role="button"
                       tabIndex={0}
@@ -761,7 +748,7 @@ export default function ProductMegaMenu() {
                       visibleSubcategories.map((s) => (
                         <li
                           key={s._id}
-                          className={activeSubId === String(s._id) ? "active" : ""}
+                          className={activeSubId === String(s._id) ? "active" : "sm-text"}
                           onClick={() => setActiveSubId(String(s._id))}
                           title={s.wl_slug || ""}
                           role="button"
@@ -802,7 +789,7 @@ export default function ProductMegaMenu() {
                             <div className="image">
                               <img src={normalizeImg(img)} alt={name} loading="lazy" />
                             </div>
-                            <small className="wl-prod-name">
+                            <small className="wl-prod-name sm-text">
                               {name.length > 40 ? name.substring(0, 40) + "..." : name}
                             </small>
                           </button>

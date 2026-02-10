@@ -16,7 +16,7 @@ const ServiceSection = () => {
  
   useEffect(() => {
     let alive = true;
-
+ 
     (async () => {
       try {
         setLoading(true);
@@ -64,7 +64,7 @@ const ServiceSection = () => {
   const hasData = CardData.length > 0;
 
   return (
-    <div className={"section large-features-section tekup-section-padding2 pt-4"}>
+    <div className={"d-none section large-features-section tekup-section-padding2 pt-4"}>
       <br />
       <br />
       <div className="container-fluid">
@@ -72,7 +72,7 @@ const ServiceSection = () => {
           <h2>Soluções imersivas adaptadas a todos os tipos de negócio</h2>
         </div>
 
-        <div className="row">
+        <div className="row ">
           {loading ? ( 
             Array.from({ length: 4 }).map((_, idx) => (
               <article className="ims-card" key={`sk-${idx}`} aria-hidden="true">

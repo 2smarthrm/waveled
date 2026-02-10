@@ -15,9 +15,9 @@ const ChooseUsSection = ({ className }) => {
           </div>
           <div className="text-content service-header">
             <span className="service-badge">Serviços</span>
-            <h1 className="text-dark rainbow-run rainbow-text">
+            <h4 className="text-dark rainbow-run rainbow-text">
                Distribuímos Luz  e imagem para  todos os  cantos do Globo 
-            </h1>
+            </h4>
             <p className="text-secondary">
               Somos uma empresa focada na <strong>distribuição de displays LED </strong> 
               para publicidade, eventos, design, decoração , arquitetura e ambientes imersivos.  
@@ -32,7 +32,7 @@ const ChooseUsSection = ({ className }) => {
           <br />
         </div>
 
-        <div className="row">
+        <div className="row services-row-items">
           {/* PLANEAMENTO */}
           <div className="col-xl-4 col-md-6">
             <div className="tekup-iconbox-wrap4">

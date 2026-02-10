@@ -16,6 +16,8 @@ import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import { GoArrowUpRight } from "react-icons/go";
 import LanguageSwitcher from "~/components/components/lang-switcher/lang-switcher";
+import { GoSun } from "react-icons/go";
+import { RiMoonFoggyLine } from "react-icons/ri";
 
 
 const ProductMegaMenu = dynamic(() => import("./ProductMegaMenu"), {
@@ -51,8 +53,7 @@ const SolutionMegaMenu = dynamic(() => import("./SolutionMegaMenu"), {
 
 
  
-
-// ====== Config ======
+ 
 const isBrowser = typeof window !== "undefined";
 const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
@@ -65,19 +66,19 @@ const IMG_HOST =
     ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 
-// ====== LOGOS ======
+ 
 const LOGO_DARK =
   "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png";
 const LOGO_LIGHT =
   "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png";
 
-// ====== Helpers ======
+ 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const truncate = (s, n = 60) =>
   s && s.length > n ? s.substring(0, n).trimEnd() + "…" : s || "";
 
-// Fetch JSON
+ 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,23 +89,19 @@ const HeaderFourInner = () => {
   const [sideBar, setSideBar] = useState(false);
   const [isActive, setIsActive] = useState(false);
 
-  const [scrollClassName, setScrollClassName] = useState("");
-
-  //  Estado da transparência do header
+  const [scrollClassName, setScrollClassName] = useState(""); 
   const [isTransparent, setIsTransparent] = useState(false);
 
-  //  Só soluções
+ 
   const [solutions, setSolutions] = useState([]);
   const [loadingSolutions, setLoadingSolutions] = useState(true);
-  const [solutionsError, setSolutionsError] = useState("");
-
-  // MegaMenu state (quando aberto, força header branco)
-  const [activeMenu, setActiveMenu] = useState(null); // 'solutions' | null
+  const [solutionsError, setSolutionsError] = useState(""); 
+  const [activeMenu, setActiveMenu] = useState(null);  
 
   const headerRef = useRef(null);
   const rafRef = useRef(0);
-
-  // ===== Roteamento: fechar megamenu ao navegar =====
+  const [IsSiteDark, setIsSiteDark] = useState(false);
+ 
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -113,11 +110,7 @@ const HeaderFourInner = () => {
     setIsActive(false);
   }, [pathname, searchParams?.toString()]);
 
-  /**
-   *  Cálculo estável:
-   * - Se houver megamenu aberto => NÃO transparente
-   * - Caso contrário, transparente apenas se header sobrepor as “secções alvo”
-   */
+ 
   const computeShouldBeTransparent = useCallback(() => {
     if (typeof window === "undefined") return false;
     if (activeMenu) return false;
@@ -130,7 +123,7 @@ const HeaderFourInner = () => {
 
     const targets = Array.from(
       document.querySelectorAll(
-        ".blur-slide-screen, .video-shop-large-section, .service-img, .services-section, .video-area"
+        ".blur-slide-screen, .video-shop-large-section, body.dark-wave, body.dark-wave section, body.dark-wave .tekup-related-product-section,body.dark-wave .about-page-area,  body.dark-wave .service-img,  body.dark-wave.services-section, body.dark-wave .video-area,    .heroFull,  body.dark-wave .section, body.dark-wave .product-area"
       )
     );
     if (!targets.length) return false;
@@ -143,13 +136,13 @@ const HeaderFourInner = () => {
     });
   }, [activeMenu]);
 
-  //  Medição antes de pintar (reduz flicker)
+ 
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     setIsTransparent(computeShouldBeTransparent());
   }, [computeShouldBeTransparent]);
 
-  //  Atualiza em scroll/resize com rAF
+ 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -161,6 +154,9 @@ const HeaderFourInner = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(update);
     };
+
+
+ 
 
     window.addEventListener("scroll", onScrollOrResize, { passive: true });
     window.addEventListener("resize", onScrollOrResize);
@@ -175,8 +171,7 @@ const HeaderFourInner = () => {
       clearTimeout(t);
     };
   }, [computeShouldBeTransparent]);
-
-  /** ---------- Sticky ao fazer scroll ---------- */
+ 
   useEffect(() => {
     const handleScrollSticky = () => {
       if (window.scrollY > 100) setScrollClassName("sticky-menu");
@@ -186,8 +181,7 @@ const HeaderFourInner = () => {
     handleScrollSticky();
     return () => window.removeEventListener("scroll", handleScrollSticky);
   }, []);
-
-  /** ---------- Mobile menu ---------- */
+ 
   const [subMenuArray, setSubMenuArray] = useState([]);
   const [subMenuTextArray, setSubMenuTextArray] = useState([]);
 
@@ -246,7 +240,7 @@ const HeaderFourInner = () => {
     }
   };
 
-  /** ---------- Fetch Soluções ---------- */
+ 
   useEffect(() => {
     const ac = new AbortController();
 
@@ -283,7 +277,7 @@ const HeaderFourInner = () => {
     return () => ac.abort();
   }, []);
 
-  // cards para soluções
+
   const solutionCards = useMemo(() => {
     return (solutions || []).map((item) => {
       const id = String(item?._id || "");
@@ -305,7 +299,7 @@ const HeaderFourInner = () => {
     });
   }, [solutions]);
 
-  // react-multi-carousel settings
+ 
   const carouselCfg = useMemo(
     () => ({
       responsive: {
@@ -337,7 +331,7 @@ const HeaderFourInner = () => {
     setIsActive(false);
   }, []);
 
-  // ESC fecha menu
+ 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setActiveMenu(null);
@@ -346,7 +340,7 @@ const HeaderFourInner = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // click fora fecha megamenu
+ 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!activeMenu) return;
@@ -360,8 +354,9 @@ const HeaderFourInner = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [activeMenu]);
 
-  const [WindowSize, SetWindowSize] = useState(window.innerWidth);
+  const [WindowSize, SetWindowSize] = useState(0);
   useEffect(() => { 
+    SetWindowSize(window.innerWidth);
     window.addEventListener("resize",(e)=>{   
        SetWindowSize(e.target.innerWidth); 
     }); 
@@ -374,6 +369,93 @@ const HeaderFourInner = () => {
   const logoSrc = headerIsWhite ? LOGO_DARK : LOGO_LIGHT;
   const logoAlt = headerIsWhite ? "Waveled (logo preto)" : "Waveled (logo branco)";
 
+
+
+
+
+
+
+
+   useEffect(() => {
+    checkDarkMode(); 
+   }, []);
+ 
+
+   function checkDarkMode() {
+     const isDark = localStorage.getItem("theme-status");
+     let status =  isDark !== null && isDark !== undefined;
+     if(status === true){
+         localStorage.setItem("theme-status", true)
+         document.querySelector("body").classList.add("dark-wave");
+     } 
+     setIsSiteDark(status);
+   }
+
+ 
+
+  function ToggleTheme(){
+        const isDark = localStorage.getItem("theme-status");
+     let status =  isDark !== null && isDark !== undefined;
+     if(status === false){
+         localStorage.setItem("theme-status", true)
+         document.querySelector("body").classList.add("dark-wave");
+         setIsSiteDark(true);
+     }else{
+        localStorage.removeItem("theme-status")
+        document.querySelector("body").classList.remove("dark-wave");
+        setIsSiteDark(false);
+     } 
+  }
+
+
+
+
+
+
+
+
+
+
+  useEffect(() => {
+    checkDarkMode(); 
+  }, []);
+
+  function checkDarkMode() {
+    let status = true; 
+    if (!localStorage.getItem("theme-status")) {
+      localStorage.setItem("theme-status", "true");
+      document.body.classList.add("dark-wave");
+      status = true;
+    } else if (localStorage.getItem("theme-status") === "true") {
+      document.body.classList.add("dark-wave");
+      status = true;
+    } else {
+      document.body.classList.remove("dark-wave");
+      status = false;
+    }
+    setIsSiteDark(status);
+  }
+
+  function ToggleTheme() {
+    const isDark = localStorage.getItem("theme-status");
+    let status = isDark === "true";
+    if (!status) {
+      localStorage.setItem("theme-status", "true");
+      document.body.classList.add("dark-wave");
+      setIsSiteDark(true);
+    } else {
+      localStorage.setItem("theme-status", "false");
+      document.body.classList.remove("dark-wave");
+      setIsSiteDark(false);
+    }
+  }
+
+
+
+
+
+
+
   return (
     <header
       id="site-header-area"
@@ -383,26 +465,40 @@ const HeaderFourInner = () => {
       } ${activeMenu ? "header-force-white" : ""}`}
       data-header-mode={headerIsWhite ? "white" : "glass"}
     >
-      {/*  CSS: links brancos no transparente, pretos no branco */}
-      <style jsx>{`
-        /* Base */
+      
+      <style jsx>{` 
         #site-header-area .tekup-header-bottom {
           transition: background 0.18s ease, box-shadow 0.18s ease;
         }
 
-        /* Transparente (glass) */
+        .contact-badge{
+           padding:2px 20px;
+           border-radius:10px;
+           border:1px solid #ffff;
+           border-radius:60px;
+        }
+
+        .ml-4{
+           margin-left:20px !important;
+        }
+
+        .site-menu-main .nav-item a{
+          font-size:13px !important;
+        }
+
+        
         .transparent-header .tekup-header-bottom {
           background: transparent !important;
           box-shadow: none !important;
         }
 
-        /* Branco (normal) */
+     
         #site-header-area[data-header-mode="white"] .tekup-header-bottom {
           background: #fff !important;
           box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
         }
 
-        /*  Links/texto brancos no transparente */
+        
         #site-header-area[data-header-mode="glass"] .nav-link-item,
         #site-header-area[data-header-mode="glass"] .nav-link-item.drop-trigger,
         #site-header-area[data-header-mode="glass"] .tekup-header-info-box-data h6,
@@ -422,13 +518,13 @@ const HeaderFourInner = () => {
           color: #111 !important;
         }
 
-        /* Quando mega menu aberto, força branco (já coberto por headerIsWhite) */
+ 
  
         .header-force-white .tekup-header-bottom{
           background: #fff !important;
         }
 
-        /* Soluções dropdown */
+ 
         .sub-menu-box {
           position: relative;
           overflow: hidden;
@@ -449,11 +545,13 @@ const HeaderFourInner = () => {
           object-fit: cover;
           border-radius: 8px;
         }
+
         .submn-article strong {
           display: block;
           margin-top: 6px;
           color: #000;
         }
+ 
       `}</style>
 
       <div className="tekup-header-bottom">
@@ -498,43 +596,34 @@ const HeaderFourInner = () => {
                     <Link href="/" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Início
                     </Link>
-                  </li> 
-                  {/* Produtos */}
-                  <li className="nav-item">
+                  </li>  
+                  <li className="nav-item ml-4">
                       {WindowSize  >= 900 ? <ProductMegaMenu /> : 
                       <Link style={{paddingLeft:"20px"}} className="nav-link-item drop-trigger" href="/products">Produtos</Link>}
-                  </li> 
-                 {/* Serviços */}
+                  </li>  
                   <li className="nav-item">
                     <Link href="/service" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Serviços
                     </Link>
-                  </li> 
-                  {/* Soluções */}
+                  </li>  
                   <li className="nav-item">
                      {WindowSize >= 900 ? <SolutionMegaMenu/> : <Link className="nav-link-item drop-trigger" href="//solution?area=695b880b926032a07bbefef7">Soluções</Link>}
                   </li> 
-                  <li className="nav-item">
+                 
+                </ul>
+              </nav>
+            </div> 
+            <div className="header-btn d-flex header-btn-l1 ms-auto">
+                <li className="nav-item contact-badge ">
                     <Link href="contact-us" className="nav-link-item" onClick={onMegaLinkClick}>
                       Contactos
                     </Link>
                   </li>
-                </ul>
-              </nav>
-            </div> 
-            <div className="header-btn header-btn-l1 ms-auto">
-              <div className="tekup-header-icon">
-                <Link href="tel:+351210353555" className="header-icon-info-box" onClick={onMegaLinkClick}>
-                  <div className="d-none tekup-header-info-box-wrap">
-                    <div className="tekup-header-info-box-icon">
-                      <i className="ri-phone-fill"></i>
-                    </div>
-                    <div className="tekup-header-info-box-data">
-                      <p>Ligue a qualquer altura</p>
-                      <h6>(+351) 210 353 555</h6>
-                    </div>
+
+                  <div className="toggle-dark-theme"onClick={()=>ToggleTheme()} >
+                    {IsSiteDark ? <GoSun />  : <RiMoonFoggyLine/>}
                   </div>
-                </Link>
+              <div className="tekup-header-icon"> 
                 <div className="tekup-header-barger dark" onClick={() => setSideBar(!sideBar)}>
                   <span></span>
                 </div>
@@ -552,8 +641,6 @@ const HeaderFourInner = () => {
           </nav>
         </div>
       </div>
-
-      {/* ================= OFFCANVAS ================= */}
       <div className="tekup-sidemenu-wraper">
         <div className={`tekup-sidemenu-column ${sideBar ? "active" : ""}`}>
           <div className="tekup-sidemenu-body">
@@ -561,7 +648,14 @@ const HeaderFourInner = () => {
               <Link href="%" onClick={() => setSideBar(false)}>
                 <h5 style={{ fontSize: "20px" }} className="text-dark">
                   <img
+                    className="dark-logo"
                     src={LOGO_DARK}
+                    style={{ maxHeight: "60px", marginBottom: "10px" }}
+                    alt=""
+                  />
+                    <img
+                    className="light-logo"
+                    src={LOGO_LIGHT}
                     style={{ maxHeight: "60px", marginBottom: "10px" }}
                     alt=""
                   />
@@ -619,7 +713,6 @@ const HeaderFourInner = () => {
   );
 };
 
-// Wrapper com Suspense
 const HeaderFour = () => (
   <Suspense fallback={null}>
     <HeaderFourInner />

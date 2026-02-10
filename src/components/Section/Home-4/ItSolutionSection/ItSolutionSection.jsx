@@ -36,8 +36,52 @@ const ItSolutionSection = () => {
     >
       <br />
       <div id="tekup-counter"></div>
+      <br /><br /><br />
       <div className="container">
         <div className="row">
+          
+          {/* TEXTO PRINCIPAL */}
+          <div className="col-lg-6 d-flex align-items-center">
+            <div className="tekup-default-content mr-60">
+              <h2>Especialistas em painéis LED para empresas e desporto</h2>
+              <p>
+                Somos uma equipa especializada na montagem e fornecimento de
+                painéis LED para empresas, espaços desportivos e eventos.
+                Garantimos soluções personalizadas, tecnologia de ponta e
+                equipamentos de elevada fiabilidade, ajudando a sua marca a
+                destacar-se todos os dias — em interiores ou exteriores.
+              </p>
+
+              <div className="tekup-extra-mt">
+                <Link
+                  className="tekup-default-btn"
+                  href="/single-shop?product=691c61119864e86ab50c879d"
+                >
+                  Saiba mais <i className="ri-arrow-right-up-line"></i>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* IMAGEM PRINCIPAL */}
+          <div className="col-lg-6 order-lg-2">
+            <div className="tekup-thumb ml-60">
+              <img
+                className="sport-img"
+                src="https://res.cloudinary.com/dcl5uszfj/image/upload/v1769182102/waveled/uploads/glcylamgtwrx7rmmpscm.jpg"
+                alt="Painel LED instalado em contexto desportivo"
+              />
+            </div>
+          </div>  
+        </div>
+          <br /><br />
+      </div> 
+           <div className="bg-danger col-lg-12">
+               <img className="image-home" src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202026-02-05T162518.496.png" alt="" />
+           </div>
+          <div className="container"> 
+          <br /><br />
+          <div className="row row-reverse">
           {/* IMAGEM PRINCIPAL */}
           <div className="col-lg-6 order-lg-2">
             <div className="tekup-thumb ml-60">
@@ -47,8 +91,7 @@ const ItSolutionSection = () => {
                 alt="Painel LED instalado em contexto desportivo"
               />
             </div>
-          </div>
-
+          </div> 
           {/* TEXTO PRINCIPAL */}
           <div className="col-lg-6 d-flex align-items-center">
             <div className="tekup-default-content mr-60">
@@ -81,7 +124,7 @@ const ItSolutionSection = () => {
     <article className="top-product-card">
       <div className="image">
         <img
-          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(64).png"
+          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202026-02-06T111509.472.jpg"
           alt="Painel LED publicitário exterior"
           loading="lazy"
         />
@@ -107,7 +150,7 @@ const ItSolutionSection = () => {
     <article className="top-product-card">
       <div className="image">
         <img
-          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(65).png"
+          src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202026-02-05T171414.231.png"
           alt="Tela LED em sala de reuniões corporativa"
           loading="lazy"
         />
@@ -140,7 +183,7 @@ const ItSolutionSection = () => {
         <div className="container">
           <div className="rack-rows">
             <div className="image">
-              <img src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202025-12-29T145640.164.png" alt="" />
+               <img src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20-%202026-02-06T092715.800%20(1).png" alt="#" />
             </div>
             <div className="text-area">
               <h2>Prateleiras digitais que Aumentam as Vendas</h2>

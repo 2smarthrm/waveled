@@ -11,14 +11,14 @@ const API_BASE =
     ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 
-const LOGO_URL =
-  "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png";
+const LOGO_URL = "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png";
+const LOGO_URL_LIGHT = "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png";
 
 const toArray = (raw) =>
   Array.isArray(raw)
     ? raw
     : Array.isArray(raw?.data)
-    ? raw.data
+    ? raw.data 
     : Array.isArray(raw?.items)
     ? raw.items
     : [];
@@ -32,6 +32,7 @@ async function fetchJson(url) {
 export default function FooterFore(props) {
   const [areasList, setAreasList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [IsSiteDark, setIsSiteDark] = useState(false);
   const [err, setErr] = useState("");
   const [email, setEmail] = useState("");
   const [nlState, setNlState] = useState({ status: "idle", msg: "" });
@@ -91,29 +92,33 @@ export default function FooterFore(props) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
   }
 
+
+
+   /// code para mudar o logotipo no modo dark 
+   useEffect(() => { 
+      const isDark = localStorage.getItem("theme-status");
+      setIsSiteDark(isDark !== undefined && isDark !== null ? true : false);  
+   });
+
+
+
   async function handleNewsletterSubmit(e) {
     e.preventDefault();
     const v = email.trim();
 
-    if (!isValidEmail(v)) {
-      setNlState({ status: "error", msg: "Indique um email válido." });
-      return;
+    if(!isValidEmail(v)){
+       setNlState({ status: "error", msg: "Indique um email válido." });
+       return;
     }
-
-    // UI pronto; integra aqui o teu endpoint quando existir
-    // Ex: await fetch(`${API_BASE}/api/newsletter`, { method:"POST", headers:{...}, body: JSON.stringify({email:v}) })
+ 
     setNlState({ status: "success", msg: "Subscrição registada com sucesso." });
     setEmail("");
   }
 
   return (
-    <>
-      {/* CTA bar antes do footer */}
+    <> 
  
-        <section
-          className="wl-prefooter-cta"
-          aria-label="Chamada para contacto"
-        >
+        <section  className="wl-prefooter-cta"      aria-label="Chamada para contacto"    >
           <div className="wl-cta-bg" aria-hidden="true" />
           <div className="container">
             <div className="wl-cta-inner">
@@ -142,11 +147,8 @@ export default function FooterFore(props) {
               <div className="col-xl-3 col-lg-12">
                 <div className="tekup-footer-textarea">
                   <Link href="/">
-                    <img
-                      src={LOGO_URL}
-                      alt="Waveled"
-                      style={{ maxHeight: "65px", width: "auto" }}
-                    />
+                    <img  className="dark-logo" src={LOGO_URL} alt="Waveled"  style={{ maxHeight: "65px", width: "auto" }}   />
+                    <img  className="light-logo" src={LOGO_URL_LIGHT} alt="Waveled"  style={{ maxHeight: "65px", width: "auto" }}   />
                   </Link>
 
                   <p style={{ ...mutedStyle, marginTop: "14px" }}>
