@@ -1,6 +1,4 @@
- // slick-dots
 "use client";
-
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -8,7 +6,7 @@ import axios from "axios";
 import Slider from "react-slick/lib/slider";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { IoPlay } from "react-icons/io5";
+import { IoPlay } from "react-icons/io5"; 
 
 function FiveSolutionsSlider({ items }) {
   const Settings = {
@@ -41,8 +39,7 @@ function FiveSolutionsSlider({ items }) {
               qualidade visual.
             </p>
           </div>
-        </div>
-
+        </div> 
         <Slider {...Settings}>
           {items.map((item, index) => (
             <article key={index}>
@@ -56,14 +53,8 @@ function FiveSolutionsSlider({ items }) {
                     Saiba mais
                   </button>
                 </Link>
-              </div>
-
-              <br />
-              <br />
-              <br />
-              <br />
-              <br />
-              <br />
+              </div> 
+              <br /><br /><br /><br /><br /><br />
             </article>
           ))}
         </Slider>
@@ -135,7 +126,7 @@ function HeaderAreaAndTitle({ title, areas, active }) {
   );
 }
 
-function CardSliderVertical({ item }) {
+function CardSliderVertical({ item }){
   return (
     <div className="card-slider-vertical">
       <article className="card-inner">
@@ -158,12 +149,12 @@ function CardSliderVertical({ item }) {
   );
 }
 
-function TwoNiceProducts({ items }) {
+function TwoNiceProducts({ items }) { 
   return (
     <div className="categorie-page-two">
       {items.map((item, index) => (
         <article key={index}>
-          <img src={item?.image} alt={item.title} />
+          <img className="tw-image" src={item?.image} alt={item.title} />
           <h5 className="mb-4">{item.title}</h5>
           <Link href={item._productLink}>
             <button className="tekup-default-btn" type="button">
@@ -276,7 +267,6 @@ function VideoSolutionsSlick() {
           </div>
         ))}
       </Slider>
-
       {lightboxOpen && (
         <div
           className="vs-modal"
@@ -402,11 +392,8 @@ export default function ShopSection() {
       setErrorMsg("");
 
       try {
-        // carrega SEMPRE as areas (tabs)
         const areasRes = await axios.get(API_BASE + `/api/cms/application-areas`);
         setAreas(areasRes.data?.data || []);
-
-        // se não houver area na URL, não tenta carregar page
         if (!areaId) {
           setPage(null);
           return;
@@ -493,7 +480,6 @@ export default function ShopSection() {
     );
   }
 
-  // sem area selecionada: mostra só tabs e mensagem
   if (!areaId) {
     return (
       <div className="categorie-page">

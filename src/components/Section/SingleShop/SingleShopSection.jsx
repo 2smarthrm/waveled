@@ -1,13 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useRef } from "react";
-
-// Lightbox (yet-another-react-lightbox)
+import { useEffect, useMemo, useState, useRef } from "react"; 
 import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
-
-// >>> React-Bootstrap (Skeletons / Placeholders)
+import "yet-another-react-lightbox/styles.css"; 
 import { Placeholder } from "react-bootstrap";
 import RequestModal from "../Common/RequestBudgetModal/RequestModal";
 
@@ -15,13 +11,9 @@ const isBrowser = typeof window !== "undefined";
 const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
 const API_BASE =
-  protocol === "https"
-    ? "https://waveledserver.vercel.app"
-    : "http://localhost:4000";
+  protocol === "https" ? "https://waveledserver.vercel.app" : "http://localhost:4000";
 const IMG_HOST =
-  protocol === "https"
-    ? "https://waveledserver.vercel.app"
-    : "http://localhost:4000";
+  protocol === "https" ? "https://waveledserver.vercel.app"  : "http://localhost:4000";
 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
@@ -49,13 +41,8 @@ async function fetchJson(url) {
   return res.json();
 }
 
-/*
-=========================================================
-   COMPONENTE: ProductIndustries
-=========================================================
-*/
-function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
-  // todos os exemplos (para grid + lightbox)
+ 
+function ProductIndustries({ examples = [], autoPlayMs = 3500 }) { 
   const all = useMemo(() => {
     return (examples || [])
       .map((e, i) => ({
@@ -70,8 +57,7 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
   if (all.length === 0) return null;
 
   const [view, setView] = useState("recomendacoes");
-
-  // ====== MODELO (mantém design anterior) ======
+ 
   const modelData = useMemo(() => all.slice(0, 4), [all]);
   const len = modelData.length;
 
@@ -94,11 +80,9 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
 
   useEffect(() => {
     start();
-    return stop;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return stop; 
   }, [len, autoPlayMs, view]);
-
-  // swipe horizontal (como estava)
+ 
   const touchStartX = useRef(0);
   const touching = useRef(false);
   const onTouchStart = (e) => {
@@ -129,8 +113,7 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
     else if (e.key === "ArrowLeft") setIdx((i) => wrap(i - 1));
     else if (e.key === "Escape") setLbOpen(false);
   };
-
-  // ====== Lightbox local (todos) ======
+ 
   const [lbOpen, setLbOpen] = useState(false);
   const [lbIndex, setLbIndex] = useState(0);
 
@@ -148,36 +131,30 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
     setLbIndex(startAt);
     setLbOpen(true);
   };
-
-  // ====== GRID: regras novas ======
-  // - só aparece "+X" quando EXISTIR MAIS DE 8 itens (>= 9)
-  // - preview: 7 itens + tile "+X"
+ 
   const PREVIEW_REAL_ITEMS = 7;
-  const SHOW_MORE_THRESHOLD = 8; // só mostra "+X" se all.length > 8
+  const SHOW_MORE_THRESHOLD = 8; 
   const [showAllGrid, setShowAllGrid] = useState(false);
 
   useEffect(() => {
     if (view !== "mais") setShowAllGrid(false);
   }, [view]);
 
-  const hasMoreThanThreshold = all.length > SHOW_MORE_THRESHOLD; // > 8
+  const hasMoreThanThreshold = all.length > SHOW_MORE_THRESHOLD; 
   const remaining = Math.max(0, all.length - PREVIEW_REAL_ITEMS);
   const showMoreTile = !showAllGrid && hasMoreThanThreshold;
 
   const gridItems = useMemo(() => {
     if (showAllGrid) return all;
-
-    // se tiver 8 ou menos, mostra tudo (sem "+X")
+ 
     if (!hasMoreThanThreshold) return all;
-
-    // se tiver mais de 8, mostra 7 (e o 8º é o "+X")
+ 
     return all.slice(0, PREVIEW_REAL_ITEMS);
   }, [all, showAllGrid, hasMoreThanThreshold]);
-
-  // imagem atrás do tile "+X" (usa a 8ª imagem como fundo)
+ 
   const moreBgImage = useMemo(() => {
     if (!hasMoreThanThreshold) return "";
-    const eighth = all[PREVIEW_REAL_ITEMS]; // index 7 (8º item)
+    const eighth = all[PREVIEW_REAL_ITEMS];  
     return eighth?.image || "";
   }, [all, hasMoreThanThreshold]);
 
@@ -542,10 +519,7 @@ function ProductIndustries({ examples = [], autoPlayMs = 3500 }) {
     </div>
   );
 }
-
-/* =========================================================
-   SKELETONS (React-Bootstrap Placeholders)
-========================================================= */
+ 
 function Line({ xs = 12, style = {} }) {
   return (
     <div className="skeleton-soft skeleton-light">
@@ -684,9 +658,7 @@ function ProductSkeleton() {
   );
 }
 
-/* =========================================================
-   PÁGINA: SingleShopSection
-========================================================= */
+ 
 export default function SingleShopSection() {
   const [productId, setProductId] = useState(null);
 
@@ -732,7 +704,7 @@ export default function SingleShopSection() {
 
   function AddChipIcon() {
     setTimeout(() => {
-      const svg = "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50.png";
+      const svg = document.querySelectorAll("body.dark-wave").length === 0 ? "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50.png" : "https://ik.imagekit.io/fsobpyaa5i/icons8-chip-50%20(1).png";
       const items = document.querySelectorAll("#pills-description ul li");
 
       items.forEach((li) => {
@@ -803,11 +775,7 @@ export default function SingleShopSection() {
           if (!abort) setExamples([]);
         }
 
-        // ==============================
-        // PRODUTOS RELACIONADOS (até 4)
-        // - tenta mesma categoria
-        // - se insuficiente, completa com outros produtos (fallback)
-        // ==============================
+  
         let relatedList = [];
         const catName = prod?.wl_category?.wl_name;
 
@@ -1135,9 +1103,7 @@ export default function SingleShopSection() {
         </section>
       )}
 
-      {/* ==============================
-          PRODUTOS RELACIONADOS (NO FINAL)
-          ============================== */}
+ 
       {Array.isArray(related) && related.length > 0 && (
         <div className="tekup-related-product-section pb-2">
           <br /><br />

@@ -192,7 +192,7 @@ over_text: {
                   <p>{item.description}</p>
                   <Link href="/contact-us" className="tekup-default-btn">Saiba mais</Link>
                 </div>
-                <div style={{padding:"20px"}} className="image">
+                <div style={{padding:"20px"}} className="image serv-img">
                   <img style={{width:"100%",height:"100%",objectFit:"cover"}}  src={item.image} alt={item.title} loading="lazy" />
                 </div>
               </div>
