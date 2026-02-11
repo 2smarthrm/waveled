@@ -139,10 +139,8 @@ over_text: {
   { 
     title: "Orçamentação",
     reverse: true,
-    description:
-      "Propostas transparentes e comparáveis: dimensionamento, TCO (custo total de propriedade), consumo energético estimado, opções de financiamento e prazos de entrega. Indicamos o ROI esperado por cenário (retalho, eventos, corporate) e alinhamos tudo com o teu budget — sem surpresas, só clareza.",
-    image:
-      "https://images.pexels.com/photos/4386373/pexels-photo-4386373.jpeg",
+    description:"Propostas transparentes e comparáveis: dimensionamento, TCO (custo total de propriedade), consumo energético estimado, opções de financiamento e prazos de entrega. Indicamos o ROI esperado por cenário (retalho, eventos, corporate) e alinhamos tudo com o teu budget — sem surpresas, só clareza.",
+    image:"https://images.pexels.com/photos/8297017/pexels-photo-8297017.jpeg",
     over_text: { text_1: "Propostas que convencem", text_2: "ROI • TCO • Financiamento" },
   },
 ];
