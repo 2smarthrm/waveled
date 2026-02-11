@@ -19,7 +19,6 @@ import LanguageSwitcher from "~/components/components/lang-switcher/lang-switche
 import { GoSun } from "react-icons/go";
 import { RiMoonFoggyLine } from "react-icons/ri";
 
-
 const ProductMegaMenu = dynamic(() => import("./ProductMegaMenu"), {
   ssr: false,
   loading: () => (
@@ -33,8 +32,6 @@ const ProductMegaMenu = dynamic(() => import("./ProductMegaMenu"), {
     />
   ),
 });
-
-
 
 const SolutionMegaMenu = dynamic(() => import("./SolutionMegaMenu"), {
   ssr: false,
@@ -50,10 +47,6 @@ const SolutionMegaMenu = dynamic(() => import("./SolutionMegaMenu"), {
   ),
 });
 
-
-
- 
- 
 const isBrowser = typeof window !== "undefined";
 const protocol =
   isBrowser && window.location.protocol === "https:" ? "https" : "http";
@@ -66,19 +59,16 @@ const IMG_HOST =
     ? "https://waveledserver.vercel.app"
     : "http://localhost:4000";
 
- 
 const LOGO_DARK =
   "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png";
 const LOGO_LIGHT =
   "https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-03%20(1).png";
 
- 
 const isAbsoluteUrl = (u) => typeof u === "string" && /^https?:\/\//i.test(u);
 const withHost = (u) => (u ? (isAbsoluteUrl(u) ? u : `${IMG_HOST}${u}`) : "");
 const truncate = (s, n = 60) =>
   s && s.length > n ? s.substring(0, n).trimEnd() + "…" : s || "";
 
- 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -89,28 +79,38 @@ const HeaderFourInner = () => {
   const [sideBar, setSideBar] = useState(false);
   const [isActive, setIsActive] = useState(false);
 
-  const [scrollClassName, setScrollClassName] = useState(""); 
+  const [scrollClassName, setScrollClassName] = useState("");
   const [isTransparent, setIsTransparent] = useState(false);
 
- 
   const [solutions, setSolutions] = useState([]);
   const [loadingSolutions, setLoadingSolutions] = useState(true);
-  const [solutionsError, setSolutionsError] = useState(""); 
-  const [activeMenu, setActiveMenu] = useState(null);  
+  const [solutionsError, setSolutionsError] = useState("");
+  const [activeMenu, setActiveMenu] = useState(null);
 
   const headerRef = useRef(null);
   const rafRef = useRef(0);
   const [IsSiteDark, setIsSiteDark] = useState(false);
- 
+
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  
   useEffect(() => {
+    checkDarkMode();
     setActiveMenu(null);
-    setIsActive(false);
+    setIsActive(false); 
+    setTimeout(() => {
+      if(typeof window !== "undefined"){  
+        window.scrollBy(0, 4);
+        setTimeout(() => {
+          window.scrollBy(0, -104);
+        }, 500);
+        setIsTransparent(computeShouldBeTransparent());
+      }
+    }, 10);
   }, [pathname, searchParams?.toString()]);
-
  
+
   const computeShouldBeTransparent = useCallback(() => {
     if (typeof window === "undefined") return false;
     if (activeMenu) return false;
@@ -123,7 +123,7 @@ const HeaderFourInner = () => {
 
     const targets = Array.from(
       document.querySelectorAll(
-        ".blur-slide-screen, .video-shop-large-section, body.dark-wave, body.dark-wave section, body.dark-wave .tekup-related-product-section,body.dark-wave .about-page-area,  body.dark-wave .service-img,  body.dark-wave.services-section, body.dark-wave .video-area,    .heroFull,  body.dark-wave .section, body.dark-wave .product-area"
+        ".blur-slide-screen, .video-shop-large-section, body.dark-wave, body.dark-wave section, body.dark-wave .tekup-related-product-section,body.dark-wave .about-page-area,  body.dark-wave .service-img,  body.dark-wave.services-section, body.dark-wave .video-area,    .heroFull,  body.dark-wave .section, body.dark-wave .product-area, body.dark-wave .categorie-page,  body.dark-wave, body.dark-wave .product-category-section"
       )
     );
     if (!targets.length) return false;
@@ -145,6 +145,15 @@ const HeaderFourInner = () => {
  
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const update = () => setIsTransparent(computeShouldBeTransparent());
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, [computeShouldBeTransparent]);
+
+ 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
     const update = () => {
       setIsTransparent(computeShouldBeTransparent());
@@ -154,9 +163,6 @@ const HeaderFourInner = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(update);
     };
-
-
- 
 
     window.addEventListener("scroll", onScrollOrResize, { passive: true });
     window.addEventListener("resize", onScrollOrResize);
@@ -171,7 +177,7 @@ const HeaderFourInner = () => {
       clearTimeout(t);
     };
   }, [computeShouldBeTransparent]);
- 
+
   useEffect(() => {
     const handleScrollSticky = () => {
       if (window.scrollY > 100) setScrollClassName("sticky-menu");
@@ -181,7 +187,7 @@ const HeaderFourInner = () => {
     handleScrollSticky();
     return () => window.removeEventListener("scroll", handleScrollSticky);
   }, []);
- 
+
   const [subMenuArray, setSubMenuArray] = useState([]);
   const [subMenuTextArray, setSubMenuTextArray] = useState([]);
 
@@ -240,7 +246,6 @@ const HeaderFourInner = () => {
     }
   };
 
- 
   useEffect(() => {
     const ac = new AbortController();
 
@@ -277,7 +282,6 @@ const HeaderFourInner = () => {
     return () => ac.abort();
   }, []);
 
-
   const solutionCards = useMemo(() => {
     return (solutions || []).map((item) => {
       const id = String(item?._id || "");
@@ -299,7 +303,6 @@ const HeaderFourInner = () => {
     });
   }, [solutions]);
 
- 
   const carouselCfg = useMemo(
     () => ({
       responsive: {
@@ -331,7 +334,6 @@ const HeaderFourInner = () => {
     setIsActive(false);
   }, []);
 
- 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setActiveMenu(null);
@@ -340,7 +342,6 @@ const HeaderFourInner = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
- 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!activeMenu) return;
@@ -355,73 +356,20 @@ const HeaderFourInner = () => {
   }, [activeMenu]);
 
   const [WindowSize, SetWindowSize] = useState(0);
-  useEffect(() => { 
+  useEffect(() => {
     SetWindowSize(window.innerWidth);
-    window.addEventListener("resize",(e)=>{   
-       SetWindowSize(e.target.innerWidth); 
-    }); 
+    window.addEventListener("resize", (e) => {
+      SetWindowSize(e.target.innerWidth);
+    });
   }, []);
-
- 
-
 
   const headerIsWhite = !!activeMenu || !isTransparent;
   const logoSrc = headerIsWhite ? LOGO_DARK : LOGO_LIGHT;
   const logoAlt = headerIsWhite ? "Waveled (logo preto)" : "Waveled (logo branco)";
 
-
-
-
-
-
-
-
-   useEffect(() => {
-    checkDarkMode(); 
-   }, []);
  
-
-   function checkDarkMode() {
-     const isDark = localStorage.getItem("theme-status");
-     let status =  isDark !== null && isDark !== undefined;
-     if(status === true){
-         localStorage.setItem("theme-status", true)
-         document.querySelector("body").classList.add("dark-wave");
-     } 
-     setIsSiteDark(status);
-   }
-
- 
-
-  function ToggleTheme(){
-        const isDark = localStorage.getItem("theme-status");
-     let status =  isDark !== null && isDark !== undefined;
-     if(status === false){
-         localStorage.setItem("theme-status", true)
-         document.querySelector("body").classList.add("dark-wave");
-         setIsSiteDark(true);
-     }else{
-        localStorage.removeItem("theme-status")
-        document.querySelector("body").classList.remove("dark-wave");
-        setIsSiteDark(false);
-     } 
-  }
-
-
-
-
-
-
-
-
-
-
-  useEffect(() => {
-    checkDarkMode(); 
-  }, []);
-
   function checkDarkMode() {
-    let status = true; 
+    let status = true;
     if (!localStorage.getItem("theme-status")) {
       localStorage.setItem("theme-status", "true");
       document.body.classList.add("dark-wave");
@@ -448,13 +396,12 @@ const HeaderFourInner = () => {
       document.body.classList.remove("dark-wave");
       setIsSiteDark(false);
     }
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("scroll"));
+      }
+    }, 10);
   }
-
-
-
-
-
-
 
   return (
     <header
@@ -465,73 +412,54 @@ const HeaderFourInner = () => {
       } ${activeMenu ? "header-force-white" : ""}`}
       data-header-mode={headerIsWhite ? "white" : "glass"}
     >
-      
-      <style jsx>{` 
+      <style jsx>{`
         #site-header-area .tekup-header-bottom {
           transition: background 0.18s ease, box-shadow 0.18s ease;
         }
-
-        .contact-badge{
-           padding:2px 20px;
-           border-radius:10px;
-           border:1px solid #ffff;
-           border-radius:60px;
+        .contact-badge {
+          padding: 2px 20px;
+          border-radius: 10px;
+          border: 1px solid #ffff;
+          border-radius: 60px;
         }
-
-        .ml-4{
-           margin-left:20px !important;
+        .ml-4 {
+          margin-left: 20px !important;
         }
-
-        .site-menu-main .nav-item a{
-          font-size:13px !important;
+        .site-menu-main .nav-item a {
+          font-size: 13px !important;
         }
-
-        
         .transparent-header .tekup-header-bottom {
           background: transparent !important;
           box-shadow: none !important;
         }
-
-     
         #site-header-area[data-header-mode="white"] .tekup-header-bottom {
           background: #fff !important;
           box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
         }
-
-        
         #site-header-area[data-header-mode="glass"] .nav-link-item,
         #site-header-area[data-header-mode="glass"] .nav-link-item.drop-trigger,
         #site-header-area[data-header-mode="glass"] .tekup-header-info-box-data h6,
         #site-header-area[data-header-mode="glass"] .tekup-header-info-box-data p {
           color: rgba(255, 255, 255, 0.92) !important;
         }
-
         #site-header-area[data-header-mode="glass"] .nav-link-item:hover {
           color: #fff !important;
         }
-
-        /*  Links/texto pretos no branco */
         #site-header-area[data-header-mode="white"] .nav-link-item,
         #site-header-area[data-header-mode="white"] .nav-link-item.drop-trigger,
         #site-header-area[data-header-mode="white"] .tekup-header-info-box-data h6,
         #site-header-area[data-header-mode="white"] .tekup-header-info-box-data p {
           color: #111 !important;
         }
-
- 
- 
-        .header-force-white .tekup-header-bottom{
+        .header-force-white .tekup-header-bottom {
           background: #fff !important;
         }
-
- 
         .sub-menu-box {
           position: relative;
           overflow: hidden;
           will-change: opacity, transform;
           z-index: 999999;
         }
-
         .submn-article {
           display: flex;
           flex-direction: column;
@@ -545,13 +473,11 @@ const HeaderFourInner = () => {
           object-fit: cover;
           border-radius: 8px;
         }
-
         .submn-article strong {
           display: block;
           margin-top: 6px;
           color: #000;
         }
- 
       `}</style>
 
       <div className="tekup-header-bottom">
@@ -579,12 +505,15 @@ const HeaderFourInner = () => {
 
               <nav className={`menu-block ${isActive ? "active" : ""}`} id="append-menu-header">
                 <div className="mobile-menu-head">
-                   <div>
-                     <Link href={"/"}>
-                         <img src="https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png"
-                          style={{maxWidth:"160px",marginLeft:"20px"}} alt="" />
-                     </Link>
-                   </div>
+                  <div>
+                    <Link href={"/"}>
+                      <img
+                        src="https://ik.imagekit.io/fsobpyaa5i/Waveled_logo-02%20(1)%20(4).png"
+                        style={{ maxWidth: "160px", marginLeft: "20px" }}
+                        alt=""
+                      />
+                    </Link>
+                  </div>
                   <div className="current-menu-title"></div>
                   <div className="mobile-menu-close" onClick={() => setIsActive(false)}>
                     &times;
@@ -596,34 +525,51 @@ const HeaderFourInner = () => {
                     <Link href="/" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Início
                     </Link>
-                  </li>  
+                  </li>
                   <li className="nav-item ml-4">
-                      {WindowSize  >= 900 ? <ProductMegaMenu /> : 
-                      <Link style={{paddingLeft:"20px"}} className="nav-link-item drop-trigger" href="/products">Produtos</Link>}
-                  </li>  
+                    {WindowSize >= 900 ? (
+                      <ProductMegaMenu />
+                    ) : (
+                      <Link
+                        style={{ paddingLeft: "20px" }}
+                        className="nav-link-item drop-trigger"
+                        href="/products"
+                      >
+                        Produtos
+                      </Link>
+                    )}
+                  </li>
                   <li className="nav-item">
                     <Link href="/service" className="nav-link-item drop-trigger" onClick={onMegaLinkClick}>
                       Serviços
                     </Link>
-                  </li>  
+                  </li>
                   <li className="nav-item">
-                     {WindowSize >= 900 ? <SolutionMegaMenu/> : <Link className="nav-link-item drop-trigger" href="//solution?area=695b880b926032a07bbefef7">Soluções</Link>}
-                  </li> 
-                 
+                    {WindowSize >= 900 ? (
+                      <SolutionMegaMenu />
+                    ) : (
+                      <Link
+                        className="nav-link-item drop-trigger"
+                        href="//solution?area=695b880b926032a07bbefef7"
+                      >
+                        Soluções
+                      </Link>
+                    )}
+                  </li>
                 </ul>
               </nav>
-            </div> 
+            </div>
             <div className="header-btn d-flex header-btn-l1 ms-auto">
-                <li className="nav-item contact-badge ">
-                    <Link href="contact-us" className="nav-link-item" onClick={onMegaLinkClick}>
-                      Contactos
-                    </Link>
-                  </li>
+              <li className="nav-item contact-badge ">
+                <Link href="contact-us" className="nav-link-item" onClick={onMegaLinkClick}>
+                  Contactos
+                </Link>
+              </li>
 
-                  <div className="toggle-dark-theme"onClick={()=>ToggleTheme()} >
-                    {IsSiteDark ? <GoSun />  : <RiMoonFoggyLine/>}
-                  </div>
-              <div className="tekup-header-icon"> 
+              <div className="toggle-dark-theme" onClick={() => ToggleTheme()}>
+                {IsSiteDark ? <GoSun /> : <RiMoonFoggyLine />}
+              </div>
+              <div className="tekup-header-icon">
                 <div className="tekup-header-barger dark" onClick={() => setSideBar(!sideBar)}>
                   <span></span>
                 </div>
@@ -653,7 +599,7 @@ const HeaderFourInner = () => {
                     style={{ maxHeight: "60px", marginBottom: "10px" }}
                     alt=""
                   />
-                    <img
+                  <img
                     className="light-logo"
                     src={LOGO_LIGHT}
                     style={{ maxHeight: "60px", marginBottom: "10px" }}
@@ -669,14 +615,11 @@ const HeaderFourInner = () => {
               A Waveled é uma empresa inovadora especializada em soluções LED de iluminação e display.
               Apoiamos marcas, eventos e espaços comerciais com projetos chave-na-mão: consultoria,
               conceção, instalação, operação e manutenção. O nosso foco é entregar impacto visual,
-              eficiência energética e fiabilidade.
+              eficiência energética  e fiabilidade.
             </p>
 
             <div className="tekup-sidemenu-thumb">
-              <img
-                src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(29).jpg"
-                alt="Waveled Led Solutions"
-              />
+              <img src="https://ik.imagekit.io/fsobpyaa5i/image-gen%20(29).jpg"  alt="Waveled Led Solutions"  />
             </div>
 
             <div className="tekup-contact-info-wrap">
@@ -684,7 +627,7 @@ const HeaderFourInner = () => {
                 <i className="ri-map-pin-2-fill"></i>
                 <h5>Endereço</h5>
                 <p className="m-0">
-                  Rua Fernando Farinha nº 2A e 2B
+                  Rua Fernando Farinha nº 2A e 2B 
                   <br />
                   Braço de Prata, 1950-448 Lisboa
                 </p>
